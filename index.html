@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f4f7f6;
+            --text: #333;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        header {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* CONTINGUT PRINCIPAL */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+
+        .welcome-msg {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        /* GRID DE SERVEIS */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 5px solid var(--accent);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .status-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .active { background: #e3f2fd; color: #1976d2; }
+        .pending { background: #f5f5f5; color: #9e9e9e; }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Gestoria Polanyi</h1>
+        <p>Un lloc on aprendre economia</p>
+    </header>
+
+    <main>
+        <div class="welcome-msg">
+            <h2>Benvingut/da al teu despatx virtual</h2>
+            <p>Selecciona l'àrea de treball que vols practicar</p>
+        </div>
+
+        <div class="services-grid">
+            
+            <a href="ratios.html" class="card">
+                <h2>Ràtios financeres</h2>
+                <p>Auditeu la liquiditat, solvència i endeutament de les empreses clients. Mode Calma i Contra Rellotge disponible.</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
+
+            <div class="card" style="opacity: 0.7; cursor: not-allowed;">
+                <h2>Pèrdues i guanys</h2>
+                <p>Gestió del resultat de l'exercici i càlcul d'impostos. Analitzeu la rendibilitat de l'explotació.</p>
+                <span class="status-badge pending">Properament</span>
+            </div>
+
+            <div class="card" style="opacity: 0.7; cursor: not-allowed;">
+                <h2>Balanç de situació</h2>
+                <p>Càlcul de Payback, VAN i TIR per a la presa de decisions estratègiques de capital.</p>
+                <span class="status-badge pending">En desenvolupament</span>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2026 Gestoria Polanyi | 💡 Gerard Martínez Quetglas | 🎨 Flaticon/Freepik | 🤖 Gemini
+    </footer>
+
+</body>
+</html>
