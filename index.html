@@ -58,11 +58,25 @@
             margin-bottom: 3rem;
         }
 
-        /* GRID DE SERVEIS */
+        /* GRID DE SERVEIS - MODIFICAT PER A 3 COLUMNES */
         .services-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            /* Forcem 3 columnes de la mateixa mida (1fr) */
+            grid-template-columns: repeat(3, 1fr); 
             gap: 2rem;
+        }
+
+        /* Adaptació per a pantalles petites (mòbils) */
+        @media (max-width: 900px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columnes en tablets */
+            }
+        }
+
+        @media (max-width: 600px) {
+            .services-grid {
+                grid-template-columns: 1fr; /* 1 columna en mòbils */
+            }
         }
 
         .card {
@@ -87,6 +101,7 @@
         .card h2 {
             color: var(--primary);
             margin-top: 0;
+            font-size: 1.4rem;
         }
 
         .card p {
@@ -133,25 +148,79 @@
 
         <div class="services-grid">
             
-            <a href="ratios.html" class="card">
-                <h2>Ràtios financeres</h2>
-                <p>Auditeu la liquiditat, solvència i endeutament de les empreses clients. Mode Calma i Contra Rellotge disponible.</p>
+            <a href="pb_intro.html" class="card">
+                <h2>Termini de recuperació</h2>
+                <p>Selecció d'inversions</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
-            <div class="card" style="opacity: 0.7; cursor: not-allowed;">
-                <h2>Pèrdues i guanys</h2>
-                <p>Gestió del resultat de l'exercici i càlcul d'impostos. Analitzeu la rendibilitat de l'explotació.</p>
-                <span class="status-badge pending">Properament</span>
-            </div>
+            <a href="van_intro.html" class="card">
+                 <h2>VAN</h2>
+                <p>Selecció d'inversions</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
 
-            <div class="card" style="opacity: 0.7; cursor: not-allowed;">
+            <a href="tir_intro.html" class="card">
+                <h2>TIR</h2>
+                <p>Selecció d'inversions</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
+
+            <a href="comptes_intro.html" class="card">
+                <h2>Comptes (I)</h2>
+                <p>Comptabilitat</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
+
+             <a href="comptesbpg_intro.html" class="card">
+                <h2>Comptes (II)</h2>
+                <p>Comptabilitat</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
+
+               <a href="balanc_intro.html" class="card">
                 <h2>Balanç de situació</h2>
-                <p>Càlcul de Payback, VAN i TIR per a la presa de decisions estratègiques de capital.</p>
-                <span class="status-badge pending">En desenvolupament</span>
-            </div>
+                <p>Comptabilitat</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
 
-        </div>
+               <a href="pg_intro.html" class="card">
+                <h2>Pèrdues i guanys</h2>
+                <p>Comptabilitat</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
+
+            <a href="ratios_intro.html" class="card">
+                <h2>Ràtios financeres</h2>
+                <p>Comptabilitat</p>
+                <span class="status-badge active">2n de Batxillerat</span>
+            </a>
+
+            <a href="#" class="card">
+                <h2>Llindar de rendibilitat</h2>
+                <p>Àrea de producció</p>
+                <span class="status-badge pending">2n de Batxillerat</span>
+            </a>
+
+             <a href="#" class="card">
+                <h2>Llindar de producció</h2>
+                <p>Àrea de producció</p>
+                <span class="status-badge pending">2n de Batxillerat</span>
+            </a>
+
+             <a href="#" class="card">
+                <h2>Sistemes d'equacions</h2>
+                <p>Àrea de producció</p>
+                <span class="status-badge pending">2n de Batxillerat</span>
+            </a>
+
+             <a href="#" class="card">
+                <h2>Trams de l'IRPF</h2>
+                <p>Resum</p>
+                <span class="status-badge pending">4t d'ESO</span>
+            </a>
+
+            </div>
     </main>
 
     <footer>
