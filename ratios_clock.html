@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ràtios financeres</title>
+<style>
+    /* --- ESTILS GENERALS I ESTRUCTURA --- */
+    body { 
+        font-family: 'Segoe UI', Arial, sans-serif; 
+        background: #f0f2f5; 
+        padding: 10px; 
+        color: #333; 
+        margin: 0;
+        margin-top: 50px; /* Espai per la barra del rellotge */
+        height: calc(100vh - 50px);
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden; 
+        touch-action: pan-x pan-y;
+    }
+
+    /* CRONÒMETRE SUPERIOR */
+    #timer-container { width: 100%; background-color: #e2e8f0; height: 35px; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    #timer-bar { width: 100%; height: 100%; background-color: #48bb78; transition: width 0.1s linear; }
+    #ui-overlay { position: absolute; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; line-height: 35px; font-weight: bold; font-size: 18px; color: #2d3748; pointer-events: none; }
+
+    h1 { 
+        text-align: center; 
+        color: #2c3e50; 
+        margin: 5px 0; 
+        font-size: 1.5rem;
+        text-transform: uppercase; 
+        letter-spacing: 1px; 
+    }
+    
+    p.subtitle { 
+        text-align: center; 
+        color: #666; 
+        margin: 0 0 10px 0; 
+        font-size: 0.9em; 
+    }
+
+    /* ESTRUCTURA DEL BALANÇ - DUES COLUMNES FIXES */
+    .balance-container {
+        display: flex;
+        flex-direction: row; 
+        flex-wrap: nowrap;   
+        gap: 10px;           
+        width: 98%;
+        max-width: 1400px;
+        margin: 0 auto;
+        align-items: stretch; 
+        flex: 1;              
+    }
+
+    .balance-column {
+        background: white;
+        padding: 15px;        
+        border-radius: 10px;
+        flex: 1;              
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        border-top: 4px solid #cbd5e0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .balance-column.assets { border-top-color: #3182ce; }
+    .balance-column.liabilities { border-top-color: #e53e3e; }
+
+    h2 { 
+        margin: 0 0 10px 0; 
+        font-size: 1.1em; 
+        border-bottom: 2px solid #f0f2f5; 
+        padding-bottom: 5px; 
+        color: #2d3748; 
+        text-align: center;
+    }
+    
+    /* ESTILS DE TEXT I COMPTES */
+    .mass-title { 
+        font-weight: 800; 
+        color: #2c5282; 
+        margin-top: 10px; 
+        margin-bottom: 2px; 
+        text-transform: uppercase; 
+        font-size: 0.85em; 
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .submass-title { 
+        font-weight: 700; 
+        color: #4a5568; 
+        margin-top: 4px; 
+        font-size: 0.8em; 
+        font-style: italic;
+    }
+
+    .account-row {
+        display: flex;
+        justify-content: space-between; 
+        padding: 1px 0;      
+        border-bottom: 1px dashed #edf2f7; 
+        font-size: 0.85em;   
+        color: #4a5568;
+        align-items: center;
+    }
+    
+    .account-val, .total-mass span, .grand-total span { 
+        font-weight: bold; 
+        font-family: 'Consolas', 'Monaco', monospace; 
+        color: #2d3748; 
+        text-align: right;
+    }
+
+    .total-mass {
+        display: flex;
+        justify-content: space-between;
+        background: transparent; 
+        padding: 2px 0; 
+        margin-top: 0;
+        font-weight: bold;
+        border-top: 1px solid #718096; 
+        font-size: 0.85em;
+        color: #1a202c;
+    }
+
+    .grand-total {
+        margin-top: auto; 
+        padding: 10px;
+        background: #2d3748;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        border-radius: 6px;
+        font-size: 1em;
+        align-items: center;
+    }
+    
+    .grand-total span { color: white; font-size: 1.1em; }
+
+    /* ZONA DE PREGUNTES */
+    .question-box {
+        width: 98%;
+        max-width: 1400px;
+        margin: 10px auto;
+        background: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        text-align: center;
+        border: 2px solid #3182ce;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .question-title { 
+        font-size: 1.1em; 
+        font-weight: bold; 
+        color: #2c3e50; 
+        text-align: left;
+        flex: 1;
+    }
+    
+    .input-group { display: flex; align-items: center; gap: 10px; }
+    
+    input[type="number"] {
+        padding: 8px;
+        font-size: 1.1em;
+        border: 2px solid #cbd5e0;
+        border-radius: 6px;
+        width: 120px;
+        text-align: center;
+        font-family: 'Consolas', monospace;
+    }
+    input[type="number"]:focus { border-color: #3182ce; outline: none; }
+
+    button {
+        padding: 8px 20px;
+        font-size: 1em;
+        font-weight: bold;
+        color: white;
+        background: #3182ce;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.3s;
+    }
+    button:hover { background: #2b6cb0; }
+    
+    .btn-next { background: #48bb78; display: none; }
+    .btn-next:hover { background: #38a169; }
+
+    /* --- GAME OVER & FEEDBACK OVERLAYS --- */
+    .overlay-feedback {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 255, 255, 0.95); 
+        backdrop-filter: blur(8px); 
+        z-index: 5000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    .msg-box {
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        max-width: 900px;
+        width: 90%;
+        max-height: 95vh;
+        overflow-y: auto;
+        animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .feedback-layout {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 40px;
+        text-align: left;
+    }
+
+    .feedback-info { flex: 1; }
+    
+    .feedback-img-container {
+        flex: 0 0 300px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .rank-img {
+        width: 100%;
+        max-width: 300px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        border: 6px solid white;
+        transform: rotate(2deg);
+        transition: transform 0.3s;
+    }
+    .rank-img:hover { transform: rotate(0deg) scale(1.05); }
+
+    .msg-title { font-size: 45px; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; line-height: 1; }
+    .msg-subtitle { font-size: 22px; font-weight: bold; opacity: 0.9; margin-bottom: 15px; }
+    .rank-display { font-size: 26px; color: #2b6cb0; margin: 15px 0; font-weight: bold; padding: 15px; background: #ebf8ff; border-radius: 10px; border-left: 5px solid #3182ce; }
+
+    @media (max-width: 768px) {
+        .feedback-layout { flex-direction: column-reverse; text-align: center; gap: 20px; }
+        .feedback-img-container { flex: none; width: 200px; }
+        .msg-title { font-size: 35px; }
+    }
+
+    .type-success .msg-box { background: #f0fff4; border: 5px solid #48bb78; color: #2f855a; }
+    .type-warning .msg-box { background: #fffff0; border: 5px solid #ecc94b; color: #b7791f; }
+    .type-error .msg-box { background: white; border: 5px solid #f56565; color: #333; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div id="timer-container">
+    <div id="ui-overlay">
+        <div>Nivell: <span id="currentLevel">0</span></div>
+        <div>Temps: <span id="seconds">120</span>s</div>
+        <div>Correctes: <span id="balancosCorrectes">0</span></div>
+    </div>
+    <div id="timer-bar"></div>
+</div>
+
+<h1>RÀTIOS FINANCERES</h1>
+<p class="subtitle">Calcula la ràtio demanada abans que s'acabi el temps</p>
+
+<div class="balance-container">
+    <div class="balance-column assets">
+        <h2 style="color: #3182ce;">ACTIU</h2>
+        
+        <div class="mass-title">Actiu No Corrent</div>
+        <div id="list-anc"></div>
+        <div class="total-mass">Actiu no corrent: <span id="val-anc">0</span></div>
+
+        <div class="mass-title">Actiu Corrent</div>
+        <div class="submass-title">Existències</div>
+        <div id="list-ac-ex"></div>
+        <div class="submass-title">Realitzable</div>
+        <div id="list-ac-re"></div>
+        <div class="submass-title">Disponible</div>
+        <div id="list-ac-di"></div>
+        
+        <div class="total-mass" style="margin-top: 10px; border-top: 2px solid #3182ce;">Actiu corrent: <span id="val-ac">0</span></div>
+
+        <div class="grand-total" style="background: #2b6cb0;">
+            <span>TOTAL ACTIU</span>
+            <span id="grand-actiu">0 €</span>
+        </div>
+    </div>
+
+    <div class="balance-column liabilities">
+        <h2 style="color: #e53e3e;">PATRIMONI NET I PASSIU</h2>
+
+        <div class="mass-title">Patrimoni Net</div>
+        <div id="list-pn"></div>
+        <div class="total-mass">Patrimoni net: <span id="val-pn">0</span></div>
+
+        <div class="mass-title">Passiu No Corrent</div>
+        <div id="list-pnc"></div>
+        <div class="total-mass">Passiu no corrent: <span id="val-pnc">0</span></div>
+
+        <div class="mass-title">Passiu Corrent</div>
+        <div id="list-pc"></div>
+        <div class="total-mass" style="margin-top: 10px; border-top: 2px solid #e53e3e;">Passiu corrent: <span id="val-pc">0</span></div>
+
+        <div class="grand-total" style="background: #c53030;">
+            <span>TOTAL PATRIMONI NET + PASSIU</span>
+            <span id="grand-passiu">0 €</span>
+        </div>
+    </div>
+</div>
+
+<div class="question-box">
+    <div id="q-text" class="question-title">Carregant...</div>
+    <div class="input-group">
+        <input type="number" id="user-answer" step="0.01" placeholder="0.00">
+        <button id="btn-check" onclick="checkAnswer()">Comprovar</button>
+        <button id="btn-next" class="btn-next" onclick="initGame()">Següent ➡</button>
+    </div>
+</div>
+
+<script>
+// --- VARIABLES DE JOC (Gamificació) ---
+let intents = 0;
+let finished = false;
+let tempsRestant = 120;       // Temps inicial
+let tempsTotalMaxim = 120;
+let nivellActual = 0;
+let balancosAquestNivell = 0; // Preguntes correctes per pujar nivell
+let totalCorrectes = 0;
+let intervalRellotge = null;
+let allowExit = false;
+
+// DEFINICIÓ DE NIVELLS (RANKS)
+const ranks = [
+    "Aspirant a Comptable",       // 0
+    "Becari en Pràctiques",       // 1
+    "Auxiliar Administratiu",     // 2
+    "Comptable Júnior",           // 3
+    "Comptable Sènior",           // 4
+    "Cap de Comptabilitat",       // 5
+    "Auditor Intern",             // 6
+    "Controller Financer",        // 7
+    "Director Financer (CFO)",    // 8
+    "Soci de la Firma",           // 9
+    "LLEGENDA DEL BALANÇ"         // 10
+];
+
+window.addEventListener('beforeunload', function (e) {
+    if (!allowExit) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// --- BASE DE DADES DE COMPTES (ACTUALITZADA SEGONS ratios1.html) ---
+const db = {
+    anc: ["Propietat industrial", "Aplicacions informàtiques", "Terrenys i béns naturals", "Construccions", "Instal·lacions tècniques", "Maquinària", "Utillatge", "Mobiliari", "Elements de transport", "Inversions financeres a llarg termini", "Inversions en terrenys i béns naturals", "Inversions en construccions"],
+    ac_ex: ["Mercaderies", "Matèries primeres", "Productes acabats", "Altres aprovisionaments"],
+    ac_re: ["Clients", "Deutors", "Inversions financeres a curt termini", "Hisenda Pública, deutora"],
+    ac_di: ["Bancs", "Caixa"],
+    pn: ["Reserva legal", "Reserves voluntàries"],
+    pnc: ["Deutes a llarg termini amb entitats de crèdit", "Proveïdors d’immobilitzat a llarg termini", "Emprèstits (obligacions i bons a llarg termini)"],
+    pc: ["Proveïdors", "Creditors", "Hisenda Pública, creditora", "Seguretat Social, creditora", "Deutes a curt termini amb entitats de crèdit"]
+};
+
+let currentValues = {}; 
+let currentQuestion = null;
+
+// --- FUNCIONS DE CRONÒMETRE I UI ---
+function iniciarRellotge() {
+    if (intervalRellotge) clearInterval(intervalRellotge);
+    let factorVelocitat = 1 + (nivellActual * 0.05); // Puja dificultat lleugerament
+    intervalRellotge = setInterval(() => {
+        if (finished) return;
+        tempsRestant--;
+        actualitzarInterficie();
+        if (tempsRestant <= 0) finalitzarJoc();
+    }, 1000 / factorVelocitat);
+}
+
+function actualitzarInterficie() {
+    document.getElementById("seconds").textContent = Math.max(0, Math.floor(tempsRestant));
+    document.getElementById("timer-bar").style.width = Math.min(100, (tempsRestant / tempsTotalMaxim * 100)) + "%";
+    
+    if ((tempsRestant / tempsTotalMaxim) < 0.2) document.getElementById("timer-bar").style.backgroundColor = "#e53e3e";
+    else if ((tempsRestant / tempsTotalMaxim) < 0.5) document.getElementById("timer-bar").style.backgroundColor = "#ecc94b";
+    else document.getElementById("timer-bar").style.backgroundColor = "#48bb78";
+}
+
+function mostrarFeedback(titol, subtitol, tipus, durada = 1500) {
+    let antic = document.querySelector('.overlay-feedback');
+    if (antic) antic.remove();
+
+    const overlay = document.createElement("div");
+    overlay.className = `overlay-feedback type-${tipus}`;
+    
+    overlay.innerHTML = `
+        <div class="msg-box" style="text-align:center;">
+            <div class="msg-title">${titol}</div>
+            <div class="msg-subtitle">${subtitol}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    if (durada > 0) {
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, durada);
+    }
+}
+
+// --- GENERADORS ALEATORIS ---
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function fmt(num) { return num.toLocaleString('ca-ES'); }
+
+function getRandomUniqueItems(array, count) {
+    let shuffled = array.slice(0);
+    let i = array.length, temp, index;
+    while (i--) {
+        index = Math.floor((i + 1) * Math.random());
+        temp = shuffled[index];
+        shuffled[index] = shuffled[i];
+        shuffled[i] = temp;
+    }
+    return shuffled.slice(0, count);
+}
+
+// --- INICI I GENERACIÓ DEL JOC ---
+function initGame() {
+    if (!intervalRellotge && !finished) iniciarRellotge();
+
+    document.getElementById("btn-next").style.display = "none";
+    document.getElementById("btn-check").style.display = "inline-block";
+    document.getElementById("user-answer").value = "";
+    document.getElementById("user-answer").disabled = false;
+    intents = 0; 
+
+    // 1. Generar Actius
+    let html_anc = "", t_anc = 0;
+    let ancItems = getRandomUniqueItems(db.anc, rand(3, 4));
+    ancItems.forEach(c => {
+        let v = rand(10, 50) * 1000;
+        t_anc += v;
+        html_anc += `<div class="account-row"><span>${c}</span><span class="account-val">${fmt(v)}</span></div>`;
+    });
+    let amort = rand(5, 15) * -1000;
+    t_anc += amort;
+    html_anc += `<div class="account-row"><span>Amortització acumulada de l'immobilitzat</span><span class="account-val">${fmt(amort)}</span></div>`;
+    
+    // Generar AC
+    let html_ac_ex = "", t_ac_ex = 0;
+    let exItems = getRandomUniqueItems(db.ac_ex, 1);
+    exItems.forEach(c => {
+        let v = rand(5, 20) * 1000; t_ac_ex += v;
+        html_ac_ex += `<div class="account-row"><span>${c}</span><span class="account-val">${fmt(v)}</span></div>`;
+    });
+
+    let html_ac_re = "", t_ac_re = 0;
+    let reItems = getRandomUniqueItems(db.ac_re, 1);
+    reItems.forEach(c => {
+        let v = rand(5, 20) * 1000; t_ac_re += v;
+        html_ac_re += `<div class="account-row"><span>${c}</span><span class="account-val">${fmt(v)}</span></div>`;
+    });
+
+    let html_ac_di = "", t_ac_di = 0;
+    let diItems = getRandomUniqueItems(db.ac_di, 1);
+    diItems.forEach(c => {
+        let v = rand(2, 15) * 1000; t_ac_di += v;
+        html_ac_di += `<div class="account-row"><span>${c}</span><span class="account-val">${fmt(v)}</span></div>`;
+    });
+
+    let t_ac = t_ac_ex + t_ac_re + t_ac_di;
+    let total_actiu = t_anc + t_ac;
+
+    // 2. Generar Passius
+    let html_pnc = "", t_pnc = 0;
+    let pncItems = getRandomUniqueItems(db.pnc, rand(1, 2));
+    pncItems.forEach(c => {
+        let v = rand(10, 30) * 1000; t_pnc += v;
+        html_pnc += `<div class="account-row"><span>${c}</span><span class="account-val">${fmt(v)}</span></div>`;
+    });
+
+    let html_pc = "", t_pc = 0;
+    let pcItems = getRandomUniqueItems(db.pc, rand(2, 3));
+    pcItems.forEach(c => {
+        let v = rand(5, 25) * 1000; t_pc += v;
+        html_pc += `<div class="account-row"><span>${c}</span><span class="account-val">${fmt(v)}</span></div>`;
+    });
+
+    // 3. Calcular Patrimoni Net
+    let html_pn = "", t_pn = 0;
+    let resultat = rand(1, 15) * 1000 * (Math.random() > 0.3 ? 1 : -1);
+    let reserves = rand(5, 20) * 1000;
+    
+    let passiu_exigible = t_pnc + t_pc;
+    let capital = total_actiu - passiu_exigible - reserves - resultat;
+    
+    // Ajust si capital < 5000 (sense crear compte nou)
+    if (capital < 5000) {
+        let diff = 5000 - capital;
+        capital = 5000;
+        t_ac_di += diff;
+        t_ac += diff;
+        total_actiu += diff;
+        html_ac_di = `<div class="account-row"><span>${diItems[0]}</span><span class="account-val">${fmt(t_ac_di)}</span></div>`;
+    }
+
+    t_pn = capital + reserves + resultat;
+    html_pn += `<div class="account-row"><span>Capital</span><span class="account-val">${fmt(capital)}</span></div>`;
+    html_pn += `<div class="account-row"><span>Reserves</span><span class="account-val">${fmt(reserves)}</span></div>`;
+    html_pn += `<div class="account-row"><span>Resultat de l'exercici</span><span class="account-val">${fmt(resultat)}</span></div>`;
+
+    let total_passiu = t_pn + t_pnc + t_pc;
+
+    // 4. Renderitzar amb interrogants als totals parcials
+    document.getElementById("list-anc").innerHTML = html_anc;
+    document.getElementById("val-anc").textContent = "?"; 
+    
+    document.getElementById("list-ac-ex").innerHTML = html_ac_ex;
+    document.getElementById("list-ac-re").innerHTML = html_ac_re;
+    document.getElementById("list-ac-di").innerHTML = html_ac_di;
+    document.getElementById("val-ac").textContent = "?"; 
+    document.getElementById("grand-actiu").textContent = fmt(total_actiu);
+
+    document.getElementById("list-pn").innerHTML = html_pn;
+    document.getElementById("val-pn").textContent = "?";
+    document.getElementById("list-pnc").innerHTML = html_pnc;
+    document.getElementById("val-pnc").textContent = "?";
+    document.getElementById("list-pc").innerHTML = html_pc;
+    document.getElementById("val-pc").textContent = "?";
+    document.getElementById("grand-passiu").textContent = fmt(total_passiu);
+
+    // 5. Guardar valors
+    currentValues = {
+        ac: t_ac,
+        pc: t_pc,
+        real: t_ac_re,
+        disp: t_ac_di,
+        anc: t_anc,
+        pn: t_pn,
+        pnc: t_pnc,
+        pt: total_passiu,
+        passiu_exigible: t_pnc + t_pc,
+        actiu_total: total_actiu
+    };
+
+    generateQuestion();
+}
+
+function generateQuestion() {
+    const qTypes = [
+        { id: "fm", text: "Fons de Maniobra", form: "Actiu corrent - Passiu corrent", calc: (v) => v.ac - v.pc },
+        { id: "liq", text: "Ràtio de Liquiditat", form: "Actiu corrent / Passiu corrent", calc: (v) => v.ac / v.pc },
+        { id: "tres", text: "Ràtio de Tresoreria", form: "(Realitzable + Disponible) / Passiu corrent", calc: (v) => (v.real + v.disp) / v.pc },
+        { id: "disp", text: "Ràtio de Disponibilitat", form: "Disponible / Passiu corrent", calc: (v) => v.disp / v.pc },
+        { id: "gar", text: "Ràtio de Garantia", form: "Actiu / Passiu", calc: (v) => v.actiu_total / v.passiu_exigible },
+        { id: "aut", text: "Ràtio d'Autonomia Financera", form: "Patrimoni net / Passiu", calc: (v) => v.pn / v.passiu_exigible },
+        { id: "qual", text: "Ràtio de Qualitat del Deute", form: "Passiu corrent / Passiu", calc: (v) => v.pc / v.passiu_exigible },
+        { id: "end", text: "Ràtio d'Endeutament", form: "Passiu / (Passiu + Patrimoni net)", calc: (v) => v.passiu_exigible / v.pt }
+    ];
+
+    let q = qTypes[Math.floor(Math.random() * qTypes.length)];
+    currentQuestion = q;
+    document.getElementById("q-text").textContent = "Calcula: " + q.text;
+}
+
+// --- LÒGICA DE RESPOSTA I GAMIFICACIÓ ---
+function checkAnswer() {
+    if (finished) return;
+
+    let inputStr = document.getElementById("user-answer").value;
+    
+    if (inputStr.trim() === "") {
+        mostrarFeedback("⚠️ ALERTA ⚠️", "Introdueix una resposta", "warning", 1000);
+        return; 
+    }
+
+    let input = parseFloat(inputStr.replace(',', '.'));
+    let correct = currentQuestion.calc(currentValues);
+    let correctRounded = parseFloat(correct.toFixed(2));
+    let isCorrect = Math.abs(input - correct) < 0.02 || Math.abs(input - correctRounded) < 0.02;
+
+    if (isCorrect) {
+        // --- ENCERT ---
+        totalCorrectes++;
+        balancosAquestNivell++;
+        document.getElementById("balancosCorrectes").textContent = totalCorrectes;
+        
+        let bonus = (intents === 0) ? 30 : (intents === 1) ? 20 : 10;
+        tempsRestant += bonus;
+        if (tempsRestant > tempsTotalMaxim) tempsTotalMaxim = tempsRestant;
+
+        mostrarFeedback("EXCEL·LENT!", `Has guanyat +${bonus} segons ⭐`, "success", 2000);
+
+        if (balancosAquestNivell >= 2 && nivellActual < 10) {
+            nivellActual++;
+            balancosAquestNivell = 0;
+            document.getElementById("currentLevel").textContent = nivellActual;
+            iniciarRellotge(); 
+        }
+
+        document.getElementById("btn-check").style.display = "none";
+        document.getElementById("btn-next").style.display = "inline-block";
+        document.getElementById("user-answer").disabled = true;
+
+        setTimeout(initGame, 2000);
+
+    } else {
+        // --- ERROR ---
+        intents++;
+        if (intents < 3) {
+            mostrarFeedback("INCORRECTE", `Intent ${intents}/3. Revisa el càlcul`, "warning", 1500);
+        } else {
+            mostrarFeedback("EL CÀLCUL NO ÉS CORRECTE", `Solució: ${correct.toLocaleString('ca-ES', {maximumFractionDigits: 2})}`, "error", 3000);
+            
+            document.getElementById("btn-check").style.display = "none";
+            document.getElementById("btn-next").style.display = "inline-block";
+            document.getElementById("user-answer").disabled = true;
+            
+            setTimeout(initGame, 3000);
+        }
+    }
+}
+
+function reloadGame() {
+    allowExit = true;
+    location.reload();
+}
+
+function finalitzarJoc() {
+    finished = true;
+    clearInterval(intervalRellotge);
+    
+    let nomRang = nivellActual >= ranks.length ? ranks[ranks.length-1] : ranks[nivellActual];
+    let imatgeNivell = `nivells/nivell${Math.min(10, nivellActual)}.jpg`;
+
+    let go = document.createElement("div");
+    go.className = "overlay-feedback type-error";
+    go.style.zIndex = "6000";
+    go.innerHTML = `
+        <div class="msg-box">
+            <div class="feedback-layout">
+                <div class="feedback-info">
+                    <div class="msg-title" style="color:#e53e3e;">GAME OVER</div>
+                    <div class="rank-display">
+                        NIVELL ${nivellActual}: ${nomRang}
+                    </div>
+                    <p style="font-size:20px; margin:20px 0; color:#4a5568;">
+                        Ràtios calculades: <b>${totalCorrectes}</b>
+                    </p>
+                    <button onclick="reloadGame()" style="background:#3182ce; color:white; padding:15px 40px; border-radius:10px; border:none; cursor:pointer; font-size:22px; font-weight:bold; margin-top:20px; width:100%;">TORNA A JUGAR</button>
+                </div>
+                
+                <div class="feedback-img-container">
+                    <img src="${imatgeNivell}" class="rank-img" alt="Imatge de rang ${nomRang}" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(go);
+}
+
+initGame();
+</script>
+</body>
+</html>

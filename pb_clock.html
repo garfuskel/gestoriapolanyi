@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payback - Contra-rellotge</title>
+    <style>
+        /* --- ESTILS GENERALS --- */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5; 
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- CRONÒMETRE SUPERIOR --- */
+        #timer-container { 
+            width: 100%; 
+            background-color: #e2e8f0; 
+            height: 35px; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            z-index: 1000; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        
+        #timer-bar { 
+            width: 100%; 
+            height: 100%; 
+            background-color: #48bb78; 
+            transition: width 0.1s linear, background-color 0.5s; 
+        }
+        
+        #ui-overlay { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 0 20px; 
+            box-sizing: border-box; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+            color: #2d3748; 
+            text-transform: uppercase;
+        }
+
+        /* --- TARGETA CENTRAL (Adaptada per Payback) --- */
+        .card {
+            background: white;
+            padding: 40px;
+            width: 90%;
+            max-width: 650px;
+            height: 580px; /* Una mica més alt per encabir el botó extra */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; 
+            margin-top: 40px; 
+            position: relative;
+        }
+
+        .enunciat-container {
+            flex-grow: 1;
+            overflow-y: auto; 
+            padding-right: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .enunciat {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #333;
+            text-align: justify;
+            width: 100%;
+        }
+
+        .controls {
+            flex-shrink: 0;
+            border-top: 1px solid #eee;
+            padding-top: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* Grup input + botó verificar */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        input {
+            padding: 12px;
+            width: 200px;
+            text-align: center;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: #3182ce; }
+
+        button {
+            padding: 12px 25px;
+            cursor: pointer;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.1s, background 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:active { transform: scale(0.98); }
+        button:hover { background: #34495e; }
+
+        /* Botó específic "No Recupera" */
+        .btn-norecover {
+            background: white;
+            color: #c0392b;
+            border: 2px solid #c0392b;
+            width: 100%;
+            max-width: 350px;
+        }
+        .btn-norecover:hover {
+            background: #fdf2f2;
+            color: #a93226;
+        }
+
+        #input-warning {
+            height: 20px;
+            color: #e67e22;
+            font-weight: bold;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* --- OVERLAYS --- */
+        .overlay-feedback {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98); 
+            z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .msg-box {
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            max-width: 800px;
+            width: 90%;
+            background: white;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .feedback-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            gap: 30px;
+        }
+        
+        .feedback-info { flex: 1; }
+        .feedback-img-container { flex: 1; display: flex; justify-content: center; }
+        
+        /* ANIMACIÓ DE LA IMATGE */
+        @keyframes rotateIn {
+            0% { transform: rotate(-10deg) scale(0.8); opacity: 0; }
+            100% { transform: rotate(0deg) scale(1); opacity: 1; }
+        }
+
+        .rank-img {
+            max-width: 100%;
+            height: auto;
+            max-height: 250px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 4px solid #fff;
+            animation: rotateIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .msg-title { font-size: 2rem; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
+        .msg-subtitle { font-size: 1.3rem; margin-bottom: 10px; color: #4a5568; }
+        
+        .type-success .msg-box { border-left: 10px solid #48bb78; }
+        .type-warning .msg-box { border-left: 10px solid #ecc94b; }
+        .type-error .msg-box { border-left: 10px solid #f56565; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media (max-width: 700px) {
+            .feedback-layout { flex-direction: column; text-align: center; }
+            .card { height: auto; min-height: 500px; }
+            .input-group { flex-direction: column; align-items: center; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="timer-container">
+    <div id="ui-overlay">
+        <div>NIVELL <span id="level-display">0</span></div>
+        <div>ENCERTS: <span id="score-display">0</span></div>
+    </div>
+    <div id="timer-bar"></div>
+</div>
+
+<div class="card">
+    <div class="enunciat-container">
+        <div id="enunciat" class="enunciat">Carregant exercici...</div>
+    </div>
+    
+    <div class="controls">
+        <div id="input-warning">Introdueix una resposta</div>
+        
+        <div class="input-group">
+            <input type="text" id="user-input" placeholder="Anys (ex: 2,45)" autocomplete="off">
+            <button id="btn-action" onclick="checkNumericAnswer()">VERIFICAR</button>
+        </div>
+        
+        <button class="btn-norecover" onclick="checkNoRecover()">La inversió NO es recupera</button>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURACIÓ ---
+    const RANKS = [
+        "Aspirant", "Becari", "Auxiliar", "Júnior", 
+        "Sènior", "Cap d'Equip", "Analista", "Gerent", 
+        "Director", "Soci", "Mestre Payback"
+    ];
+
+    const BASE_DECREMENT = 0.15; 
+    const LEVEL_MULTIPLIER = 0.05; 
+    const MAX_BONUS = 50; 
+
+    // Variables d'Estat del Joc
+    let timerWidth = 100;
+    let score = 0;
+    let level = 0;
+    let attemptsLeft = 3; 
+    let gameLoopInterval = null;
+    let isGameRunning = false;
+    
+    // Variables Matemàtiques Payback
+    let resultatPayback = -1; // -1 indica no recupera
+    let inversioTotal = 0;
+    let fluxosTotals = [];
+
+    // --- MOTOR DEL JOC ---
+
+    function startGame() {
+        score = 0;
+        level = 0;
+        timerWidth = 100;
+        isGameRunning = true;
+        
+        updateTopBar();
+        generarProblema();
+        
+        if (gameLoopInterval) clearInterval(gameLoopInterval);
+        gameLoopInterval = setInterval(gameLoop, 100); 
+    }
+
+    function gameLoop() {
+        if (!isGameRunning) return;
+
+        let currentDecrement = BASE_DECREMENT + (level * LEVEL_MULTIPLIER);
+        timerWidth -= currentDecrement;
+
+        const bar = document.getElementById("timer-bar");
+        bar.style.width = Math.max(0, timerWidth) + "%";
+        
+        if (timerWidth < 30) bar.style.backgroundColor = "#e53e3e";
+        else if (timerWidth < 60) bar.style.backgroundColor = "#ecc94b";
+        else bar.style.backgroundColor = "#48bb78";
+
+        if (timerWidth <= 0) {
+            triggerGameOver("TEMPS ESGOTAT");
+        }
+    }
+
+    function updateTopBar() {
+        document.getElementById("score-display").innerText = score;
+        document.getElementById("level-display").innerText = level;
+    }
+
+    // --- GENERADOR DE PROBLEMES (Lògica Payback Calma) ---
+    function generarProblema() {
+        document.getElementById('user-input').value = '';
+        document.getElementById('input-warning').style.opacity = '0';
+        document.getElementById('user-input').focus();
+        attemptsLeft = 3; 
+        fluxosTotals = [];
+        
+        const tipus = Math.floor(Math.random() * 4) + 1;
+        const anys = Math.floor(Math.random() * 3) + 2; 
+        const inversio = (Math.floor(Math.random() * 10) + 5) * 100; 
+        inversioTotal = inversio;
+        
+        // El Payback no usa k, però la posem per despistar
+        const k_percent = Math.floor(Math.random() * 6) + 3; 
+        
+        let teResidual = Math.random() > 0.5;
+        let residual = teResidual ? (Math.floor(Math.random() * 5) + 5) * 10 : 0; 
+
+        let text = `Una empresa vol dur a terme un projecte que suposa una inversió inicial de ${inversio} euros. `;
+
+        if (tipus === 1) {
+            text += "Se sap que els fluxos de caixa previstos són: ";
+            let partsFluxos = [];
+            for (let i = 1; i <= anys; i++) {
+                let esNegatiu = Math.random() < 0.15;
+                let q = esNegatiu ? -1 * (Math.floor(Math.random() * 2) + 1) * 100 : (Math.floor(Math.random() * 4) + 3) * 100;
+                fluxosTotals.push(q);
+                partsFluxos.push(`l'any ${i} és de ${q} euros`);
+            }
+            text += partsFluxos.slice(0, -1).join(", ") + " i " + partsFluxos.slice(-1) + ". ";
+        } 
+        else if (tipus === 2 || tipus === 3) {
+            let partsFluxos = [];
+            for (let i = 1; i <= anys; i++) {
+                let cobraments = (Math.floor(Math.random() * 5) + 6) * 100; 
+                let esNegatiu = Math.random() < 0.15;
+                let pagaments;
+                if (esNegatiu) {
+                    pagaments = cobraments + ((Math.floor(Math.random() * 3) + 1) * 100); 
+                } else {
+                    pagaments = (Math.floor(Math.random() * 4) + 2) * 100; 
+                    if(pagaments >= cobraments) pagaments = cobraments - 100;
+                }
+                let q = cobraments - pagaments;
+                fluxosTotals.push(q);
+                partsFluxos.push(`l'any ${i} té uns cobraments de ${cobraments} euros i uns pagaments de ${pagaments} euros`);
+            }
+            text += "La informació de tresoreria indica que " + partsFluxos.join("; ") + ". ";
+        }
+        else {
+            let preu = Math.floor(Math.random() * 5) + 8;
+            let cvu = preu - 4; 
+            let unitats = 1000; 
+            text += `L'explotació del negoci durant els ${anys} anys de durada presenta aquestes dades: el preu de venda és de ${preu} euros, el cost variable unitari és de ${cvu} euros. `;
+            let detallsAnys = [];
+            for (let i = 1; i <= anys; i++) {
+                let cf = 3000; 
+                let esNegatiu = Math.random() < 0.15;
+                if(esNegatiu) cf = (unitats * (preu - cvu)) + 500; 
+                let q = (unitats * (preu - cvu)) - cf;
+                fluxosTotals.push(q);
+                detallsAnys.push(`any ${i} (CF: ${cf}€)`);
+            }
+            text += `Les unitats venudes són constants (${unitats} u.) però els costos fixos varien: ${detallsAnys.join(", ")}. `;
+        }
+
+        if (teResidual) {
+            text += `A més, se sap que la inversió té un valor residual de ${residual} euros al final de l'últim any. `;
+            fluxosTotals[fluxosTotals.length - 1] += residual;
+        }
+
+        text += `Calcula el termini de recuperació (Payback).`;
+        
+        calcularPayback();
+        document.getElementById('enunciat').innerText = text;
+    }
+
+    function calcularPayback() {
+        let acumulat = 0;
+        resultatPayback = -1; // Per defecte: no recupera
+
+        for (let i = 0; i < fluxosTotals.length; i++) {
+            let fluxAny = fluxosTotals[i];
+            
+            if (acumulat + fluxAny >= inversioTotal) {
+                let pendent = inversioTotal - acumulat;
+                let fraccio = pendent / fluxAny;
+                resultatPayback = i + fraccio;
+                return; 
+            }
+            acumulat += fluxAny;
+        }
+    }
+
+    // --- VERIFICACIÓ (Dues vies: Numèrica o No Recupera) ---
+    
+    // Cas A: L'alumne introdueix un número
+    function checkNumericAnswer() {
+        if (!isGameRunning) return;
+
+        let valInput = document.getElementById('user-input').value.trim();
+        const warning = document.getElementById('input-warning');
+
+        if (valInput === "") {
+            warning.innerText = "Introdueix una resposta";
+            warning.style.opacity = '1';
+            return;
+        }
+
+        let rawInput = valInput.replace(',', '.');
+        let userVal = parseFloat(rawInput);
+        
+        if (isNaN(userVal)) {
+            warning.innerText = "El format no és vàlid";
+            warning.style.opacity = '1';
+            return;
+        }
+        warning.style.opacity = '0'; 
+
+        // Si la resposta correcta era "No Recupera" (-1), però l'alumne posa número -> ERROR
+        if (resultatPayback === -1) {
+            handleFailure("Hauries d'haver premut el botó vermell (No recupera)");
+            return;
+        }
+
+        // Comprovació numèrica
+        if (Math.abs(userVal - resultatPayback) < 0.05) {
+            handleSuccess(`Payback: ${resultatPayback.toFixed(2).replace('.', ',')} anys`);
+        } else {
+            handleFailure("Càlcul incorrecte");
+        }
+    }
+
+    // Cas B: L'alumne clica botó vermell
+    function checkNoRecover() {
+        if (!isGameRunning) return;
+        
+        document.getElementById('input-warning').style.opacity = '0';
+
+        if (resultatPayback === -1) {
+            handleSuccess("Correcte! La inversió no es recupera.");
+        } else {
+            // Era recuperable, però l'alumne ha dit que no
+            handleFailure(`Incorrecte! Es recuperava en ${resultatPayback.toFixed(2).replace('.', ',')} anys.`);
+        }
+    }
+
+    // --- GESTIÓ D'ÈXITS I ERRORS ---
+
+    function handleSuccess(msgExtra) {
+        score++;
+        
+        // Recompensa variable
+        let baseReward = MAX_BONUS - (level * 1.5); 
+        let earnedBonus = 0;
+        let bonusText = "";
+
+        if (attemptsLeft === 3) {
+            earnedBonus = baseReward;
+            bonusText = "(Perfecte!)";
+        } else if (attemptsLeft === 2) {
+            earnedBonus = baseReward * 0.5;
+            bonusText = "(Segon intent)";
+        } else {
+            earnedBonus = baseReward * 0.25;
+            bonusText = "(Pèls pèls...)";
+        }
+
+        timerWidth = Math.min(100, timerWidth + earnedBonus);
+        
+        if (score % 2 === 0 && level < 10) level++;
+        
+        updateTopBar();
+
+        showOverlay("CORRECTE!", `${msgExtra}<br><span style="color:#276749; font-size:0.9em">+${earnedBonus.toFixed(0)}s ${bonusText}</span>`, "success", 2000);
+        
+        setTimeout(() => {
+            generarProblema();
+        }, 2000);
+    }
+
+    function handleFailure(motiuText) {
+        attemptsLeft--;
+        
+        if (attemptsLeft === 2) {
+            showOverlay("INCORRECTE", `${motiuText}<br>Et queden 2 intents.`, "warning", 2000);
+            document.getElementById('user-input').select(); 
+        } else if (attemptsLeft === 1) {
+            showOverlay("ATENCIÓ!", "Darrera oportunitat!", "warning", 2000);
+            document.getElementById('user-input').select();
+        } else {
+            // Tercer error -> Mostrem solució i passem al següent
+            let solucioFinal = resultatPayback === -1 
+                ? "No es recuperava mai" 
+                : `${resultatPayback.toFixed(2).replace('.', ',')} anys`;
+
+            showOverlay("EXPEDIENT PERDUT", `La solució era: ${solucioFinal}.<br>Passem al següent.`, "error", 3000);
+            timerWidth -= 5; 
+            setTimeout(() => {
+                generarProblema(); 
+            }, 3000);
+        }
+    }
+
+    // --- OVERLAYS I GAME OVER ---
+    function showOverlay(titol, subtitol, tipus, durada) {
+        let old = document.querySelector('.overlay-feedback');
+        if (old) old.remove();
+
+        const overlay = document.createElement("div");
+        overlay.className = `overlay-feedback type-${tipus}`;
+        overlay.innerHTML = `
+            <div class="msg-box">
+                <div class="msg-title">${titol}</div>
+                <div class="msg-subtitle">${subtitol}</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        if (durada) {
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            }, durada);
+        }
+    }
+
+    function triggerGameOver(motiuTitle) {
+        isGameRunning = false;
+        clearInterval(gameLoopInterval);
+        
+        let rangFinal = level >= RANKS.length ? RANKS[RANKS.length - 1] : RANKS[level];
+        let numImatge = Math.min(10, level);
+        let imatgePath = `nivells/nivell${numImatge}.jpg`;
+
+        const overlay = document.createElement("div");
+        overlay.className = "overlay-feedback type-error";
+        overlay.style.zIndex = "6000";
+        
+        overlay.innerHTML = `
+            <div class="msg-box" style="max-width:900px;">
+                <div class="feedback-layout">
+                    <div class="feedback-info">
+                        <div class="msg-title" style="color:#e53e3e; font-size:2.5rem;">GAME OVER</div>
+                        <div class="msg-subtitle" style="font-weight:bold; color:#333;">${motiuTitle}</div>
+                        
+                        <div style="background:#f7fafc; padding:20px; border-radius:10px; margin-top:15px; border-left:5px solid #2b6cb0;">
+                            <div style="font-size:0.9rem; color:#718096; text-transform:uppercase; letter-spacing:1px;">Rang Assolit</div>
+                            <div style="font-size:1.8rem; font-weight:bold; color:#2c5282;">${rangFinal}</div>
+                            <div style="margin-top:10px; font-size:1.2rem;">
+                                Nivell: <b>${level}</b> | Encerts: <b>${score}</b>
+                            </div>
+                        </div>
+
+                        <button onclick="startGame(); document.querySelector('.overlay-feedback').remove();" 
+                                style="background:#3182ce; color:white; padding:15px 40px; border-radius:8px; border:none; cursor:pointer; font-size:1.2rem; font-weight:bold; margin-top:30px; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                            TORNA A JUGAR
+                        </button>
+                    </div>
+                    
+                    <div class="feedback-img-container">
+                        <img src="${imatgePath}" class="rank-img" alt="Rang ${rangFinal}" onerror="this.style.display='none'">
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    document.getElementById("user-input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") checkNumericAnswer();
+    });
+
+    window.onload = startGame;
+
+</script>
+</body>
+</html>

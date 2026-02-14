@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificació de Comptes - Gestoria Polanyi</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --calma: #48bb78;
+            --rush: #e53e3e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--primary);
+        }
+
+        .module-entry {
+            background: var(--white);
+            width: 95%;
+            max-width: 1000px;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* INTRODUCCIÓ JUSTIFICADA */
+        .intro-box {
+            text-align: justify;
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 5px solid var(--accent);
+            margin-bottom: 3rem;
+            hyphens: auto;
+        }
+
+        .intro-box p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin: 0;
+        }
+
+        /* CONTENIDOR DE MODES */
+        .modes-container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mode-card {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            height: 400px;
+            text-decoration: none;
+            transition: transform 0.4s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* IMATGES FIXES */
+        .mode-card.calma {
+            /* Imatge: Escriptori ordenat (Estudi) */
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), 
+                        url('https://images.unsplash.com/photo-1456324504439-367cee3b3c32?q=80&w=1000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            border-bottom: 8px solid var(--calma);
+        }
+
+        .mode-card.rush {
+            /* NOVA IMATGE: Quadre de comandament Mustang / Velocímetre i Revolucions */
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), 
+                        url('https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=1000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            border-bottom: 8px solid var(--rush);
+        }
+
+        .mode-content {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 2.5rem 0;
+            color: white;
+            text-align: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        }
+
+        .mode-content h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            /* Sense cursives */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .mode-content p {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin: 0.5rem 1rem 0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 3rem;
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover { color: var(--primary); }
+
+        @media (max-width: 600px) {
+            .module-entry { padding: 1.5rem; }
+            .mode-card { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="module-entry">
+        <header>
+            <h1>Classificació de Comptes del Balanç</h1>
+        </header>
+
+        <div class="intro-box">
+            <p>
+                Per construir un Balanç de Situació correcte, no n'hi ha prou amb saber si un element és un bé o un deute; cal saber <strong>on ubicar-lo</strong> amb precisió segons el seu horitzó temporal. La clau de l'ordre comptable resideix en la classificació.
+                <br><br>
+                En aquest mòdul aprendràs a distingir entre <strong>Actiu No Corrent</strong> (inversions a llarg termini) i <strong>Actiu Corrent</strong> (liquiditat a curt termini), així com a separar els fons propis (<strong>Patrimoni Net</strong>) dels deutes exigibles a llarg (<strong>Passiu No Corrent</strong>) o curt termini (<strong>Passiu Corrent</strong>). Aquesta habilitat és el fonament indispensable per a qualsevol anàlisi financera posterior.
+            </p>
+        </div>
+
+        <div class="modes-container">
+            <a href="comptes_calma.html" class="mode-card calma">
+                <div class="mode-content">
+                    <h2>Mode Calma</h2>
+                    <p>Sense presses: assimila la teoria i la tècnica</p>
+                </div>
+            </a>
+
+            <a href="comptes_rush.html" class="mode-card rush">
+                <div class="mode-content">
+                    <h2>Mode Rush</h2>
+                    <p>Adrenalina pura! Classifica en cascada sense parar. Aguantaràs el ritme?</p>
+                </div>
+            </a>
+        </div>
+
+        <a href="index.html" class="btn-back">Torna al menú de la Gestoria</a>
+    </div>
+
+</body>
+</html>
