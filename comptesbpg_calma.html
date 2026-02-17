@@ -190,7 +190,7 @@
 
 <div class="container">
     <div class="header">
-        Gestoria Polanyi - Mode Estudi
+        CLASSIFICACIÓ DE COMPTES
     </div>
 
     <div class="question-area">
@@ -332,21 +332,21 @@
         let isCorrect = (selectedGroup === currentAccount.grup) || (currentAccount.grup === 'BOTH');
 
         if (isCorrect) {
-            title.innerText = "CORRECTE! 🎉";
+            title.innerText = "CORRECTE ✅";
             title.className = "feedback-title correct";
             
             let grupText = "";
-            if (currentAccount.grup === 'BOTH') grupText = "Balanç i Pèrdues i Guanys";
-            else if (currentAccount.grup === 'BS') grupText = "Balanç de Situació";
-            else grupText = "Pèrdues i Guanys";
+            if (currentAccount.grup === 'BOTH') grupText = "BALANÇ DE SITUACIÓ I COMPTE DE PÈRDUES I GUANYS";
+            else if (currentAccount.grup === 'BS') grupText = "BALANÇ DE SITUACIÓ";
+            else grupText = "COMPTE DE PÈRDUES I GUANYS";
 
-            text.innerHTML = `<strong>(${grupText})</strong><br><br>` + currentAccount.desc;
+            text.innerHTML = `<strong>${grupText}</strong><br><br>` + currentAccount.desc;
         } else {
             title.innerText = "INCORRECTE ❌";
             title.className = "feedback-title incorrect";
             
-            let correctGrup = (currentAccount.grup === 'BS') ? "Balanç de Situació" : "Compte de Pèrdues i Guanys";
-            text.innerHTML = `Aquest compte pertany al <strong>${correctGrup}</strong>.<br><br>` + currentAccount.desc;
+            let correctGrup = (currentAccount.grup === 'BS') ? "BALANÇ DE SITUACIÓ" : "COMPTE DE PÈRDUES I GUANYS";
+            text.innerHTML = `Aquest compte pertany al <strong>${correctGrup}</strong><br><br>` + currentAccount.desc;
         }
     }
 
