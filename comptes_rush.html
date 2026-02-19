@@ -194,17 +194,43 @@
         .flash-red { animation: flashRed 0.3s; }
         @keyframes flashRed { 0% { background-color: #e74c3c; } 100% { background-color: #ecf0f1; } }
 
+        /* MODIFICACIÓ DEFINITIVA PER A MÒBIL */
         @media (max-width: 600px) {
             body { padding: 0; }
-            .game-container { height: 100vh; max-height: 100vh; border-radius: 0; }
-            .game-view { min-height: 120px; } /* MODIFICACIÓ 1: Es redueix l'alçada mínima del canvas */
-            .controls-area { height: 260px; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+            .game-container { 
+                height: 100vh; height: 100dvh; 
+                max-height: 100vh; max-height: 100dvh; 
+                border-radius: 0; 
+            }
+            .game-view { 
+                flex: 0 0 38vh; /* Limita dràsticament l'alçada del joc */
+                min-height: 150px; 
+            } 
+            .question-box { 
+                flex: 0 0 auto; 
+                min-height: 60px; 
+                padding: 5px 10px; 
+            }
+            .controls-area { 
+                flex: 1; /* Aprofita tot l'espai restant per als botons */
+                height: auto; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 10px; 
+                padding: 10px; 
+            }
             .col-actiu, .col-passiu { height: 100%; gap: 8px; }
-            .col-header { font-size: 0.7rem; }
-            .btn-option { font-size: 0.85rem; padding: 5px; }
+            .col-header { font-size: 0.8rem; margin-bottom: 2px; }
+            .btn-option { 
+                font-size: 0.95rem; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                padding: 5px; 
+                height: 100%; /* S'expandeixen verticalment */
+            }
             .current-account { font-size: 1.3rem; }
-            .question-box { min-height: 60px; padding: 5px 10px; }
-            .hud { font-size: 1rem; }
+            .hud { font-size: 1rem; top: 10px; left: 15px; right: 15px; }
+            .hearts { font-size: 1.2rem; }
             .game-over-title { font-size: 1.6rem; } 
         }
     </style>
@@ -366,8 +392,7 @@
     
     function resizeCanvas() {
         if (canvas.offsetWidth === 0) return;
-        // MODIFICACIÓ 2: Resolució virtual fixa de 900px
-        // Això garanteix que l'espai físic a recórrer sigui el mateix a tots els dispositius.
+        // Resolució virtual fixa de 900px
         canvas.width = 900;
         canvas.height = 900 * (canvas.offsetHeight / canvas.offsetWidth);
     }
@@ -619,9 +644,8 @@
         else if (score < 15) { rang = "TÈCNIC COMPTABLE"; colorRang = "#3498db"; }
         else if (score < 30) { rang = "CAP DE COMPTABILITAT"; colorRang = "#9b59b6"; }
         else if (score < 50) { rang = "DIRECTOR FINANCER (CFO)"; colorRang = "#f1c40f"; }
-        else { rang = "SOCI AUDITOR SÈNIOR"; colorRang = "#2ecc71"; }
+        else { rang = "AUDITOR SÈNIOR"; colorRang = "#2ecc71"; }
 
-        // MODIFICACIÓ: Mida més petita (1.1rem) per evitar que es talli
         reason.innerHTML = `EL TEU RANG ÉS<br><strong style="font-size:1.1rem; color:${colorRang};">${rang}</strong>`;
         
         document.getElementById('mainBtn').innerText = "TORNA A JUGAR";
