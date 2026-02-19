@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classificació del Balanç - Mode Estudi</title>
+    <title>Gestoria Polanyi - Estructura del balanç de situació</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -192,10 +192,16 @@
         }
         .btn-next:hover { background: #34495e; }
         
-        /* Responsive: En mòbil es posen una sota l'altra */
+        /* Responsive: Ajust per evitar scroll en mòbil (tot a una pantalla) */
         @media (max-width: 600px) {
-            .balance-structure { grid-template-columns: 1fr; }
-            .col-actiu, .col-passiu { height: 300px; }
+            body { padding: 0; }
+            .container { min-height: 100vh; border-radius: 0; justify-content: space-between; }
+            .balance-structure { grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; flex-grow: 1; }
+            .col-actiu, .col-passiu { height: auto; gap: 10px; }
+            .btn-option { padding: 10px 5px; font-size: 0.9rem; }
+            .account-name { font-size: 1.5rem; }
+            .question-area { padding: 15px 10px; }
+            .header { padding: 15px; font-size: 1.1rem; }
         }
 
     </style>
@@ -204,7 +210,7 @@
 
 <div class="container">
     <div class="header">
-        Gestoria Polanyi - Estructura del Balanç
+        ESTRUCTURA DEL BALANÇ DE SITUACIÓ
     </div>
 
     <div class="question-area">
@@ -214,13 +220,14 @@
 
     <div class="balance-structure">
         <div class="col-actiu">
-            <div class="col-header">Estructura Econòmica (Actiu)</div>
+            <div class="col-header">ACTIU</div>
             <button class="btn-option btn-anc" onclick="checkAnswer('ANC')">Actiu No Corrent</button>
             <button class="btn-option btn-ac" onclick="checkAnswer('AC')">Actiu Corrent</button>
         </div>
 
         <div class="col-passiu">
-            <div class="col-header">Estructura Financera (PN i Passiu)</div>
+            <div class="col-header">PATRIMONI NET I PASSIU
+        </div>
             <button class="btn-option btn-pn" onclick="checkAnswer('PN')">Patrimoni Net</button>
             <button class="btn-option btn-pnc" onclick="checkAnswer('PNC')">Passiu No Corrent</button>
             <button class="btn-option btn-pc" onclick="checkAnswer('PC')">Passiu Corrent</button>
@@ -255,7 +262,7 @@
         { nom: "Elements de transport", grup: "ANC", desc: "Vehicles de tota classe utilitzats per al transport terrestre, marítim o aeri de persones o mercaderies." },
         { nom: "Amortització acumulada de l'immobilitzat material (AAIM)", grup: "ANC", desc: "Compte compensador (resta) que reflecteix la pèrdua de valor irreversible pel pas del temps o l'ús dels béns materials." },
         { nom: "Inversions immobiliàries", grup: "ANC", desc: "Terrenys o construccions que l'empresa posseeix per obtenir rendes (lloguers) o plusvàlues, no per usar-los en la producció." },
-        { nom: "Inversions financeres a llarg termini en instruments de patrimoni", grup: "ANC", desc: "Accions o participacions en altres empreses amb la intenció de mantenir-les més d'un any." },
+        { nom: "Inversions financeres a llarg termini en instruments de patrimoni", grup: "ANC", desc: "Accions o participacions en altres empreses amb la intenció de mantenir-les més d'un proper any." },
         { nom: "Crèdits a llarg termini", grup: "ANC", desc: "Préstecs concedits per l'empresa a tercers que es recuperaran en un termini superior a un any." },
 
         // --- ACTIU CORRENT (AC) ---
@@ -320,23 +327,23 @@
         concept.innerText = currentAccount.nom;
         
         if (selectedGroup === currentAccount.grup) {
-            title.innerText = "CORRECTE! 🎉";
+            title.innerText = "CORRECTE ✅";
             title.className = "feedback-title correct";
-            text.innerHTML = `<strong>(${getGroupName(currentAccount.grup)})</strong><br><br>` + currentAccount.desc;
+            text.innerHTML = `És <strong>${getGroupName(currentAccount.grup)}</strong><br><br>` + currentAccount.desc;
         } else {
             title.innerText = "INCORRECTE ❌";
             title.className = "feedback-title incorrect";
-            text.innerHTML = `No és ${getGroupName(selectedGroup)}. <br>És un compte de <strong>${getGroupName(currentAccount.grup)}</strong>.<br><br>` + currentAccount.desc;
+            text.innerHTML = `No és ${getGroupName(selectedGroup)} <br>És <strong>${getGroupName(currentAccount.grup)}</strong><br><br>` + currentAccount.desc;
         }
     }
 
     function getGroupName(code) {
         switch(code) {
-            case 'ANC': return "Actiu No Corrent";
-            case 'AC': return "Actiu Corrent";
-            case 'PN': return "Patrimoni Net";
-            case 'PNC': return "Passiu No Corrent";
-            case 'PC': return "Passiu Corrent";
+            case 'ANC': return "ACTIU NO CORRENT";
+            case 'AC': return "ACTIU CORRENT";
+            case 'PN': return "PATRIMONI NET";
+            case 'PNC': return "PASSIU NO CORRENT";
+            case 'PC': return "PASSIU CORRENT";
             default: return code;
         }
     }
