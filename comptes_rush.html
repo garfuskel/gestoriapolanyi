@@ -2,8 +2,8 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestoria Rush - Arcade Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestoria Polanyi - Estructura del balanç de situació</title>
     <style>
         :root {
             --anc-color: #2980b9; --ac-color: #3498db;
@@ -22,7 +22,9 @@
             padding: 10px;
             box-sizing: border-box;
             overflow: hidden;
-            touch-action: manipulation;
+            touch-action: none; /* Bloqueja scroll i zoom a tota la pantalla */
+            user-select: none; /* Evita seleccionar text al jugar */
+            -webkit-user-select: none;
         }
 
         .game-container {
@@ -125,6 +127,8 @@
             flex: 1; transition: top 0.1s, box-shadow 0.1s;
             position: relative; top: 0;
             user-select: none; -webkit-user-select: none;
+            touch-action: manipulation; /* Millora resposta tàctil */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-option:active { box-shadow: 0 0px 0px rgba(0,0,0,0.2); top: 4px; }
@@ -173,6 +177,8 @@
             transition: all 0.1s; position: relative; top:0;
             display: inline-block;
             flex-shrink: 0; 
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-start:active { top: 6px; box-shadow: 0 0 0 #217dbb; }
 
@@ -188,10 +194,16 @@
         .flash-red { animation: flashRed 0.3s; }
         @keyframes flashRed { 0% { background-color: #e74c3c; } 100% { background-color: #ecf0f1; } }
 
+        /* AQUEST ÉS L'ÚNIC BLOC MODIFICAT PER ADAPTAR-HO A UNA SOLA PANTALLA TÀCTIL SENSE SCROLL */
         @media (max-width: 600px) {
-            .controls-area { height: auto; grid-template-columns: 1fr; }
-            .col-actiu, .col-passiu { height: 200px; }
-            .current-account { font-size: 1.5rem; }
+            body { padding: 0; }
+            .game-container { height: 100vh; max-height: 100vh; border-radius: 0; }
+            .controls-area { height: 260px; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+            .col-actiu, .col-passiu { height: 100%; gap: 8px; }
+            .col-header { font-size: 0.7rem; }
+            .btn-option { font-size: 0.85rem; padding: 5px; }
+            .current-account { font-size: 1.3rem; }
+            .question-box { min-height: 60px; padding: 5px 10px; }
             .hud { font-size: 1rem; }
             .game-over-title { font-size: 1.6rem; } 
         }
@@ -215,11 +227,12 @@
             </div>
             <div id="startContent">
                 <h1 style="font-size: 2rem; margin-bottom: 5px; line-height: 1.2;">GESTORIA RUSH</h1>
+                <h2 style="font-size: 1.2rem; color: #3498db; margin-top:0;">ESTRUCTURA DEL BALANÇ DE SITUACIÓ</h2>
                 <p style="font-size: 1rem; margin-bottom: 10px; max-width: 500px;">
-                    Tens 3 vides ❤️. Classifica ràpid per saltar!
+                    Tens 3 vides ❤️ Encerta i salta en el moment oportú 📑
                 </p>
             </div>
-            <button id="mainBtn" class="btn-start" onclick="startGame()">JUGAR</button>
+            <button id="mainBtn" class="btn-start" onpointerdown="startGame(); event.preventDefault()">JUGAR</button>
         </div>
     </div>
 
@@ -230,14 +243,14 @@
     <div class="controls-area">
         <div class="col-actiu">
             <div class="col-header">Actiu</div>
-            <button class="btn-option btn-anc" onmousedown="checkAnswer('ANC')">Actiu No Corrent</button>
-            <button class="btn-option btn-ac" onmousedown="checkAnswer('AC')">Actiu Corrent</button>
+            <button class="btn-option btn-anc" onpointerdown="checkAnswer('ANC'); event.preventDefault()">Actiu No Corrent</button>
+            <button class="btn-option btn-ac" onpointerdown="checkAnswer('AC'); event.preventDefault()">Actiu Corrent</button>
         </div>
         <div class="col-passiu">
-            <div class="col-header">PN i Passiu</div>
-            <button class="btn-option btn-pn" onmousedown="checkAnswer('PN')">Patrimoni Net</button>
-            <button class="btn-option btn-pnc" onmousedown="checkAnswer('PNC')">Passiu No Corrent</button>
-            <button class="btn-option btn-pc" onmousedown="checkAnswer('PC')">Passiu Corrent</button>
+            <div class="col-header">Patrimoni net i Passiu</div>
+            <button class="btn-option btn-pn" onpointerdown="checkAnswer('PN'); event.preventDefault()">Patrimoni Net</button>
+            <button class="btn-option btn-pnc" onpointerdown="checkAnswer('PNC'); event.preventDefault()">Passiu No Corrent</button>
+            <button class="btn-option btn-pc" onpointerdown="checkAnswer('PC'); event.preventDefault()">Passiu Corrent</button>
         </div>
     </div>
 </div>
@@ -606,14 +619,10 @@
         else { rang = "SOCI AUDITOR SÈNIOR"; colorRang = "#2ecc71"; }
 
         // MODIFICACIÓ: Mida més petita (1.1rem) per evitar que es talli
-        reason.innerHTML = `EL TEU RANG:<br><strong style="font-size:1.1rem; color:${colorRang};">${rang}</strong>`;
+        reason.innerHTML = `EL TEU RANG ÉS<br><strong style="font-size:1.1rem; color:${colorRang};">${rang}</strong>`;
         
         document.getElementById('mainBtn').innerText = "TORNA A JUGAR";
     }
-
-    document.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('touchend', (e) => e.preventDefault());
-    });
 </script>
 </body>
 </html>
