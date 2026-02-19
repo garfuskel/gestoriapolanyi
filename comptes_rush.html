@@ -194,10 +194,10 @@
         .flash-red { animation: flashRed 0.3s; }
         @keyframes flashRed { 0% { background-color: #e74c3c; } 100% { background-color: #ecf0f1; } }
 
-        /* AQUEST ÉS L'ÚNIC BLOC MODIFICAT PER ADAPTAR-HO A UNA SOLA PANTALLA TÀCTIL SENSE SCROLL */
         @media (max-width: 600px) {
             body { padding: 0; }
             .game-container { height: 100vh; max-height: 100vh; border-radius: 0; }
+            .game-view { min-height: 120px; } /* MODIFICACIÓ 1: Es redueix l'alçada mínima del canvas */
             .controls-area { height: 260px; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
             .col-actiu, .col-passiu { height: 100%; gap: 8px; }
             .col-header { font-size: 0.7rem; }
@@ -365,8 +365,11 @@
     let isGameOver = false;
     
     function resizeCanvas() {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        if (canvas.offsetWidth === 0) return;
+        // MODIFICACIÓ 2: Resolució virtual fixa de 900px
+        // Això garanteix que l'espai físic a recórrer sigui el mateix a tots els dispositius.
+        canvas.width = 900;
+        canvas.height = 900 * (canvas.offsetHeight / canvas.offsetWidth);
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas(); 
