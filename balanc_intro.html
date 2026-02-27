@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --calma: #48bb78;
+            --rush: #e53e3e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--primary);
+        }
+
+        .module-entry {
+            background: var(--white);
+            width: 95%;
+            max-width: 1000px;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Full de llibreta quadriculada */
+        .intro-box {
+            margin: 2rem auto 4rem;
+            max-width: 800px;
+            font-size: 1.2rem;
+            line-height: 30px; 
+            color: #000066; /* Blau bolígraf Bic fosc i realista */
+            text-align: justify; /* Centrat a esquerra i dreta */
+            
+            /* Dibuixem la quadrícula */
+            background-color: #ffffff;
+            background-image: 
+                linear-gradient(#e0e0e0 1px, transparent 1px),
+                linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+            background-size: 30px 30px; 
+            
+            /* Marges i estil de fulla de paper */
+            padding: 35px 40px 35px 70px;
+            border-radius: 2px;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Marge vermell típic de llibreta matemàtica */
+        .intro-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50px;
+            width: 2px;
+            background-color: #ff9999;
+        }
+
+        .intro-box p {
+            margin: 0;
+        }
+
+        .modes-container {
+            display: flex;
+            gap: 3rem; 
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Estètica comuna dels Post-its grans */
+        .mode-card {
+            position: relative; 
+            flex: 1;
+            min-width: 280px;
+            min-height: 280px; 
+            padding: 2rem;
+            border-radius: 4px; 
+            text-decoration: none;
+            color: var(--primary);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            /* MODIFICAT: Alineem el contingut a la part inferior (flex-end) en lloc del centre */
+            justify-content: flex-end; 
+            align-items: center;
+            box-shadow: 3px 5px 12px rgba(0,0,0,0.2);
+            overflow: hidden; 
+        }
+
+        /* La imatge ocupa tot el post-it */
+        .mode-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            mix-blend-mode: multiply; /* Fusiona la imatge amb el color de fons verd/vermell */
+        }
+
+        /* Post-it verdós per Calma */
+        .calma { 
+            background-color: #bbf7d0; /* Verd pastel que tenyirà la imatge */
+            transform: rotate(-2deg);
+        }
+        .calma:hover {
+            transform: translateY(-10px) rotate(-2deg);
+            box-shadow: 5px 15px 25px rgba(0,0,0,0.15);
+        }
+
+        /* Post-it vermellós per Rush */
+        .rush { 
+            background-color: #fecaca; /* Vermell pastel que tenyirà la imatge */
+            transform: rotate(3deg);
+        }
+        .rush:hover {
+            transform: translateY(-10px) rotate(3deg);
+            box-shadow: 5px 15px 25px rgba(0,0,0,0.15);
+        }
+
+        /* Assegurem que el text es llegeixi per sobre de la imatge */
+        .mode-content {
+            position: relative;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.85); /* Fons blanc semitransparent */
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 85%;
+        }
+
+        .mode-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .mode-content p {
+            font-size: 1.1rem;
+            color: #444;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .btn-tornar {
+            display: inline-block;
+            margin-top: 3rem;
+            padding: 10px 25px;
+            background-color: #ecf0f1;
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-tornar:hover {
+            background-color: #bdc3c7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="module-entry">
+        <header>
+            <h1>Balanç de situació</h1>
+        </header>
+
+        <div class="intro-box">
+            <p>
+                El balanç de situació és la prova de foc de qualsevol empresa: actiu = passiu + patrimoni net. Tot allò que el negoci té i li deuen (l'actiu) ha d'estar perfectament justificat per la manera com s'ha finançat (el patrimoni net i el passiu). Construir un balanç no és només fer llistes i sumar conceptes; és encaixar les peces d'un trencaclosques financer on l'equació ha de quadrar al cèntim, sense marge per a la improvisació ni l'error.
+                <br><br>
+                En aquest mòdul t'enfrontaràs al repte de calcular balanços complets a partir de dades totalment desordenades. La teva missió serà ubicar cada compte a la seva massa patrimonial exacta, calcular els subtotals amb precisió i, el més important, deduir aquella xifra clau —com el capital social o el resultat de l'exercici— que permeti tancar l'estructura. Un entrenament global i definitiu per passar de la teoria a la pràctica i dominar la lògica comptable com un autèntic professional.
+            </p>
+        </div>
+
+        <div class="modes-container">
+            <a href="balanc_calma.html" class="mode-card calma">
+                <img src="calma_pic.png" alt="Icona Mode Calma" class="mode-img">
+                <div class="mode-content">
+                    <h2>MODE CALMA</h2>
+                    <p>Sense presses: assimila la teoria i domina la pràctica</p>
+                </div>
+            </a>
+
+            <a href="balanc_clock.html" class="mode-card rush">
+                <img src="rellotge_pic.png" alt="Icona Mode Contra-Rellotge" class="mode-img">
+                <div class="mode-content">
+                    <h2>MODE RELLOTGE</h2>
+                    <p>Resol els exercicis a tota velocitat!</p>
+                </div>
+            </a>
+        </div>
+
+        <a href="index.html" class="btn-tornar">Torna al menú de la gestoria</a>
+    </div>
+
+</body>
+</html>
