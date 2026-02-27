@@ -98,15 +98,20 @@
             box-shadow: inset 0 0 15px rgba(100,60,20,0.3), 0 12px 20px rgba(0,0,0,0.15);
         }
 
-        /* Títols: Protagonistes (Fons blanc pur) */
+        /* ESTILS DYMO: Títols (Cinta Vermella) */
         .card h2 {
-            color: var(--primary);
             margin: 0;
-            font-size: 1.4rem;
-            background-color: #ffffff;
+            font-size: 1.1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #f0f0f0;
+            background-color: #cc0000; 
             padding: 6px 14px;
             border-radius: 2px;
-            box-shadow: 1px 2px 5px rgba(0,0,0,0.2);
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.3), inset 0 -2px 3px rgba(0,0,0,0.3), 2px 3px 5px rgba(0,0,0,0.4);
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.5), -1px -1px 0px rgba(255,255,255,0.3);
             align-self: center;
         }
 
@@ -122,35 +127,42 @@
             filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint'%3E%3CfeColorMatrix type='matrix' values='0.992 0 0 0 0 0 0.992 0 0 0 0 0 0.588 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
         }
 
-        /* MODIFICAT: Fons blanc apagat per ser menys cridaner */
+        /* ESTILS DYMO MODIFICAT: Descripció (Black on Yellow) */
         .card p {
-            font-size: 0.95rem;
-            color: #666666; 
-            line-height: 1.6;
-            font-weight: 500;
             margin: 0 0 1rem 0;
-            background-color: #f5f5f5; /* Blanc trencat/gris clar */
-            padding: 6px 14px;
-            border-radius: 2px;
-            box-shadow: 1px 2px 5px rgba(0,0,0,0.2);
-            align-self: center;
-        }
-
-        /* Etiquetes d'estat */
-        .status-badge {
-            margin-top: auto;
-            padding: 0.4rem 1rem;
-            border-radius: 2px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
             text-transform: uppercase;
-            background-color: #f5f5f5; /* Blanc trencat/gris clar */
-            box-shadow: 1px 2px 5px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+            color: #000000; /* Lletra negra */
+            background-color: #ffcc00; /* Groc intens DYMO */
+            padding: 6px 14px;
+            border-radius: 2px;
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(0,0,0,0.2), 2px 3px 5px rgba(0,0,0,0.4);
+            /* Relleu adaptat per a text fosc: ombra clara a baix i fosca a dalt */
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.6), -1px -1px 0px rgba(0,0,0,0.2);
             align-self: center;
         }
 
-        .active { color: #607d8b; } 
-        .pending { color: #9e9e9e; } 
+        /* ESTILS DYMO: Etiquetes d'estat (Cinta Blava o Grisa) */
+        .status-badge {
+            margin-top: auto;
+            font-size: 0.8rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #f0f0f0;
+            padding: 6px 14px;
+            border-radius: 2px;
+            box-shadow: inset 0 2px 3px rgba(255,255,255,0.2), inset 0 -2px 3px rgba(0,0,0,0.3), 2px 3px 5px rgba(0,0,0,0.4);
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.5), -1px -1px 0px rgba(255,255,255,0.2);
+            align-self: center;
+        }
+
+        .active { background-color: #00509e; } 
+        .pending { background-color: #555555; } 
 
         /* FOOTER */
         footer {
@@ -179,85 +191,85 @@
             <a href="pb_intro.html" class="card">
                 <h2>Termini de recuperació</h2>
                 <img src="pb_pic.png" alt="Icona Termini de recuperació" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Selecció d'inversions</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
             <a href="van_intro.html" class="card">
                  <h2>VAN</h2>
                  <img src="van_pic.png" alt="Icona VAN" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Selecció d'inversions</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
             <a href="tir_intro.html" class="card">
                 <h2>TIR</h2>
                 <img src="tir_pic.png" alt="Icona TIR" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Selecció d'inversions</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
             <a href="comptes_intro.html" class="card">
                 <h2>Estructura del balanç</h2>
                 <img src="comptes_pic.png" alt="Icona Balanç de situació" class="card-img">
-                <p>Domina els comptes del balanç de situació</p>
+                <p>Comptabilitat</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
              <a href="comptesbpg_intro.html" class="card">
                 <h2>Balanç o PG</h2>
                 <img src="comptesbpg_pic.png" alt="Icona Balanç vs Pèrdues i Guanys" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Comptabilitat</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
                <a href="balanc_intro.html" class="card">
                 <h2>Balanç de situació</h2>
                 <img src="balanc_pic.png" alt="Icona Balanç de situació" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Comptabilitat</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
                <a href="pg_intro.html" class="card">
                 <h2>Pèrdues i guanys</h2>
                 <img src="pg_pic.png" alt="Icona Pèrdues i guanys" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Comptabilitat</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
             <a href="ratios_intro.html" class="card">
                 <h2>Ràtios financeres</h2>
                 <img src="ratios_pic.png" alt="Icona Ràtios financeres" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Comptabilitat</p>
                 <span class="status-badge active">2n de Batxillerat</span>
             </a>
 
             <a href="#" class="card">
                 <h2>Llindar de rendibilitat</h2>
                 <img src="puntmort_pic.png" alt="Icona Llindar de rendibilitat" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Àrea de producció</p>
                 <span class="status-badge pending">2n de Batxillerat</span>
             </a>
 
              <a href="#" class="card">
                 <h2>Llindar de producció</h2>
                 <img src="llindarproduccio_pic.png" alt="Icona Llindar de producció" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Àrea de producció</p>
                 <span class="status-badge pending">2n de Batxillerat</span>
             </a>
 
              <a href="#" class="card">
                 <h2>Sistemes d'equacions</h2>
                 <img src="enprojecte_pic.png" alt="Icona Sistemes d'equacions" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
+                <p>Àrea de producció</p>
                 <span class="status-badge pending">2n de Batxillerat</span>
             </a>
 
              <a href="irpf_intro.html" class="card">
                 <h2>Taula de trams (IRPF)</h2>
                 <img src="enconstruccio_pic.png" alt="Icona Trams de l'IRPF" class="card-img">
-                <p>⚠️ En construcció ⚠️</p>
-                <span class="status-badge pending">4t d'ESO</span>
+                <p>Finances personals</p>
+                <span class="status-badge active">4t d'ESO</span>
             </a>
 
             </div>
