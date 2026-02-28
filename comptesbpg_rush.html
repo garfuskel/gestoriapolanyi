@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestoria Polanyi</title>
+    <style>
+        :root {
+            --bs-color: #2980b9; /* Blau per Balanç */
+            --pg-color: #e67e22; /* Taronja per Pèrdues i Guanys */
+            --bg-color: #f4f7f6; --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+            touch-action: none; /* Bloqueja scroll i zoom a tota la pantalla */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .game-container {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
+            max-height: 800px;
+        }
+
+        /* --- ZONA SUPERIOR: JOC CANVAS I HUD --- */
+        .game-view {
+            position: relative;
+            background: #ecf0f1;
+            flex-grow: 1;
+            border-bottom: 3px solid #bdc3c7;
+            overflow: hidden;
+            min-height: 200px; 
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hud {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-color);
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .hearts {
+            color: #e74c3c;
+            font-size: 1.5rem;
+            letter-spacing: 5px;
+        }
+
+        /* --- ZONA CENTRAL: LA PREGUNTA --- */
+        .question-box {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .current-account {
+            font-size: 1.8rem; /* Un pèl més petit per si hi ha noms llargs */
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        /* --- ZONA INFERIOR: BOTONS (NOU DISSENY 2 COLUMNES) --- */
+        .controls-area {
+            flex-shrink: 0;
+            height: 200px; /* Alçada ajustada per 2 botons grans */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            background: white;
+        }
+
+        .btn-option {
+            border: none; border-radius: 12px; font-size: 1.5rem; font-weight: 800;
+            cursor: pointer; color: white; text-transform: uppercase;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.2);
+            transition: top 0.1s, box-shadow 0.1s;
+            position: relative; top: 0;
+            user-select: none; -webkit-user-select: none;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; line-height: 1.2;
+            touch-action: manipulation; /* Millora resposta tàctil */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-option:active { box-shadow: 0 0px 0px rgba(0,0,0,0.2); top: 6px; }
+        
+        /* Colors Nous */
+        .btn-pg { background-color: var(--pg-color); } /* Taronja */
+        .btn-bs { background-color: var(--bs-color); } /* Blau */
+
+        /* --- OVERLAY GAME OVER / INICI --- */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.95); color: white;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 100;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto; 
+        }
+        .overlay.hidden { display: none; }
+        
+        .game-over-title { 
+            font-size: 1.8rem;  
+            font-weight: 900; 
+            color: #e74c3c; 
+            margin-bottom: 2px; 
+            line-height: 1; 
+        }
+        .final-score { font-size: 1rem; margin-bottom: 5px; }
+        
+        .btn-start {
+            padding: 10px 24px; 
+            font-size: 1.1rem; 
+            font-weight: bold;
+            background: #3498db; 
+            color: white; border: none; border-radius: 8px;
+            cursor: pointer; box-shadow: 0 6px 0 #217dbb; 
+            margin-top: 10px; 
+            margin-bottom: 5px;
+            transition: all 0.1s; position: relative; top:0;
+            display: inline-block;
+            flex-shrink: 0; 
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-start:active { top: 6px; box-shadow: 0 0 0 #217dbb; }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+            40%, 60% { transform: translate3d(8px, 0, 0); }
+        }
+
+        .flash-red { animation: flashRed 0.3s; }
+        @keyframes flashRed { 0% { background-color: #e74c3c; } 100% { background-color: #ecf0f1; } }
+
+        @media (max-width: 600px) {
+            .controls-area { height: 180px; gap: 10px; padding: 10px; }
+            .btn-option { font-size: 1.1rem; }
+            .current-account { font-size: 1.3rem; }
+            .hud { font-size: 1rem; }
+            .game-over-title { font-size: 1.6rem; } 
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div id="gameView" class="game-view">
+        <div class="hud">
+            <div id="scoreDisplay">PUNTS: 0</div>
+            <div id="livesDisplay" class="hearts">❤️❤️❤️</div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="overlay" class="overlay">
+            <div id="gameOverContent" style="display: none;">
+                <div class="game-over-title">GAME OVER</div>
+                <div class="final-score" id="finalScoreContainer">Has aconseguit <span id="finalScore">0</span> encerts</div>
+                <div id="deathReason" style="color: #bdc3c7; margin-bottom: 5px; font-size: 0.9rem; max-width: 95%;"></div>
+            </div>
+            <div id="startContent">
+                <h1 style="font-size: 2rem; margin-bottom: 5px; line-height: 1.2;">GESTORIA RUSH</h1>
+                <h2 style="font-size: 1.2rem; color: #3498db; margin-top:0;">BALANÇ DE SITUACIÓ / COMPTE DE PÈRDUES I GUANYS</h2>
+                <p style="font-size: 1rem; margin-bottom: 10px; max-width: 500px;">
+                    Tens 3 vides ❤️ Encerta i salta en el moment oportú 📑
+                </p>
+            </div>
+            <button id="mainBtn" class="btn-start" onpointerdown="startGame(); event.preventDefault()">JUGAR</button>
+        </div>
+    </div>
+
+    <div class="question-box" id="questionBox">
+        <div id="currentAccountText" class="current-account">...</div>
+    </div>
+
+    <div class="controls-area">
+        <button class="btn-option btn-pg" onpointerdown="checkAnswer('PG'); event.preventDefault()">PÈRDUES I GUANYS</button>
+        <button class="btn-option btn-bs" onpointerdown="checkAnswer('BS'); event.preventDefault()">BALANÇ DE SITUACIÓ</button>
+    </div>
+</div>
+
+<script>
+    // === CONFIGURACIÓ ===
+    const CONFIG = {
+        velocitatInicial: 3.5,
+        incrementVelocitat: 0.3,  
+        velocitatMaxima: 40,      
+        freqObstacles: 160 
+    };
+
+    // === GESTOR D'AUDIO ===
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'jump') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.linearRampToValueAtTime(800, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === 'error') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (type === 'gameover') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 1.5);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0, now + 1.5);
+            osc.start(now);
+            osc.stop(now + 1.5);
+        }
+    }
+
+    // === BASE DE DADES (EXTRETA DEL TEU ARXIU) ===
+    // 'BS' = Balanç Situació
+    // 'PG' = Pèrdues i Guanys
+    // 'BOTH' = Resultat de l'exercici (Correcte a tots dos llocs)
+    
+    const comptesDB = [
+    // BALANÇ DE SITUACIÓ
+    { nom: "Propietat industrial", grup: "BS" },
+    { nom: "Aplicacions informàtiques", grup: "BS" },
+    { nom: "Amortització acumulada de l'immobilitzat immaterial (AAII)", grup: "BS" },
+    { nom: "Terrenys i béns naturals", grup: "BS" },
+    { nom: "Construccions", grup: "BS" },
+    { nom: "Instal·lacions tècniques", grup: "BS" },
+    { nom: "Maquinària", grup: "BS" },
+    { nom: "Utillatge", grup: "BS" },
+    { nom: "Mobiliari", grup: "BS" },
+    { nom: "Equips per al procés de la informació", grup: "BS" },
+    { nom: "Elements de transport", grup: "BS" },
+    { nom: "Amortització acumulada de l'immobilitzat material (AAIM)", grup: "BS" },
+    { nom: "Inversions en terrenys i béns naturals", grup: "BS" },
+    { nom: "Inversions en construccions", grup: "BS" },
+    { nom: "Amortització acumulada de les inversions immobiliàries", grup: "BS" },
+    { nom: "Inversions financeres a llarg termini en instruments de patrimoni", grup: "BS" },
+    { nom: "Crèdits a llarg termini per alienació d'immobilitzat", grup: "BS" },
+    { nom: "Mercaderies", grup: "BS" },
+    { nom: "Matèries primeres", grup: "BS" },
+    { nom: "Productes acabats", grup: "BS" },
+    { nom: "Altres aprovisionaments", grup: "BS" },
+    { nom: "Clients", grup: "BS" },
+    { nom: "Clients, efectes comercials a cobrar", grup: "BS" },
+    { nom: "Deutors", grup: "BS" },
+    { nom: "Deutors, efectes comercials a cobrar", grup: "BS" },
+    { nom: "Inversions financeres a curt termini en instruments de patrimoni", grup: "BS" },
+    { nom: "Hisenda pública, deutora per diferents conceptes", grup: "BS" },
+    { nom: "Bancs i institucions de crèdit", grup: "BS" },
+    { nom: "Caixa", grup: "BS" },
+    { nom: "Capital", grup: "BS" },
+    { nom: "Reserva legal", grup: "BS" },
+    { nom: "Reserves voluntàries", grup: "BS" },
+    { nom: "Reserves estatutàries", grup: "BS" },
+    { nom: "Deutes a llarg termini amb entitats de crèdit", grup: "BS" },
+    { nom: "Proveïdors d'immobilitzat a llarg termini", grup: "BS" },
+    { nom: "Emprèstits (obligacions i bons)", grup: "BS" },
+    { nom: "Proveïdors", grup: "BS" },
+    { nom: "Proveïdors, efectes comercials a pagar", grup: "BS" },
+    { nom: "Creditors per prestació de serveis", grup: "BS" },
+    { nom: "Creditors, efectes comercials a pagar", grup: "BS" },
+    { nom: "Hisenda pública, creditora per conceptes fiscals", grup: "BS" },
+    { nom: "Organismes de la Seguretat Social creditors", grup: "BS" },
+    { nom: "Deutes a curt termini amb entitats de crèdit", grup: "BS" },
+    { nom: "Proveïdors d'immobilitzat a curt termini", grup: "BS" },
+
+    // PÈRDUES I GUANYS
+    { nom: "Vendes de mercaderies", grup: "PG" },
+    { nom: "Prestacions de serveis", grup: "PG" },
+    { nom: "Devolucions de compres", grup: "PG" },
+    { nom: "Ràpels per compres", grup: "PG" },
+    { nom: "Descomptes sobre compres per pagament immediat", grup: "PG" },
+    { nom: "Ingressos per arrendaments", grup: "PG" },
+    { nom: "Variació d’existències", grup: "PG" },
+    { nom: "Compres de mercaderies", grup: "PG" },
+    { nom: "Compres de primeres matèries", grup: "PG" },
+    { nom: "Devolucions de vendes i operacions similars", grup: "PG" },
+    { nom: "Ràpels sobre vendes", grup: "PG" },
+    { nom: "Descomptes sobre vendes per pagament immediat", grup: "PG" },
+    { nom: "Arrendaments i cànons", grup: "PG" },
+    { nom: "Serveis de professionals independents", grup: "PG" },
+    { nom: "Transports", grup: "PG" },
+    { nom: "Prima d’assegurances", grup: "PG" },
+    { nom: "Reparació i conservació", grup: "PG" },
+    { nom: "Subministraments", grup: "PG" },
+    { nom: "Altres tributs", grup: "PG" },
+    { nom: "Sous i salaris", grup: "PG" },
+    { nom: "Seguretat Social a càrrec de l’empresa", grup: "PG" },
+    { nom: "Serveis bancaris", grup: "PG" },
+    { nom: "Amortització de l’immobilitzat", grup: "PG" },
+    { nom: "Altres ingressos financers", grup: "PG" },
+    { nom: "Interessos de deutes", grup: "PG" },
+    { nom: "Impost sobre beneficis", grup: "PG" },
+
+    // AMBDÓS (RESULTAT DE L'EXERCICI)
+    { nom: "Resultat de l'exercici: pèrdues", grup: "BOTH" },
+    { nom: "Resultat de l'exercici: guanys", grup: "BOTH" }
+];
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let animationId;
+    let score = 0;
+    let lives = 3;
+    let gameSpeed = CONFIG.velocitatInicial;
+    let spawnRate = CONFIG.freqObstacles;
+    let spawnTimer = 0; 
+    let isGameOver = false;
+    
+    function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas(); 
+
+    const player = {
+        x: 50, y: 0, width: 40, height: 60,
+        color: '#3498db', dy: 0, jumpPower: 17, gravity: 0.7, grounded: false,
+        draw: function() {
+            // EMOJI en lloc de dibuix
+            ctx.font = '55px Arial'; 
+            ctx.textAlign = 'left';
+            ctx.fillText('🤓', this.x - 8, this.y + 55); 
+        },
+        update: function() {
+            this.dy += this.gravity;
+            this.y += this.dy;
+            if (this.y + this.height > canvas.height - 20) {
+                this.y = canvas.height - 20 - this.height;
+                this.dy = 0;
+                this.grounded = true;
+            } else {
+                this.grounded = false;
+            }
+            this.draw();
+        },
+        jump: function() {
+            if (this.grounded) {
+                this.dy = -this.jumpPower;
+                this.grounded = false;
+            }
+        }
+    };
+
+    let obstacles = [];
+
+    class Obstacle {
+        constructor() {
+            this.width = 50;
+            this.height = 50;
+            this.x = canvas.width;
+            this.y = canvas.height - 20 - this.height;
+            this.color = '#c0392b';
+            this.account = comptesDB[Math.floor(Math.random() * comptesDB.length)];
+            this.solved = false; 
+        }
+        draw() {
+            // DIBUIX DE LA PILA DE PAPERS GROCS
+            
+            // Full 1 (fons)
+            ctx.fillStyle = '#f9e79f'; // Groc pàl·lid fosc
+            ctx.fillRect(this.x + 5, this.y + 10, 40, 40);
+            ctx.strokeStyle = '#f1c40f'; // Contorn groc fort
+            ctx.lineWidth = 1;
+            ctx.strokeRect(this.x + 5, this.y + 10, 40, 40);
+            
+            // Full 2 (mig)
+            ctx.fillStyle = '#f7dc6f'; // Groc mitjà
+            ctx.fillRect(this.x, this.y + 5, 40, 40);
+            ctx.strokeRect(this.x, this.y + 5, 40, 40);
+            
+            // Full 3 (davant)
+            ctx.fillStyle = '#f1c40f'; // Groc intens (Tipus Post-it/Folder)
+            ctx.fillRect(this.x - 5, this.y, 40, 40);
+            ctx.strokeRect(this.x - 5, this.y, 40, 40);
+            
+            // Línies de text
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillRect(this.x, this.y + 10, 25, 3);
+            ctx.fillRect(this.x, this.y + 18, 20, 3);
+            ctx.fillRect(this.x, this.y + 26, 28, 3);
+            
+            // Indicador de resolt
+            if(this.solved) {
+                ctx.fillStyle = '#27ae60';
+                ctx.font = 'bold 30px Arial';
+                ctx.fillText('✓', this.x + 5, this.y + 35);
+            } else {
+                ctx.fillStyle = '#c0392b';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText('?', this.x + 5, this.y + 30);
+            }
+        }
+        update() {
+            this.x -= gameSpeed;
+            this.draw();
+        }
+    }
+
+    function animate() {
+        if (isGameOver) return;
+        
+        animationId = requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#7f8c8d';
+        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+
+        spawnTimer++;
+        if (spawnTimer >= spawnRate) {
+            obstacles.push(new Obstacle());
+            updateTextToNextObstacle();
+            spawnTimer = 0; 
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            let obs = obstacles[i];
+            obs.update();
+
+            if (player.x < obs.x + obs.width &&
+                player.x + player.width > obs.x &&
+                player.y < obs.y + obs.height &&
+                player.y + player.height > obs.y) {
+                
+                handleCollision(i);
+            }
+
+            if (obs.x + obs.width < 0) {
+                obstacles.splice(i, 1);
+                updateTextToNextObstacle();
+            }
+        }
+
+        player.update();
+    }
+
+    function startGame() {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        document.getElementById('overlay').classList.add('hidden');
+        resetGame();
+        animate();
+    }
+
+    function resetGame() {
+        isGameOver = false;
+        score = 0;
+        lives = 3;
+        
+        gameSpeed = CONFIG.velocitatInicial;
+        spawnRate = CONFIG.freqObstacles;
+        spawnTimer = 0;
+        
+        obstacles = [];
+        player.y = canvas.height - 20 - player.height;
+        player.dy = 0;
+        
+        obstacles.push(new Obstacle());
+        updateTextToNextObstacle();
+        
+        // MOSTRAR HIGH SCORE
+        const savedHighScore = localStorage.getItem('gestoriaRushPyGHighScore') || 0;
+        document.getElementById('scoreDisplay').innerHTML = `PUNTS: 0 <span style="font-size:0.7em; margin-left:10px; opacity:0.7;">RÈCORD: ${savedHighScore}</span>`;
+        
+        let heartsStr = "";
+        for(let i=0; i<lives; i++) heartsStr += "❤️";
+        document.getElementById('livesDisplay').innerText = heartsStr;
+    }
+
+    function handleCollision(index) {
+        playSound('error'); 
+        lives--;
+        updateHUD();
+        
+        const gameView = document.getElementById('gameView');
+        gameView.classList.remove('flash-red');
+        void gameView.offsetWidth; 
+        gameView.classList.add('flash-red');
+
+        obstacles.splice(index, 1);
+        updateTextToNextObstacle();
+
+        if (lives <= 0) {
+            endGame();
+        }
+    }
+
+    function updateHUD() {
+        const savedHighScore = localStorage.getItem('gestoriaRushPyGHighScore') || 0;
+        document.getElementById('scoreDisplay').innerHTML = `PUNTS: ${score} <span style="font-size:0.7em; margin-left:10px; opacity:0.7;">RÈCORD: ${savedHighScore}</span>`;
+        let heartsStr = "";
+        for(let i=0; i<lives; i++) heartsStr += "❤️";
+        document.getElementById('livesDisplay').innerText = heartsStr;
+    }
+
+    function updateTextToNextObstacle() {
+        const nextObs = obstacles.find(o => !o.solved);
+        const textBox = document.getElementById('currentAccountText');
+        
+        if (nextObs) {
+            textBox.innerText = nextObs.account.nom;
+        } else {
+            textBox.innerText = "...";
+        }
+    }
+
+    function checkAnswer(selectedGroup) {
+        if (isGameOver) return;
+        const targetObs = obstacles.find(o => !o.solved);
+        if (!targetObs) return;
+
+        // LÒGICA NOVA: 'BOTH' accepta qualsevol dels dos (PG o BS)
+        let isCorrect = false;
+        
+        if (targetObs.account.grup === 'BOTH') {
+            isCorrect = true;
+        } else if (selectedGroup === targetObs.account.grup) {
+            isCorrect = true;
+        }
+
+        if (isCorrect) {
+            score++;
+            targetObs.solved = true; 
+            player.jump(); 
+            playSound('jump'); 
+            
+            if (score % 5 === 0) {
+                 gameSpeed = Math.min(gameSpeed + CONFIG.incrementVelocitat, CONFIG.velocitatMaxima);
+                 spawnRate = Math.max(90, Math.floor(CONFIG.freqObstacles * (CONFIG.velocitatInicial / gameSpeed)));
+            }
+
+            updateHUD();
+            updateTextToNextObstacle();
+        } else {
+            playSound('error'); 
+            const qBox = document.getElementById('questionBox');
+            qBox.classList.add('shake');
+            setTimeout(() => qBox.classList.remove('shake'), 400);
+        }
+    }
+
+    function endGame() {
+        isGameOver = true;
+        playSound('gameover'); 
+        cancelAnimationFrame(animationId);
+        document.getElementById('overlay').classList.remove('hidden');
+        document.getElementById('startContent').style.display = 'none';
+        document.getElementById('gameOverContent').style.display = 'block';
+        
+        // HIGH SCORE (Clau diferent per no barrejar amb l'altre joc)
+        const currentHighScore = localStorage.getItem('gestoriaRushPyGHighScore') || 0;
+        let finalScoreHTML = `Has aconseguit <span id="finalScore">${score}</span> encerts`;
+        
+        if (score > currentHighScore) {
+            localStorage.setItem('gestoriaRushPyGHighScore', score);
+            finalScoreHTML += `<br><span style="color:#2ecc71; font-size:1.1rem; font-weight:bold;">NOU RÈCORD PERSONAL!</span>`;
+        }
+        document.getElementById('finalScoreContainer').innerHTML = finalScoreHTML;
+        
+        // RANGS ADAPTATS
+        const reason = document.getElementById('deathReason');
+        let rang = "";
+        let colorRang = "";
+
+        if (score < 5) { rang = "AUXILIAR EN PRÀCTIQUES"; colorRang = "#bdc3c7"; }
+        else if (score < 15) { rang = "TÈCNIC COMPTABLE"; colorRang = "#3498db"; }
+        else if (score < 30) { rang = "CAP DE COMPTABILITAT"; colorRang = "#9b59b6"; }
+        else if (score < 50) { rang = "DIRECTOR FINANCER (CFO)"; colorRang = "#f1c40f"; }
+        else { rang = "SOCI AUDITOR SÈNIOR"; colorRang = "#2ecc71"; }
+
+        reason.innerHTML = `EL TEU RANG:<br><strong style="font-size:1.1rem; color:${colorRang};">${rang}</strong>`;
+        
+        document.getElementById('mainBtn').innerText = "TORNA A JUGAR";
+    }
+</script>
+</body>
+</html>

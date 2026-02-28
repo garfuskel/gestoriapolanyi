@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <style>
+        :root {
+            --bs-color: #2980b9; /* Blau Balanç */
+            --pg-color: #e67e22; /* Taronja PyG */
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        /* Capçalera */
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Zona de Pregunta */
+        .question-area {
+            flex-shrink: 0;
+            padding: 40px 20px;
+            text-align: center;
+            background: #fdfdfd;
+            border-bottom: 1px solid #eee;
+        }
+
+        .account-name {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #34495e;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .instruction {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        /* ESTRUCTURA BOTONS (2 GRANS) */
+        .options-grid {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+            background: #ecf0f1;
+        }
+
+        .btn-option {
+            border: none;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            color: white;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            height: 100%;
+        }
+
+        .btn-option:active { 
+            transform: translateY(4px); 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1); 
+        }
+        
+        .btn-option:hover { opacity: 0.95; }
+
+        /* COLORS */
+        .btn-pg { background-color: var(--pg-color); }
+        .btn-bs { background-color: var(--bs-color); }
+
+        /* Modal / Feedback Overlay */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .feedback-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .feedback-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .correct { color: #27ae60; }
+        .incorrect { color: #c0392b; }
+
+        .feedback-concept {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: bold;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .feedback-definition {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #555;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #34495e;
+            text-align: justify;
+            margin-bottom: 30px;
+        }
+
+        .btn-next {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .btn-next:hover { background: #34495e; }
+        
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; gap: 15px; padding: 20px; }
+            .btn-option { height: 100px; font-size: 1.2rem; }
+            .account-name { font-size: 1.5rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        CLASSIFICACIÓ DE COMPTES
+    </div>
+
+    <div class="question-area">
+        <div class="instruction">A quin document pertany aquest compte?</div>
+        <div id="account-display" class="account-name">Carregant...</div>
+    </div>
+
+    <div class="options-grid">
+        <button class="btn-option btn-pg" onclick="checkAnswer('PG')">Pèrdues i Guanys</button>
+        <button class="btn-option btn-bs" onclick="checkAnswer('BS')">Balanç de Situació</button>
+    </div>
+</div>
+
+<div id="overlay" class="overlay">
+    <div class="feedback-card">
+        <div id="feedback-title" class="feedback-title"></div>
+        <div id="feedback-concept" class="feedback-concept"></div>
+        <div id="feedback-text" class="feedback-definition"></div>
+        <button class="btn-next" onclick="nextQuestion()">Següent Compte</button>
+    </div>
+</div>
+
+<script>
+    // --- BASE DE DADES DE COMPTES ---
+    // 'BS' = Balanç, 'PG' = Pèrdues i Guanys, 'BOTH' = Ambdós
+    const comptesDB = [
+        // --- BALANÇ DE SITUACIÓ ---
+        { nom: "Propietat industrial", grup: "BS", desc: "ACTIU NO CORRENT. Drets sobre patents, marques o noms comercials que l'empresa ha adquirit o desenvolupat." },
+        { nom: "Aplicacions informàtiques", grup: "BS", desc: "ACTIU NO CORRENT. Programes d'ordinador (software) que l'empresa utilitza per a la seva gestió a llarg termini." },
+        { nom: "Amortització acumulada de l'immobilitzat immaterial (AAII)", grup: "BS", desc: "ACTIU NO CORRENT. Reflecteix el desgast o pèrdua de valor acumulat dels actius intangibles." },
+        { nom: "Terrenys i béns naturals", grup: "BS", desc: "ACTIU NO CORRENT. Solars urbans, finques rústiques i altres terrenys no edificats propietat de l'empresa." },
+        { nom: "Construccions", grup: "BS", desc: "ACTIU NO CORRENT. Edificis i estructures propietat de l'empresa utilitzats en la seva activitat (oficines, fàbriques)." },
+        { nom: "Instal·lacions tècniques", grup: "BS", desc: "ACTIU NO CORRENT. Unitats complexes d'ús especialitzat en el procés productiu." },
+        { nom: "Maquinària", grup: "BS", desc: "ACTIU NO CORRENT. Màquines i aparells utilitzats per a la fabricació o extracció de productes." },
+        { nom: "Utillatge", grup: "BS", desc: "ACTIU NO CORRENT. Conjunt d'eines i utensilis que s'utilitzen juntament amb la maquinària." },
+        { nom: "Mobiliari", grup: "BS", desc: "ACTIU NO CORRENT. Mobiliari, material i equips d'oficina utilitzats per l'empresa." },
+        { nom: "Equips per al procés de la informació", grup: "BS", desc: "ACTIU NO CORRENT. Ordinadors, servidors i altres dispositius electrònics." },
+        { nom: "Elements de transport", grup: "BS", desc: "ACTIU NO CORRENT. Vehicles utilitzats per al transport terrestre, marítim o aeri." },
+        { nom: "Amortització acumulada de l'immobilitzat material (AAIM)", grup: "BS", desc: "ACTIU NO CORRENT. Reflecteix la pèrdua de valor acumulada dels béns materials." },
+        { nom: "Inversions en terrenys i béns naturals", grup: "BS", desc: "ACTIU NO CORRENT. Terrenys que l'empresa posseeix per obtenir rendes o plusvàlues, no per usar-los." },
+        { nom: "Inversions en construccions", grup: "BS", desc: "ACTIU NO CORRENT. Edificis que l'empresa posseeix per llogar o vendre en el futur (inversió immobiliària)." },
+        { nom: "Amortització acumulada de les inversions immobiliàries", grup: "BS", desc: "ACTIU NO CORRENT. Correcció de valor per la depreciació de les inversions immobiliàries." },
+        { nom: "Inversions financeres a llarg termini en instruments de patrimoni", grup: "BS", desc: "ACTIU NO CORRENT. Accions o participacions permanents en altres empreses." },
+        { nom: "Crèdits a llarg termini per alienació d'immobilitzat", grup: "BS", desc: "ACTIU NO CORRENT. Drets de cobrament a llarg termini originats per la venda d'actius fixos." },
+        
+        { nom: "Mercaderies", grup: "BS", desc: "ACTIU CORRENT. Béns adquirits per l'empresa per revendre'ls sense transformació." },
+        { nom: "Matèries primeres", grup: "BS", desc: "ACTIU CORRENT. Elements que s'incorporaran al procés productiu per a ser transformats." },
+        { nom: "Productes acabats", grup: "BS", desc: "ACTIU CORRENT. Béns fabricats per l'empresa que ja estan llestos per a la venda." },
+        { nom: "Altres aprovisionaments", grup: "BS", desc: "ACTIU CORRENT. Materials diversos com combustibles, recanvis o material d'oficina." },
+        { nom: "Clients", grup: "BS", desc: "ACTIU CORRENT. Drets de cobrament sobre compradors per vendes habituals." },
+        { nom: "Clients, efectes comercials a cobrar", grup: "BS", desc: "ACTIU CORRENT. Drets de cobrament sobre clients documentats en lletres de canvi." },
+        { nom: "Deutors", grup: "BS", desc: "ACTIU CORRENT. Drets de cobrament per serveis que no són l'activitat principal." },
+        { nom: "Deutors, efectes comercials a cobrar", grup: "BS", desc: "ACTIU CORRENT. Drets sobre deutors formalitzats en efectes de gir." },
+        { nom: "Inversions financeres a curt termini en instruments de patrimoni", grup: "BS", desc: "ACTIU CORRENT. Inversions financeres temporals (accions) per rendibilitzar excedents." },
+        { nom: "Hisenda pública, deutora per diferents conceptes", grup: "BS", desc: "ACTIU CORRENT. Quantitats que l'administració ha de tornar a l'empresa (ex: devolució IVA)." },
+        { nom: "Bancs i institucions de crèdit", grup: "BS", desc: "ACTIU CORRENT. Diners disponibles en comptes corrents." },
+        { nom: "Caixa", grup: "BS", desc: "ACTIU CORRENT. Diners en efectiu disponibles físicament a l'empresa." },
+
+        { nom: "Capital", grup: "BS", desc: "PATRIMONI NET. Aportacions realitzades pels propietaris o socis." },
+        { nom: "Reserva legal", grup: "BS", desc: "PATRIMONI NET. Beneficis retinguts obligatòriament per llei." },
+        { nom: "Reserves voluntàries", grup: "BS", desc: "PATRIMONI NET. Beneficis retinguts lliurement per l'empresa." },
+        { nom: "Reserves estatutàries", grup: "BS", desc: "PATRIMONI NET. Reserves establertes pels estatuts de l'empresa." },
+
+        { nom: "Deutes a llarg termini amb entitats de crèdit", grup: "BS", desc: "PASSIU NO CORRENT. Préstecs bancaris a tornar en més d'un any." },
+        { nom: "Proveïdors d'immobilitzat a llarg termini", grup: "BS", desc: "PASSIU NO CORRENT. Deutes per compra d'actius fixos amb venciment > 1 any." },
+        { nom: "Emprèstits (obligacions i bons a llarg termini)", grup: "BS", desc: "PASSIU NO CORRENT. Finançament obtingut mitjançant l'emissió de títols de deute." },
+
+        { nom: "Proveïdors", grup: "BS", desc: "PASSIU CORRENT. Deutes amb subministradors de mercaderies per l'activitat principal." },
+        { nom: "Proveïdors, efectes comercials a pagar", grup: "BS", desc: "PASSIU CORRENT. Deutes amb proveïdors documentats en lletres." },
+        { nom: "Creditors per prestació de serveis", grup: "BS", desc: "PASSIU CORRENT. Deutes per serveis auxiliars (llum, lloguer...)." },
+        { nom: "Creditors, efectes comercials a pagar", grup: "BS", desc: "PASSIU CORRENT. Deutes amb creditors formalitzats en efectes." },
+        { nom: "Hisenda pública, creditora per conceptes fiscals", grup: "BS", desc: "PASSIU CORRENT. Impostos pendents de pagament." },
+        { nom: "Organismes de la Seguretat Social creditors", grup: "BS", desc: "PASSIU CORRENT. Deutes pendents amb la Seguretat Social." },
+        { nom: "Deutes a curt termini amb entitats de crèdit", grup: "BS", desc: "PASSIU CORRENT. Préstecs bancaris a tornar en menys d'un any." },
+        { nom: "Proveïdors d'immobilitzat a curt termini", grup: "BS", desc: "PASSIU CORRENT. Deutes per compra d'actius fixos a pagar aviat." },
+
+        // --- PÈRDUES I GUANYS ---
+        { nom: "Vendes de mercaderies", grup: "PG", desc: "INGRESSOS D'EXPLOTACIÓ. Import net de les vendes realitzades en l'activitat principal." },
+        { nom: "Prestacions de serveis", grup: "PG", desc: "INGRESSOS D'EXPLOTACIÓ. Import obtingut per serveis prestats a tercers." },
+        { nom: "Devolucions de compres", grup: "PG", desc: "INGRESSOS D'EXPLOTACIÓ. Corregeix l'import de les compres quan tornem gènere als proveïdors." },
+        { nom: "Ràpels per compres", grup: "PG", desc: "INGRESSOS D'EXPLOTACIÓ. Descomptes per volum de comanda concedits pels proveïdors." },
+        { nom: "Descomptes sobre compres per pagament immediat", grup: "PG", desc: "INGRESSOS D'EXPLOTACIÓ. Descomptes per pagar al comptat." },
+        { nom: "Ingressos per arrendaments", grup: "PG", desc: "INGRESSOS D'EXPLOTACIÓ. Rendes obtingudes pel lloguer de béns propis a tercers." },
+        { nom: "Variació d'existències", grup: "PG", desc: "INGRÉS O DESPESA D'EXPLOTACIÓ. Ajust per la diferència entre l'estoc inicial i final (Consum = Compres - Variació)." },
+        
+        { nom: "Compres de mercaderies", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Aprovisionament de béns per a la revenda." },
+        { nom: "Compres de primeres matèries", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Adquisició de materials per a la fabricació." },
+        { nom: "Devolucions de vendes i operacions similars", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Corregeix les vendes quan els clients ens tornen productes." },
+        { nom: "Ràpels sobre vendes", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Descomptes per volum concedits als clients." },
+        { nom: "Descomptes sobre vendes per pagament immediat", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Descomptes concedits per cobrar aviat." },
+        { nom: "Arrendaments i cànons", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Cost del lloguer de béns mobles o immobles." },
+        { nom: "Serveis de professionals independents", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Honoraris d'advocats, gestors, enginyers externs." },
+        { nom: "Transports", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Costos de transport a càrrec de l'empresa realitzats per tercers." },
+        { nom: "Prima d'assegurances", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Cost de les pòlisses d'assegurança contractades." },
+        { nom: "Reparació i conservació", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Costos de manteniment dels béns d'immobilitzat." },
+        { nom: "Subministraments", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Electricitat, aigua, gas i altres proveïments no emmagatzemables." },
+        { nom: "Altres tributs", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Impostos com l'IBI o l'IAE (no inclou l'Impost de Societats)." },
+        { nom: "Sous i salaris", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Remuneracions fixes i variables dels treballadors." },
+        { nom: "Seguretat Social a càrrec de l'empresa", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Quota patronal obligatòria a la Seguretat Social." },
+        { nom: "Serveis bancaris", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Comissions per gestió de comptes i serveis financers." },
+        { nom: "Amortització de l'immobilitzat", grup: "PG", desc: "DESPESES D'EXPLOTACIÓ. Pèrdua de valor sistemàtica dels actius per l'ús o el temps." },
+        { nom: "Altres ingressos financers", grup: "PG", desc: "INGRESSOS FINANCERS. Rendiments d'inversions (interessos, dividends)." },
+        { nom: "Interessos de deutes", grup: "PG", desc: "DESPESES FINANCERES. Cost dels diners manllevats (interessos de préstecs)." },
+        { nom: "Impost sobre beneficis", grup: "PG", desc: "IMPOST SOBRE BENEFICIS. Import de l'Impost de Societats sobre el resultat de l'exercici." },
+
+        // --- AMBDÓS ---
+        { nom: "Resultat de l'exercici: pèrdues", grup: "BOTH", desc: "Aquest compte apareix al <strong>Compte de Pèrdues i Guanys</strong> com a saldo final, i també al <strong>Balanç de situació (PATRIMONI NET)</strong> restant els fons propis." },
+        { nom: "Resultat de l'exercici: guanys", grup: "BOTH", desc: "Aquest compte apareix al <strong>Compte de Pèrdues i Guanys</strong> com a saldo final, i també al <strong>Balanç de situació (PATRIMONI NET)</strong> sumant als fons propis." }
+    ];
+
+    let currentAccount = null;
+
+    function initGame() {
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        // Amagar overlay
+        document.getElementById('overlay').style.display = 'none';
+        
+        // Seleccionar compte aleatori
+        const randomIndex = Math.floor(Math.random() * comptesDB.length);
+        currentAccount = comptesDB[randomIndex];
+        
+        // Mostrar en pantalla
+        document.getElementById('account-display').innerText = currentAccount.nom;
+    }
+
+    function checkAnswer(selectedGroup) {
+        const overlay = document.getElementById('overlay');
+        const title = document.getElementById('feedback-title');
+        const concept = document.getElementById('feedback-concept');
+        const text = document.getElementById('feedback-text');
+
+        overlay.style.display = 'flex';
+        concept.innerText = currentAccount.nom;
+        
+        // Lògica especial per al resultat de l'exercici
+        let isCorrect = (selectedGroup === currentAccount.grup) || (currentAccount.grup === 'BOTH');
+
+        if (isCorrect) {
+            title.innerText = "CORRECTE ✅";
+            title.className = "feedback-title correct";
+            
+            let grupText = "";
+            if (currentAccount.grup === 'BOTH') grupText = "BALANÇ DE SITUACIÓ I COMPTE DE PÈRDUES I GUANYS";
+            else if (currentAccount.grup === 'BS') grupText = "BALANÇ DE SITUACIÓ";
+            else grupText = "COMPTE DE PÈRDUES I GUANYS";
+
+            text.innerHTML = `<strong>${grupText}</strong><br><br>` + currentAccount.desc;
+        } else {
+            title.innerText = "INCORRECTE ❌";
+            title.className = "feedback-title incorrect";
+            
+            let correctGrup = (currentAccount.grup === 'BS') ? "BALANÇ DE SITUACIÓ" : "COMPTE DE PÈRDUES I GUANYS";
+            text.innerHTML = `Aquest compte pertany al <strong>${correctGrup}</strong><br><br>` + currentAccount.desc;
+        }
+    }
+
+    window.onload = initGame;
+
+</script>
+</body>
+</html>

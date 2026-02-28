@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compte de Pèrdues i Guanys - Mode Calma</title>
+<style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+    p.subtitle { text-align: center; color: #666; margin-bottom: 25px; }
+    
+    .main-container { display: flex; gap: 20px; justify-content: center; align-items: flex-start; }
+    
+    /* COLUMNA DE COMPTES (ORIGEN) */
+    .source-column { 
+        background: white; 
+        padding: 15px; 
+        border-radius: 10px; 
+        width: 300px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        position: sticky;
+        top: 20px;
+    }
+
+    /* COLUMNA DEL DOCUMENT (DESTÍ) */
+    .document-column { 
+        background: white; 
+        padding: 25px; 
+        border-radius: 10px; 
+        width: 650px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    }
+
+    /* ESTILS FITXES */
+    .account { 
+        background: #fff3cd; /* Groc tipus post-it */
+        color: #856404;
+        padding: 10px 12px; 
+        margin: 8px 0; 
+        border-radius: 4px; 
+        cursor: grab; 
+        border: 1px solid #ffeeba; 
+        font-size: 0.95em; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform 0.1s;
+    }
+    .account:active { cursor: grabbing; transform: scale(0.98); }
+    .account.dragging { opacity: 0.5; }
+    .account-val { font-weight: bold; color: #555; font-family: monospace; font-size: 1.1em;}
+
+    /* ESTILS DOCUMENT PYG */
+    .pyg-section { margin-bottom: 20px; border: 1px solid #cbd5e0; border-radius: 6px; overflow: hidden; }
+    .section-header { 
+        background: #edf2f7; 
+        padding: 12px; 
+        font-weight: bold; 
+        color: #2d3748; 
+        border-bottom: 1px solid #cbd5e0;
+        display: flex;
+        justify-content: space-between;
+    }
+    .dropzone { 
+        min-height: 50px; 
+        background: #fafafa; 
+        padding: 10px; 
+        transition: 0.2s; 
+    }
+    .dropzone.dragover { background: #ebf8ff; box-shadow: inset 0 0 10px #bee3f8; }
+
+    /* RESULTATS INTERMEDIS */
+    .result-row {
+        background: #2c3e50;
+        color: white;
+        padding: 10px 15px;
+        margin: 15px 0;
+        border-radius: 6px;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.05em;
+    }
+    .sub-result { background: #34495e; font-size: 0.95em; }
+    
+    /* BOTONS I FEEDBACK */
+    .controls { text-align: center; margin-top: 20px; }
+    button { 
+        padding: 12px 25px; 
+        font-size: 16px; 
+        cursor: pointer; 
+        background: #3498db; 
+        color: white; 
+        border: none; 
+        border-radius: 5px; 
+        transition: 0.2s; 
+    }
+    button:hover { background: #2980b9; }
+    button.reset { background: #95a5a6; margin-left: 10px; }
+    button.reset:hover { background: #7f8c8d; }
+
+    #feedback { margin-top: 20px; padding: 15px; border-radius: 5px; display: none; text-align: left; }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+    /* Estils específics per diferenciar zones */
+    .zone-ing { border-left: 5px solid #48bb78; } /* Verd per ingressos */
+    .zone-des { border-left: 5px solid #f56565; } /* Vermell per despeses */
+    
+    @media (max-width: 900px) {
+        .main-container { flex-direction: column; align-items: center; }
+        .source-column, .document-column { width: 100%; max-width: 600px; position: static; max-height: none;}
+    }
+</style>
+</head>
+<body>
+
+<h1>Compte de Pèrdues i Guanys</h1>
+<p class="subtitle">Ordena els comptes i alerta amb les trampes</p>
+
+<div class="main-container">
+    <div class="source-column">
+        <h3 style="margin-top:0;">Comptes</h3>
+        <div id="source-container" class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)">
+            </div>
+    </div>
+
+    <div class="document-column">
+        
+        <div class="pyg-section zone-ing">
+            <div class="section-header">
+                <span>1. INGRESSOS D'EXPLOTACIÓ (+)</span>
+                <span id="total-ing-exp">0 €</span>
+            </div>
+            <div id="zone-ing-exp" class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)" data-zone="ing_exp"></div>
+        </div>
+
+        <div class="pyg-section zone-des">
+            <div class="section-header">
+                <span>2. DESPESES D'EXPLOTACIÓ (-)</span>
+                <span id="total-des-exp">0 €</span>
+            </div>
+            <div id="zone-des-exp" class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)" data-zone="des_exp"></div>
+        </div>
+
+        <div class="result-row">
+            <span>A) BAII (RESULTAT D'EXPLOTACIÓ)</span>
+            <span id="val-baii">0 €</span>
+        </div>
+
+        <div class="pyg-section zone-ing">
+            <div class="section-header">
+                <span>3. INGRESSOS FINANCERS (+)</span>
+                <span id="total-ing-fin">0 €</span>
+            </div>
+            <div id="zone-ing-fin" class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)" data-zone="ing_fin"></div>
+        </div>
+
+        <div class="pyg-section zone-des">
+            <div class="section-header">
+                <span>4. DESPESES FINANCERES (-)</span>
+                <span id="total-des-fin">0 €</span>
+            </div>
+            <div id="zone-des-fin" class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)" data-zone="des_fin"></div>
+        </div>
+
+        <div class="result-row sub-result">
+            <span>B) RESULTAT FINANCER</span>
+            <span id="val-res-fin">0 €</span>
+        </div>
+
+        <div class="result-row">
+            <span>C) BAI (RESULTAT ABANS D'IMPOSTOS)</span>
+            <span id="val-bai">0 €</span>
+        </div>
+
+        <div class="pyg-section zone-des">
+            <div class="section-header">
+                <span>5. IMPOST SOBRE BENEFICIS (-)</span>
+                <span id="total-imp">0 €</span>
+            </div>
+            <div id="zone-imp" class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)" data-zone="imp"></div>
+        </div>
+
+        <div class="result-row" style="background: #2c3e50;">
+            <span>D) BN (RESULTAT DE L'EXERCICI)</span>
+            <span id="val-bn">0 €</span>
+        </div>
+
+        <div class="controls">
+            <button onclick="checkResult()">Comprovar Resultat</button>
+            <button class="reset" onclick="initGame()">Reiniciar</button>
+        </div>
+        <div id="feedback"></div>
+
+    </div>
+</div>
+
+<script>
+    // === 1. TOTS ELS COMPTES DE PÈRDUES I GUANYS POSSIBLES ===
+    const pygDatabase = [
+        // --- 1. INGRESSOS D'EXPLOTACIÓ ---
+        { name: "Vendes de mercaderies", target: "ing_exp" },
+        { name: "Ingressos per prestacions de serveis", target: "ing_exp" },
+        { name: "Devolucions de compres", target: "ing_exp" },
+        { name: "Ràpels per compres", target: "ing_exp" },
+        { name: "Descomptes sobre compres per pagament immediat", target: "ing_exp" }, // Abreviat per espai
+        { name: "Ingressos per arrendaments", target: "ing_exp" },
+        { name: "Variació d'existències (finals > inicials)", target: "ing_exp" }, // VARIACIÓ POSITIVA
+
+        // --- 2. DESPESES D'EXPLOTACIÓ ---
+        { name: "Compres de mercaderies", target: "des_exp" },
+        { name: "Compres de primeres matèries", target: "des_exp" },
+        { name: "Devolucions de vendes", target: "des_exp" },
+        { name: "Ràpels sobre vendes", target: "des_exp" },
+        { name: "Descomptes sobre vendes per pagament immediat", target: "des_exp" },
+        { name: "Arrendaments i cànons", target: "des_exp" },
+        { name: "Serveis de professionals independents", target: "des_exp" },
+        { name: "Transports", target: "des_exp" },
+        { name: "Prima d'assegurances", target: "des_exp" },
+        { name: "Reparació i conservació", target: "des_exp" },
+        { name: "Subministraments", target: "des_exp" },
+        { name: "Altres tributs", target: "des_exp" },
+        { name: "Sous i salaris", target: "des_exp" },
+        { name: "Seguretat Social a càrrec empresa", target: "des_exp" },
+        { name: "Serveis bancaris", target: "des_exp" },
+        { name: "Variació d'existències (finals < inicials)", target: "des_exp" }, // VARIACIÓ NEGATIVA
+        { name: "Amortització de l'immobilitzat", target: "des_exp" },
+
+        // --- 3. INGRESSOS FINANCERS ---
+        { name: "Altres ingressos financers", target: "ing_fin" },
+
+        // --- 4. DESPESES FINANCERES ---
+        { name: "Interessos de deutes", target: "des_fin" },
+
+        // --- 5. IMPOST ---
+        { name: "Impost sobre beneficis", target: "imp" }
+    ];
+
+    // === 2. TRAMPES (BALANÇ) ===
+    const balanceSheetTraps = [
+        "Propietat industrial",
+        "Aplicacions informàtiques",
+        "Amortització acumulada de l'immobilitzat immaterial (AAII)",
+        "Terrenys i béns naturals",
+        "Construccions",
+        "Instal·lacions tècniques",
+        "Maquinària",
+        "Utillatge",
+        "Mobiliari",
+        "Equips per al procés de la informació",
+        "Elements de transport",
+        "Amortització acumulada de l'immobilitzat material (AAIM)",
+        "Inversions en terrenys i béns naturals",
+        "Inversions en construccions",
+        "Amortització acumulada de les inversions immobiliàries",
+        "Inversions financeres a llarg termini en instruments de patrimoni",
+        "Crèdits a llarg termini per alienació d'immobilitzat",
+        "Mercaderies",
+        "Matèries primeres",
+        "Productes acabats",
+        "Altres aprovisionaments",
+        "Clients",
+        "Clients, efectes comercials a cobrar",
+        "Deutors",
+        "Deutors, efectes comercials a cobrar",
+        "Inversions financeres a curt termini en instruments de patrimoni",
+        "Hisenda pública, deutora per diferents conceptes",
+        "Bancs i institucions de crèdit",
+        "Caixa",
+        "Capital",
+        "Reserva legal",
+        "Reserves voluntàries",
+        "Reserves estatutàries",
+        "Resultat de l'exercici: pèrdues",
+        "Resultat de l'exercici: guanys",
+        "Deutes a llarg termini amb entitats de crèdit",
+        "Proveïdors d'immobilitzat a llarg termini",
+        "Emprèstits (obligacions i bons a llarg termini)",
+        "Proveïdors",
+        "Proveïdors, efectes comercials a pagar",
+        "Creditors per prestació de serveis",
+        "Creditors, efectes comercials a pagar",
+        "Hisenda pública, creditora per conceptes fiscals",
+        "Organismes de la Seguretat Social creditors",
+        "Deutes a curt termini amb entitats de crèdit",
+        "Proveïdors d'immobilitzat a curt termini"
+    ];
+
+    let currentAccounts = [];
+
+    function initGame() {
+        const sourceContainer = document.getElementById('source-container');
+        const dropzones = document.querySelectorAll('.document-column .dropzone');
+        
+        // Netejar
+        sourceContainer.innerHTML = '';
+        dropzones.forEach(dz => dz.innerHTML = '');
+        document.getElementById('feedback').style.display = 'none';
+        
+        updateCalculations();
+
+        // --- ALGORITME DE SELECCIÓ (13 FITXES TOTALS) ---
+
+        // 0. GESTIÓ DE LA VARIACIÓ D'EXISTÈNCIES (MUTUAMENT EXLOENTS)
+        // Decidim aleatòriament quina de les dues pot sortir (o cap), però mai les dues.
+        // La que "perdi" s'elimina de la llista de candidats.
+        const varPositiva = "Variació d'existències (finals > inicials)";
+        const varNegativa = "Variació d'existències (finals < inicials)";
+        
+        // Tirem una moneda per veure quina és la "permesa" en aquesta partida
+        const allowedVar = Math.random() < 0.5 ? varPositiva : varNegativa;
+        const forbiddenVar = allowedVar === varPositiva ? varNegativa : varPositiva;
+
+        // 1. Decidir quantes trampes posem (0, 1, 2 o 3)
+        let numTraps = Math.floor(Math.random() * 4); 
+        
+        // 2. Identificar comptes "Imprescindibles" (4 fitxes)
+        const mustHavesNames = ["Vendes de mercaderies", "Compres de mercaderies", "Sous i salaris", "Impost sobre beneficis"];
+        let mustHaves = pygDatabase.filter(acc => mustHavesNames.includes(acc.name)).map(acc => ({...acc, type: 'pg'}));
+
+        // 3. Calcular quants comptes de "Farciment" (Fillers) necessitem de P&G
+        let numFillers = 9 - numTraps;
+
+        // 4. Seleccionar Fillers de P&G (excloent els imprescindibles I la variació prohibida)
+        let remainingPyg = pygDatabase.filter(acc => 
+            !mustHavesNames.includes(acc.name) && // No és un imprescindible
+            acc.name !== forbiddenVar             // No és la variació prohibida
+        );
+        
+        remainingPyg.sort(() => 0.5 - Math.random());
+        let fillers = remainingPyg.slice(0, numFillers).map(acc => ({...acc, type: 'pg'}));
+
+        // 5. Seleccionar Trampes del Balanç
+        let shuffledTraps = balanceSheetTraps.sort(() => 0.5 - Math.random());
+        let selectedTraps = shuffledTraps.slice(0, numTraps).map(name => ({
+            name: name,
+            target: 'trap',
+            type: 'bs'
+        }));
+
+        // 6. Unir-ho tot (Sempre 13 fitxes)
+        currentAccounts = [...mustHaves, ...fillers, ...selectedTraps];
+        
+        // 7. Assignar valors monetaris aleatoris
+        currentAccounts.forEach((acc, index) => {
+            acc.id = 'acc-' + index;
+            
+            // Valors realistes
+            if(acc.name.includes("Vendes")) acc.value = Math.floor(Math.random() * 40000) + 50000; // 50k - 90k
+            else if(acc.name.includes("Compres")) acc.value = Math.floor(Math.random() * 15000) + 10000; // 10k - 25k
+            else if(acc.name.includes("Sous")) acc.value = Math.floor(Math.random() * 10000) + 10000; // 10k - 20k
+            else if(acc.name.includes("Impost")) acc.value = 2500; 
+            else if(acc.type === 'bs') acc.value = Math.floor(Math.random() * 5000) + 2000; // Trampes
+            else acc.value = Math.floor(Math.random() * 3000) + 500; // Resta P&G
+        });
+
+        // Barrejar l'ordre final
+        currentAccounts.sort(() => 0.5 - Math.random());
+
+        // 8. Renderitzar
+        currentAccounts.forEach(acc => {
+            let el = document.createElement('div');
+            el.className = 'account';
+            el.id = acc.id;
+            el.draggable = true;
+            el.innerHTML = `<span>${acc.name}</span><span class="account-val">${acc.value.toLocaleString()} €</span>`;
+            el.ondragstart = drag;
+            sourceContainer.appendChild(el);
+        });
+    }
+
+    // --- DRAG AND DROP ---
+    function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('dragover'); }
+    function drag(ev) { 
+        ev.dataTransfer.setData("text", ev.target.id); 
+        ev.target.classList.add('dragging');
+    }
+    
+    function drop(ev) {
+        ev.preventDefault();
+        ev.currentTarget.classList.remove('dragover');
+        var data = ev.dataTransfer.getData("text");
+        var el = document.getElementById(data);
+        if(!el) return;
+        el.classList.remove('dragging');
+        
+        let target = ev.target;
+        while (!target.classList.contains('dropzone')) {
+            target = target.parentNode;
+            if(!target) return; 
+        }
+        
+        target.appendChild(el);
+        updateCalculations();
+    }
+
+    document.querySelectorAll('.dropzone').forEach(dz => {
+        dz.addEventListener('dragleave', (e) => e.currentTarget.classList.remove('dragover'));
+    });
+
+    // --- CÀLCULS EN TEMPS REAL ---
+    function updateCalculations() {
+        const zones = {
+            ing_exp: document.getElementById('zone-ing-exp'),
+            des_exp: document.getElementById('zone-des-exp'),
+            ing_fin: document.getElementById('zone-ing-fin'),
+            des_fin: document.getElementById('zone-des-fin'),
+            imp: document.getElementById('zone-imp')
+        };
+
+        let totals = { ing_exp: 0, des_exp: 0, ing_fin: 0, des_fin: 0, imp: 0 };
+
+        for (let key in zones) {
+            Array.from(zones[key].children).forEach(child => {
+                let acc = currentAccounts.find(a => a.id === child.id);
+                if (acc) totals[key] += acc.value;
+            });
+        }
+
+        document.getElementById('total-ing-exp').innerText = totals.ing_exp.toLocaleString() + " €";
+        document.getElementById('total-des-exp').innerText = totals.des_exp.toLocaleString() + " €";
+        document.getElementById('total-ing-fin').innerText = totals.ing_fin.toLocaleString() + " €";
+        document.getElementById('total-des-fin').innerText = totals.des_fin.toLocaleString() + " €";
+        document.getElementById('total-imp').innerText = totals.imp.toLocaleString() + " €";
+
+        let baii = totals.ing_exp - totals.des_exp;
+        let res_fin = totals.ing_fin - totals.des_fin;
+        let bai = baii + res_fin;
+        let bn = bai - totals.imp;
+
+        formatValue('val-baii', baii);
+        formatValue('val-res-fin', res_fin);
+        formatValue('val-bai', bai);
+        formatValue('val-bn', bn);
+    }
+
+    function formatValue(id, val) {
+        let el = document.getElementById(id);
+        el.innerText = val.toLocaleString() + " €";
+        el.style.color = val >= 0 ? '#48bb78' : '#f56565';
+    }
+
+    // --- COMPROVACIÓ ---
+    function checkResult() {
+        let errors = [];
+        let feedbackHTML = "<h3>Errors:</h3><ul>";
+        
+        const zones = ['ing_exp', 'des_exp', 'ing_fin', 'des_fin', 'imp'];
+        
+        // 1. Comprovar comptes col·locats
+        zones.forEach(z => {
+            let zoneEl = document.getElementById('zone-' + z.replace('_', '-'));
+            Array.from(zoneEl.children).forEach(child => {
+                let acc = currentAccounts.find(a => a.id === child.id);
+                
+                if (acc.target === 'trap') {
+                    errors.push(`⚠️ <b>${acc.name}</b> és un compte de Balanç de situació!`);
+                } else if (acc.target !== z) {
+                    let names = {
+                        'ing_exp': "Ingressos d'Explotació", 'des_exp': "Despeses d'Explotació",
+                        'ing_fin': "Ingressos Financers", 'des_fin': "Despeses Financeres", 'imp': "Impost"
+                    };
+                    errors.push(`❌ <b>${acc.name}</b> està malament. Va a: ${names[acc.target]}.`);
+                }
+            });
+        });
+
+        // 2. Comprovar comptes oblidats a l'origen
+        let sourceEl = document.getElementById('source-container');
+        Array.from(sourceEl.children).forEach(child => {
+            let acc = currentAccounts.find(a => a.id === child.id);
+            if (acc.target !== 'trap') {
+                errors.push(`📥 T'has deixat: <b>${acc.name}</b>.`);
+            }
+        });
+
+        let feedbackEl = document.getElementById('feedback');
+        feedbackEl.style.display = 'block';
+
+        if (errors.length === 0) {
+            feedbackEl.className = 'success';
+            feedbackEl.innerHTML = "<h3>🎉 BONA FEINA</h3><p>El compte de Pèrdues i guanys està ben calculat.</p>";
+        } else {
+            feedbackEl.className = 'error';
+            errors.forEach(err => feedbackHTML += `<li>${err}</li>`);
+            feedbackHTML += "</ul>";
+            feedbackEl.innerHTML = feedbackHTML;
+        }
+    }
+
+    window.onload = initGame;
+
+</script>
+</body>
+</html>

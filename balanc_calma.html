@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<title>Simulador de Balanç de Situació</title>
+<style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+    p.subtitle { text-align: center; color: #666; margin-bottom: 25px; }
+    .container { display: flex; gap: 15px; justify-content: center; }
+    .column { background: white; padding: 15px; border-radius: 10px; width: 32%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .dropzone { min-height: 100px; border: 2px dashed #cbd5e0; padding: 10px; margin-bottom: 15px; border-radius: 6px; background: #fafafa; transition: 0.2s; }
+    .dropzone:hover { border-color: #3182ce; background: #f0f7ff; }
+    .account { background: #ebf4ff; padding: 8px; margin: 5px 0; border-radius: 4px; cursor: grab; border: 1px solid #bee3f8; font-size: 0.85em; transition: 0.3s; }
+    .account.is-trap-active { background: #fed7d7 !important; border-color: #f56565 !important; color: #822727 !important; font-weight: bold; }
+    .total-box { font-weight: bold; background: #edf2f7; padding: 10px; border-radius: 5px; margin-top: 5px; min-height: 20px; text-align: right; color: #4a5568; }
+    .controls { text-align: center; margin: 25px 0; }
+    button { padding: 12px 25px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; transition: 0.3s; margin: 0 10px; font-weight: bold; }
+    .btn-check { background: #3182ce; color: white; }
+    .btn-reset { background: #718096; color: white; }
+    .panel { background: white; padding: 25px; border-radius: 10px; margin: 20px auto; max-width: 1100px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 0.85em; }
+    th { background: #f7fafc; color: #4a5568; }
+    .stars { font-size: 35px; color: #ecc94b; margin-bottom: 10px; }
+    .fm-status { font-weight: bold; padding: 15px; border-radius: 6px; margin-top: 15px; width: 100%; box-sizing: border-box; }
+    .fm-pos { background: #c6f6d5; color: #22543d; border-left: 6px solid #48bb78; }
+    .fm-neg { background: #fed7d7; color: #822727; border-left: 6px solid #f56565; }
+    .masses-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+    .mass-item { background: #f8fafc; padding: 12px; border-left: 4px solid #3182ce; font-size: 0.9em; border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>Balanç de Situació</h1>
+<p class="subtitle">Classifica els comptes. Els totals de les masses patrimonials només es revelaran en comprovar la solució.</p>
+
+<div class="container">
+    <div class="column">
+        <h3>Comptes</h3>
+        <div id="accountsList" class="dropzone"></div>
+    </div>
+
+    <div class="column">
+        <h3 style="color: #2b6cb0;">ACTIU</h3>
+        <strong>Actiu no corrent</strong>
+        <div id="target-anc" class="dropzone actiu"></div>
+        <strong>Actiu corrent</strong>
+        <div id="target-ac" class="dropzone actiu"></div>
+        <div class="total-box">Total Actiu: <span id="totalActiu">---</span></div>
+    </div>
+
+    <div class="column">
+        <h3 style="color: #2b6cb0;">PATRIMONI NET I PASSIU</h3>
+        <strong>Patrimoni net</strong>
+        <div id="target-pn" class="dropzone passiu"></div>
+        <strong>Passiu no corrent</strong>
+        <div id="target-pnc" class="dropzone passiu"></div>
+        <strong>Passiu corrent</strong>
+        <div id="target-pc" class="dropzone passiu"></div>
+        <div class="total-box">Total Passiu + Patrimoni net: <span id="totalPassiu">---</span></div>
+    </div>
+</div>
+
+<div class="controls">
+    <button class="btn-check" onclick="comprovar()">Comprovar Balanç</button>
+    <button class="btn-reset" onclick="generarExercici()">Nou Exercici</button>
+</div>
+
+<div id="resultat" style="text-align: center;"></div>
+<div id="info"></div>
+
+<script>
+let draggedItem = null;
+let startTime = 0;
+let intents = 0;
+let finished = false;
+let dadesSolucio = [];
+let trampesIds = [];
+
+const db = {
+    anc: ["Propietat industrial", "Aplicacions informàtiques", "Terrenys i béns naturals", "Construccions", "Instal·lacions tècniques", "Maquinària", "Utillatge", "Mobiliari", "Equips per a processos d’informació", "Elements de transport", "Inversions en terrenys i béns naturals", "Inversions en construccions", "Inversions financeres a l/t en instruments de patrimoni", "Crèdits a l/t per alienació d'immobilitzat"],
+    ac_ex: ["Mercaderies", "Matèries primeres", "Productes acabats", "Altres aprovisionaments"],
+    ac_re: ["Clients", "Clients, efectes comercials a cobrar", "Deutors", "Deutors, efectes comercials a cobrar", "Inversions financeres a c/t en instruments de patrimoni", "HP, deutora per diferents conceptes"],
+    ac_di: ["Bancs i institucions de crèdit", "Caixa"],
+    pn: ["Reserva legal", "Reserves voluntàries", "Reserves estatutàries"],
+    pnc: ["Deutes a l/t amb entitats de crèdit", "Proveïdors d’immobilitzat a l/t", "Emprèstits (Bons i obligacions)"],
+    pc: ["Proveïdors", "Creditors per prestació de serveis", "HP, creditora per conceptes fiscals", "Seguretat Social, creditora", "Deutes a c/t amb entitats de crèdit", "Proveïdors, efectes comercials a pagar", "Creditors, efectes comercials a pagar", "Proveïdors d'immobilitzat a c/t"],
+    trampes: ["Vendes de mercaderies", "Prestacions de serveis", "Devolucions per compres", "Ràpels per compres", "Descomptes sobre compres per pagament immediat", "Ingressos per arrendaments", "Variació d'existències", "Compres de mercaderies", "Compres de matèries primeres", "Devolucions de vendes i operacions similars", "Ràpels sobre vendes", "Descomptes sobre vendes per pagament immediat", "Arrendaments i cànons", "Serveis de professionals independents", "Transports", "Prima d'assegurances", "Reparació i conservació", "Subministraments", "Altres tributs", "Sous i salaris", "Seguretat Social a càrrec de l'empresa", "Serveis bancaris", "Quota d'amortització de l'immobilitzat", "Altres ingressos financers", "Interessos de deutes", "Impost sobre beneficis"]
+};
+
+function generarExercici() {
+    document.getElementById("accountsList").innerHTML = "";
+    document.querySelectorAll(".dropzone").forEach(z => z.innerHTML = "");
+    document.getElementById("resultat").innerHTML = "";
+    document.getElementById("info").innerHTML = "";
+    document.getElementById("totalActiu").textContent = "---";
+    document.getElementById("totalPassiu").textContent = "---";
+    intents = 0; finished = false; trampesIds = [];
+    startTime = Date.now();
+    dadesSolucio = [];
+
+    let A = 0, P = 0;
+
+    // Generació de dades (ANC, AC, PN, PNC, PC)
+    db.anc.sort(() => 0.5 - Math.random()).slice(0, 3).forEach(c => {
+        let v = (Math.floor(Math.random()*15)+10)*1000; A+=v; dadesSolucio.push({c, v, cat: "anc", trap: false});
+    });
+    let aa = (Math.floor(Math.random()*4)+2)*-1000; A+=aa; dadesSolucio.push({c: "Amortització acumulada de l'immobilitzat", v: aa, cat: "anc", trap: false});
+    
+    let ac_v = (Math.floor(Math.random()*15)+15)*1000; A += ac_v;
+    let v_ex = Math.floor(ac_v * 0.4);
+    let v_re = Math.floor(ac_v * 0.3);
+    let v_di = ac_v - v_ex - v_re;
+    dadesSolucio.push({c: db.ac_ex[0], v: v_ex, cat: "ac", sub:"ex", trap: false});
+    dadesSolucio.push({c: db.ac_re[0], v: v_re, cat: "ac", sub:"re", trap: false});
+    dadesSolucio.push({c: db.ac_di[0], v: v_di, cat: "ac", sub:"di", trap: false});
+
+    let pnc_v = (Math.floor(Math.random()*10)+10)*1000; P += pnc_v;
+    dadesSolucio.push({c: db.pnc[0], v: Math.floor(pnc_v/2), cat: "pnc", trap: false}, {c: db.pnc[1], v: pnc_v - Math.floor(pnc_v/2), cat: "pnc", trap: false});
+
+    let pc_v = Math.random() > 0.5 ? Math.round(ac_v * 0.8) : Math.round(ac_v * 1.2); P += pc_v;
+    dadesSolucio.push({c: db.pc[0], v: Math.floor(pc_v/2), cat: "pc", trap: false}, {c: db.pc[1], v: pc_v - Math.floor(pc_v/2), cat: "pc", trap: false});
+
+    // Ajust microscòpic: Afegir una reserva aleatòria
+    let res_compta = db.pn[Math.floor(Math.random() * db.pn.length)];
+    let res_valor = (Math.floor(Math.random()*5)+5)*1000; P += res_valor;
+    dadesSolucio.push({c: res_compta, v: res_valor, cat: "pn", trap: false});
+
+    let res = (Math.floor(Math.random()*8)+2)*1000 * (Math.random() > 0.4 ? 1 : -1); P += res;
+    dadesSolucio.push({c: "Resultat de l'exercici", v: res, cat: "pn", trap: false});
+    dadesSolucio.push({c: "Capital Social", v: A - P, cat: "pn", trap: false});
+
+    db.trampes.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random()*2)+1).forEach(c => {
+        let v = (Math.floor(Math.random()*10)+2)*500;
+        let id = "t-" + Math.random().toString(36).substr(2, 5);
+        trampesIds.push(id);
+        dadesSolucio.push({c, v, cat: "none", trap: true, id: id});
+    });
+
+    dadesSolucio.sort(() => 0.5 - Math.random()).forEach(o => {
+        let d = document.createElement("div");
+        d.className = "account"; d.draggable = true;
+        d.id = o.id || "acc-" + o.c.replace(/\s+/g, '-');
+        d.dataset.value = o.v; d.dataset.sub = o.sub || ""; d.dataset.trap = o.trap;
+        d.textContent = `${o.c}: ${o.v.toLocaleString()} €`;
+        d.addEventListener("dragstart", () => draggedItem = d);
+        document.getElementById("accountsList").appendChild(d);
+    });
+}
+
+document.querySelectorAll(".dropzone").forEach(z => {
+    z.addEventListener("dragover", e => e.preventDefault());
+    z.addEventListener("drop", () => { if (draggedItem) { z.appendChild(draggedItem); draggedItem = null; } });
+});
+
+function comprovar() {
+    if (finished) return;
+    let a=0, p=0, trapFound = false;
+    
+    document.querySelectorAll(".actiu .account").forEach(i => a += Number(i.dataset.value));
+    document.querySelectorAll(".passiu .account").forEach(i => p += Number(i.dataset.value));
+    document.querySelectorAll(".actiu .account, .passiu .account").forEach(i => { if (i.dataset.trap === "true") trapFound = true; });
+
+    // REVELACIÓ DELS TOTALS NOMÉS ARA
+    document.getElementById("totalActiu").textContent = a.toLocaleString() + " €";
+    document.getElementById("totalPassiu").textContent = p.toLocaleString() + " €";
+
+    if (a === p && a !== 0 && !trapFound) {
+        finished = true;
+        document.getElementById("resultat").innerHTML = "<p style='color:green; font-weight:bold;'>✔ PERFECTE! El balanç està quadrat.</p>";
+        mostrarFinal(a, p, false);
+    } else {
+        intents++;
+        if (intents >= 3) {
+            finished = true;
+            document.getElementById("resultat").innerHTML = "<p style='color:red; font-weight:bold;'>✘ Intents esgotats. Mira la solució.</p>";
+            dadesSolucio.forEach(item => {
+                let el = document.getElementById(item.id || "acc-" + item.c.replace(/\s+/g, '-'));
+                if (!item.trap) document.getElementById("target-" + item.cat).appendChild(el);
+                else document.getElementById("accountsList").appendChild(el);
+            });
+            // Recalcular totals reals per a la solució
+            let finalA = 0, finalP = 0;
+            document.querySelectorAll(".actiu .account").forEach(i => finalA += Number(i.dataset.value));
+            document.querySelectorAll(".passiu .account").forEach(i => finalP += Number(i.dataset.value));
+            document.getElementById("totalActiu").textContent = finalA.toLocaleString() + " €";
+            document.getElementById("totalPassiu").textContent = finalP.toLocaleString() + " €";
+            mostrarFinal(finalA, finalP, true);
+        } else {
+            document.getElementById("resultat").innerHTML = `<p style='color:orange;'>✘ ${trapFound ? "Hi ha trampes!" : "No quadra."} (Intent ${intents}/3)</p>`;
+        }
+    }
+}
+
+function mostrarFinal(vA, vP, esDerrota) {
+    let temps = Math.round((Date.now() - startTime) / 1000);
+    trampesIds.forEach(id => { let el = document.getElementById(id); if(el) el.classList.add('is-trap-active'); });
+
+    const getM = (id) => [...document.getElementById(id).querySelectorAll(".account")].filter(i=>i.dataset.trap==="false").reduce((acc, i) => acc + Number(i.dataset.value), 0);
+    const getS = (id, s) => [...document.getElementById(id).querySelectorAll(".account")].filter(i=>i.dataset.sub===s && i.dataset.trap==="false").reduce((acc,i)=>acc+Number(i.dataset.value),0);
+
+    let anc = getM("target-anc"), ac = getM("target-ac"), pn = getM("target-pn"), pnc = getM("target-pnc"), pc = getM("target-pc"), pt = pnc + pc, disp = getS("target-ac", "di"), real = getS("target-ac", "re"), fm = ac - pc;
+
+    document.getElementById("info").innerHTML = `
+    <div class="panel">
+        <div class="stars">${!esDerrota ? (intents==0 ? "⭐⭐⭐" : "⭐⭐☆") : "☆☆☆"}</div>
+        <p><b>Temps:</b> ${temps} segons</p>
+        <div class="masses-grid">
+            <div class="mass-item"><b>Actiu no corrent:</b> ${anc.toLocaleString()}€</div>
+            <div class="mass-item"><b>Actiu corrent:</b> ${ac.toLocaleString()}€</div>
+            <div class="mass-item"><b>Patrimoni net:</b> ${pn.toLocaleString()}€</div>
+            <div class="mass-item"><b>Passiu no Corrent:</b> ${pnc.toLocaleString()}€</div>
+            <div class="mass-item"><b>Passiu corrent:</b> ${pc.toLocaleString()}€</div>
+            <div class="mass-item"><b>Fons de maniobra:</b> ${fm.toLocaleString()}€</div>
+        </div>
+        <div class="fm-status ${fm >= 0 ? 'fm-pos' : 'fm-neg'}">
+            <b>Com està l'empresa?</b> ${fm >= 0 ? "Un fons de maniobra positiu indica que l'empresa pot afrontar els deutes a curt termini." : "En situació de risc. Un fons de maniobra negatiu indica possibles problemes de liquiditat."}
+        </div>
+        <table>
+            <tr><th>Ràtio</th><th>Càlcul</th><th>Resultat</th><th>Significat</th><th>Òptim</th></tr>
+            <tr><td>Liquiditat</td><td>${ac.toLocaleString()} / ${pc.toLocaleString()}</td><td><b>${(ac/pc).toFixed(2)}</b></td><td>Solvència a curt termini</td><td>1,0 - 1,8</td></tr>
+            <tr><td>Tresoreria</td><td>${(real+disp).toLocaleString()} / ${pc.toLocaleString()}</td><td><b>${((real+disp)/pc).toFixed(2)}</b></td><td>Liquiditat immediata</td><td>1,0 - 1,2</td></tr>
+            <tr><td>Disponibilitat</td><td>${disp.toLocaleString()} / ${pc.toLocaleString()}</td><td><b>${(disp/pc).toFixed(2)}</b></td><td>Capacitat per cobrir deutes amb els saldos més líquids (caixa i bancs)</td><td>0,3 - 0,4</td></tr>
+            <tr><td>Garantia</td><td>${vA.toLocaleString()} / ${pt.toLocaleString()}</td><td><b>${(vA/pt).toFixed(2)}</b></td><td>Solvència a llarg termini</td><td>1,5 - 2,5</td></tr>
+            <tr><td>Autonomia financera</td><td>${pn.toLocaleString()} / ${pt.toLocaleString()}</td><td><b>${(pn/pt).toFixed(2)}</b></td><td>Independència de l'empresa respecte dels creditors</td><td>0,5 - 1,5</td></tr>
+            <tr><td>Qualitat del deute</td><td>${pc.toLocaleString()} / ${pt.toLocaleString()}</td><td><b>${(pc/pt).toFixed(2)}</b></td><td>Pes del passiu corrent respecte del total del passiu</td><td>0,2 - 0,5</td></tr>
+            <tr><td>Endeutament</td><td>${pt.toLocaleString()} / ${vP.toLocaleString()}</td><td><b>${(pt/vP).toFixed(2)}</b></td><td>Grau de dependència respecte del finançament aliè</td><td>0,2 - 0,6</td></tr>
+        </table>
+    </div>`;
+}
+generarExercici();
+</script>
+</body>
+</html>
