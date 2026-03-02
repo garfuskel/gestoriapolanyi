@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestoria Polanyi - Simulador de Nòmina</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eeeeee;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .contenidor {
+      display: flex;
+      gap: 25px;
+      max-width: 1250px;
+      margin: auto;
+      align-items: flex-start;
+    }
+
+    /* COLUMNA ESQUERRA (CLIENT I POST-IT) */
+    .col-esquerra {
+      width: 30%;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    /* MODIFICAT: Suro net, només marró sense puntets */
+    .client {
+      background-color: #d4a373;
+      padding: 20px;
+      border-radius: 6px;
+      text-align: center;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .avatar-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+
+    .client img {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 4px;
+      box-shadow: 3px 5px 12px rgba(0,0,0,0.4);
+      transform: rotate(-3deg);
+      filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint'%3E%3CfeColorMatrix type='matrix' values='0.992 0 0 0 0 0 0.992 0 0 0 0 0 0.588 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
+    }
+
+    .client p {
+      font-size: 0.95rem;
+      font-style: italic;
+      color: #333;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-left: 4px solid #3498db;
+      border-radius: 4px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .post-it {
+      background-color: #ffeb84; 
+      padding: 20px;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+      transform: rotate(-2deg);
+      font-family: 'Comic Sans MS', cursive;
+      color: #333;
+      border-bottom-right-radius: 15px 5px;
+    }
+
+    .post-it h3 { margin-top: 0; border-bottom: 2px dashed #d4c890; padding-bottom: 5px; }
+    .post-it p { margin: 10px 0; font-size: 0.95rem; line-height: 1.4; }
+
+    /* COLUMNA DRETA: EL DOCUMENT */
+    .exercici {
+      width: 70%;
+    }
+
+    .document-nomina {
+      background-color: #fff;
+      padding: 40px;
+      border: 1px solid #ccc;
+      box-shadow: 10px 10px 0px #bbb;
+      position: relative; 
+      overflow: hidden;
+    }
+
+    /* SEGELL GEGANT SOBRE LA NÒMINA */
+    .stamp {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg) scale(2);
+      font-size: 5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      border: 8px solid;
+      border-radius: 15px;
+      padding: 10px 30px;
+      opacity: 0;
+      z-index: 10;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .stamp.show { opacity: 0.85; transform: translate(-50%, -50%) rotate(-15deg) scale(1); }
+    .stamp.correct { color: #27ae60; border-color: #27ae60; background-color: rgba(255, 255, 255, 0.9); }
+    .stamp.fail { color: #c0392b; border-color: #c0392b; background-color: rgba(255, 255, 255, 0.9); }
+
+    .capcalera-doc {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #333;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .dades-empresa, .dades-treballador {
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .titol-nomina {
+      text-align: center;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin: 20px 0;
+      font-size: 1.2rem;
+      text-decoration: underline;
+    }
+
+    /* TAULA DE CÀLCULS */
+    .taula-doc {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .taula-doc th {
+      background-color: #f2f2f2;
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .taula-doc td {
+      border-left: 1px solid #333;
+      border-right: 1px solid #333;
+      padding: 8px;
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+
+    .linia-total {
+      border-top: 2px solid #333;
+      border-bottom: 2px solid #333;
+      font-weight: bold;
+      background-color: #f9f9f9;
+    }
+
+    .seccio-titol {
+      font-weight: bold;
+      background-color: #eee;
+      border: 1px solid #333;
+    }
+
+    /* Amplada fixa i box-sizing per assegurar l'alineació */
+    input {
+      width: 110px;
+      padding: 6px;
+      border: 1px solid #3498db;
+      text-align: right;
+      font-weight: bold;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    /* Estils de correcció */
+    .marcat-error {
+      text-decoration: line-through;
+      color: #c0392b;
+      background-color: #f8d7da;
+    }
+    .marcat-correcte {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .feedback-icon {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .icon-ok { color: #27ae60; }
+    .icon-ko { color: #c0392b; }
+    
+    /* BOTONS */
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      font-size: 1.05rem;
+    }
+
+    .btn-comprovar { background-color: #2c3e50; color: white; transition: 0.2s; }
+    .btn-comprovar:hover:not([disabled]) { background-color: #1a252f; }
+    .btn-nou { background-color: #95a5a6; color: white; }
+    .cridar-atencio { animation: wiggle 2.5s infinite; background-color: #27ae60 !important; }
+
+    @keyframes wiggle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="contenidor">
+  
+  <div class="col-esquerra">
+    <div class="client">
+      <div class="avatar-container">
+        <img id="avatar" src="" alt="Client">
+      </div>
+      <p id="missatge">"Bon dia! Necessit que em revisis la nòmina d'aquest mes."</p>
+    </div>
+
+    <div class="post-it">
+      <h3>📝 Apunts</h3>
+      <p>1️⃣ <b>Total Meritat:</b></p>
+      <p>Suma el salari base i tots els complements.</p>
+      <p>2️⃣ <b>Deduccions:</b></p>
+      <p>Aplica el % d'IRPF i SS al total meritat.</p>
+      <p>3️⃣ <b>Total a Deduir:</b></p>
+      <p>Suma les deduccions (IRPF + SS).</p>
+      <p>4️⃣ <b>Líquid a percebre:</b></p>
+      <p>Total Meritat menys Total a Deduir.</p>
+    </div>
+  </div>
+
+  <div class="exercici">
+    <div class="document-nomina">
+      
+      <div id="stamp" class="stamp"></div>
+
+      <div class="capcalera-doc">
+        <div class="dades-empresa">
+          <strong>EMPRESA:</strong> Gestoria Polanyi<br>
+          <strong>CIF:</strong> B-07000001<br>
+          <strong>DOMICILI:</strong> Carrer de Rosa Luxemburg, 9
+        </div>
+        <div class="dades-treballador">
+          <strong>TREBALLADOR/A:</strong> <span id="nom-client">Client</span><br>
+          <strong>NIF:</strong> <span id="txt-nif"></span><br>
+          <strong>PERÍODE DE LIQUIDACIÓ:</strong> <span id="txt-periode"></span>
+        </div>
+      </div>
+
+      <div class="titol-nomina">REBUT INDIVIDUAL DE SALARIS</div>
+
+      <table class="taula-doc">
+        <thead>
+          <tr>
+            <th width="45%">CONCEPTES</th>
+            <th width="15%">PERCENTATGE</th>
+            <th width="40%">TOTALS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="seccio-titol"><td colspan="3">I. MERITACIONS</td></tr>
+          <tr>
+            <td>Salari Base</td>
+            <td>-</td>
+            <td><span id="txt-base">0</span> €</td>
+          </tr>
+          <tbody id="llista-complements">
+            </tbody>
+          <tr class="linia-total">
+            <td>TOTAL MERITAT (BRUT)</td>
+            <td>-</td>
+            <td>
+              <input type="number" id="in-meritat" step="0.01"> € 
+              <span id="fb-meritat" class="feedback-icon"></span>
+            </td>
+          </tr>
+
+          <tr style="height: 15px;"><td colspan="3" style="border:none"></td></tr>
+
+          <tr class="seccio-titol"><td colspan="3">II. DEDUCCIONS</td></tr>
+          <tr>
+            <td>Aportació del treballador/a a la Seguretat Social (SS)</td>
+            <td>6,35 %</td>
+            <td>
+              <input type="number" id="in-ss" step="0.01"> €
+              <span id="fb-ss" class="feedback-icon"></span>
+            </td>
+          </tr>
+          <tr>
+            <td>Impost sobre la renda de les persones físiques (IRPF)</td>
+            <td><span id="txt-p-irpf">0</span> %</td>
+            <td>
+              <input type="number" id="in-irpf" step="0.01"> €
+              <span id="fb-irpf" class="feedback-icon"></span>
+            </td>
+          </tr>
+          <tr class="linia-total">
+            <td>TOTAL A DEDUIR</td>
+            <td>-</td>
+            <td>
+              <input type="number" id="in-total-deduccions" step="0.01"> €
+              <span id="fb-total-deduccions" class="feedback-icon"></span>
+            </td>
+          </tr>
+
+          <tr style="height: 20px;"><td colspan="3" style="border:none"></td></tr>
+
+          <tr style="border: 3px solid #333; background-color: #fff;">
+            <td colspan="2" style="font-size: 1.15rem; font-weight: bold; text-align: right; padding-right: 20px;">
+              LÍQUID A PERCEBRE (NET):
+            </td>
+            <td>
+              <input type="number" id="in-liquid" step="0.01"> €
+              <span id="fb-liquid" class="feedback-icon"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="controls">
+      <button class="btn-comprovar" id="btn-comprovar" onclick="corregir()">Verificar Nòmina</button>
+      <button class="btn-nou" id="btn-nou-client" onclick="generarNouExercici()" disabled>Següent Nòmina</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let dades = {};
+let avatarsTotals = []; 
+let avatarsDisponibles = [];
+
+const formatNum = (n) => new Intl.NumberFormat('ca-ES', { 
+  minimumFractionDigits: 0, 
+  maximumFractionDigits: 2 
+}).format(n);
+
+const tipusComplements = [
+  "Plus d'antiguitat", 
+  "Plus de perillositat", 
+  "Plus de nocturnitat", 
+  "Plus de transport", 
+  "Plus de disponibilitat",
+  "Hores extraordinàries"
+];
+
+const mesos = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
+
+// NOVA LÒGICA: Escaneja del 1 al 100 al mateix temps per trobar TOTS els clients existents
+const MAX_AVATARS_CERCA = 100;
+let comprovacionsFetes = 0;
+
+function descobrirAvatars() {
+  for (let i = 1; i <= MAX_AVATARS_CERCA; i++) {
+    const img = new Image();
+    img.onload = function() {
+      avatarsTotals.push(i);
+      comprovacioAcabada();
+    };
+    img.onerror = function() {
+      comprovacioAcabada();
+    };
+    img.src = `avatars/client${i}.png`;
+  }
+}
+
+function comprovacioAcabada() {
+  comprovacionsFetes++;
+  if (comprovacionsFetes === MAX_AVATARS_CERCA) {
+    if (avatarsTotals.length === 0) {
+      avatarsTotals = [1, 2, 3, 4, 5]; // Fallback en cas que fallin les rutes
+    }
+    generarNouExercici(); 
+  }
+}
+
+function obtenirAvatarSenseRepetir() {
+  if (avatarsDisponibles.length === 0) {
+    avatarsDisponibles = [...avatarsTotals]; 
+  }
+  const indexAleatori = Math.floor(Math.random() * avatarsDisponibles.length);
+  const avatarTriat = avatarsDisponibles.splice(indexAleatori, 1)[0];
+  return avatarTriat;
+}
+
+function generarNouExercici() {
+  const base = Math.floor(Math.random() * 1800) + 1200; 
+  
+  const numComplements = Math.floor(Math.random() * 2) + 1; 
+  const complementsTriats = tipusComplements.sort(() => 0.5 - Math.random()).slice(0, numComplements);
+  
+  let htmlComplements = "";
+  let sumaComplements = 0;
+
+  complementsTriats.forEach(comp => {
+    const valorComp = Math.floor(Math.random() * 300) + 80; 
+    sumaComplements += valorComp;
+    htmlComplements += `
+      <tr>
+        <td>${comp}</td>
+        <td>-</td>
+        <td><span>${formatNum(valorComp)}</span> €</td>
+      </tr>
+    `;
+  });
+
+  const meritat = base + sumaComplements;
+  
+  let pIrpf;
+  if (meritat < 1600) pIrpf = 5 + Math.random() * 5;      
+  else if (meritat < 2100) pIrpf = 10 + Math.random() * 3; 
+  else if (meritat < 2600) pIrpf = 13 + Math.random() * 4; 
+  else if (meritat < 3100) pIrpf = 17 + Math.random() * 3; 
+  else pIrpf = 20 + Math.random() * 4;                     
+  
+  pIrpf = Math.round(pIrpf * 100) / 100;
+
+  const pSS = 6.35;
+
+  const valSS = meritat * (pSS / 100);
+  const valIRPF = meritat * (pIrpf / 100);
+  const totalDeduccions = valSS + valIRPF;
+
+  dades = {
+    base, meritat, totalDeduccions,
+    valSS, valIRPF,
+    liquid: meritat - totalDeduccions
+  };
+
+  document.getElementById("txt-base").innerText = formatNum(base);
+  document.getElementById("llista-complements").innerHTML = htmlComplements;
+  document.getElementById("txt-p-irpf").innerText = formatNum(pIrpf);
+  
+  const idClient = Math.floor(Math.random() * 8999) + 1000;
+  document.getElementById("nom-client").innerText = "Treballador/a #" + idClient;
+
+  const lletresNIF = "TRWAGMYFPDXBNJZSQVHLCKE";
+  const numNIF = Math.floor(Math.random() * 80000000) + 10000000;
+  const lletraNIF = lletresNIF.charAt(numNIF % 23);
+  const formatNIF = numNIF.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + lletraNIF;
+  document.getElementById("txt-nif").innerText = formatNIF;
+
+  const mesActual = mesos[Math.floor(Math.random() * mesos.length)];
+  const anyActual = new Date().getFullYear();
+  document.getElementById("txt-periode").innerText = `${mesActual} ${anyActual}`;
+
+  const numAvatar = obtenirAvatarSenseRepetir();
+  document.getElementById("avatar").src = `avatars/client${numAvatar}.png`;
+  
+  document.getElementById("missatge").innerText = "\"Bon dia! Em pots calcular els totals d'aquest mes?\"";
+  document.getElementById("stamp").className = "stamp";
+  
+  document.getElementById("btn-nou-client").disabled = true;
+  document.getElementById("btn-nou-client").classList.remove("cridar-atencio");
+  document.getElementById("btn-comprovar").disabled = false;
+
+  const camps = ["meritat", "ss", "irpf", "total-deduccions", "liquid"];
+  camps.forEach(camp => {
+    const input = document.getElementById("in-" + camp);
+    const fb = document.getElementById("fb-" + camp);
+    
+    input.value = "";
+    input.disabled = false;
+    input.className = ""; 
+    fb.innerHTML = "";
+  });
+}
+
+function processarCamp(idCamp, valorUsuari, valorCorrecte) {
+  const input = document.getElementById("in-" + idCamp);
+  const fb = document.getElementById("fb-" + idCamp);
+  
+  const esCorrecte = Math.abs(valorUsuari - valorCorrecte) < 1; 
+  
+  if (esCorrecte) {
+    input.classList.add("marcat-correcte");
+    fb.innerHTML = `<span class="icon-ok">✔</span>`;
+  } else {
+    input.classList.add("marcat-error");
+    fb.innerHTML = `<span class="icon-ko">✘ Era ${formatNum(valorCorrecte)}</span>`;
+  }
+  
+  input.disabled = true;
+  return esCorrecte;
+}
+
+function corregir() {
+  const vM = parseFloat(document.getElementById("in-meritat").value);
+  const vSS = parseFloat(document.getElementById("in-ss").value);
+  const vI = parseFloat(document.getElementById("in-irpf").value);
+  const vTD = parseFloat(document.getElementById("in-total-deduccions").value);
+  const vL = parseFloat(document.getElementById("in-liquid").value);
+
+  if ([vM, vSS, vI, vTD, vL].some(isNaN)) {
+    alert("Has d'emplenar totes les caselles numèriques per validar el document!");
+    return;
+  }
+
+  const okM = processarCamp("meritat", vM, dades.meritat);
+  const okSS = processarCamp("ss", vSS, dades.valSS);
+  const okI = processarCamp("irpf", vI, dades.valIRPF);
+  const okTD = processarCamp("total-deduccions", vTD, dades.totalDeduccions);
+  const okL = processarCamp("liquid", vL, dades.liquid);
+
+  const totOk = okM && okSS && okI && okTD && okL;
+  const stamp = document.getElementById("stamp");
+
+  if (totOk) {
+    stamp.innerText = "VALIDADA";
+    stamp.className = "stamp correct show";
+    document.getElementById("missatge").innerText = "\"Perfecte! Tot quadra al cèntim, moltes gràcies.\"";
+  } else {
+    stamp.innerText = "ERRÒNIA";
+    stamp.className = "stamp fail show";
+    document.getElementById("missatge").innerText = "\"Sembla que el document conté errades. Revisa els números ratllats!\"";
+  }
+
+  document.getElementById("btn-comprovar").disabled = true;
+  document.getElementById("btn-nou-client").disabled = false;
+  document.getElementById("btn-nou-client").classList.add("cridar-atencio");
+}
+
+window.onload = function() {
+  descobrirAvatars();
+};
+</script>
+
+</body>
+</html>

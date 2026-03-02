@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestoria Polanyi</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eeeeee;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .contenidor {
+      display: flex;
+      gap: 25px;
+      max-width: 1100px; /* MODIFICAT: Una mica més ample per donar espai */
+      margin: auto;
+      align-items: flex-start;
+    }
+
+    .col-esquerra {
+      width: 40%; /* MODIFICAT: Augmentat del 35% al 40% per al post-it */
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .client {
+      width: 100%;
+      box-sizing: border-box;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .avatar-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+
+    .client img {
+      width: 220px;
+      height: 220px;
+      object-fit: cover;
+      display: block; 
+      border-radius: 4px;
+      box-shadow: 3px 5px 12px rgba(0,0,0,0.2);
+      transform: rotate(-3deg); 
+      filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint'%3E%3CfeColorMatrix type='matrix' values='0.992 0 0 0 0 0 0.992 0 0 0 0 0 0.588 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
+    }
+
+    .stamp {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg) scale(1.5);
+      font-size: 2.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      border: 5px solid;
+      border-radius: 10px;
+      padding: 5px 15px;
+      opacity: 0;
+      pointer-events: none; 
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+
+    .stamp.show { opacity: 0.9; transform: translate(-50%, -50%) rotate(-15deg) scale(1); }
+    .stamp.correct { color: #27ae60; border-color: #27ae60; background-color: rgba(255, 255, 255, 0.7); }
+    .stamp.fail { color: #c0392b; border-color: #c0392b; background-color: rgba(255, 255, 255, 0.7); }
+
+    .client p {
+      font-size: 1.05rem;
+      font-style: italic; 
+      color: #333;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+      width: 90%;
+    }
+
+    .post-it {
+      background-color: #fff7d1;
+      padding: 20px;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+      transform: rotate(-2deg);
+      border-bottom-right-radius: 20px 5px;
+      color: #333;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif; 
+    }
+
+    .post-it h3 {
+      margin: 0 0 15px 0;
+      font-size: 1.1rem;
+      text-align: center;
+      border-bottom: 2px dashed #d4c890;
+      padding-bottom: 5px;
+    }
+
+    .formules { font-size: 0.9rem; line-height: 1.4; }
+    .formules p { margin: 8px 0; white-space: nowrap; } /* Evitem que les línies trenquin */
+
+    .exercici {
+      width: 60%; /* MODIFICAT: Ajustat per compensar l'esquerra */
+      background-color: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .dades-brutes {
+      background-color: #f4f7f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 5px solid #2c3e50;
+    }
+
+    .pregunta {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #e67e22;
+      margin: 15px 0;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 1rem;
+      box-sizing: border-box; 
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
+
+    .cridar-atencio {
+      animation: wiggle 2.5s infinite;
+      background-color: #2c3e50 !important; 
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: translateX(0); }
+      15% { transform: translateX(-3px); }
+      30% { transform: translateX(3px); }
+    }
+
+    .feedback { margin-top: 15px; padding: 15px; background-color: #f8f9fa; border-radius: 6px; }
+    .correcte { color: #27ae60; font-weight: bold; }
+    .incorrecte { color: #c0392b; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+
+<div class="contenidor">
+  <div class="col-esquerra">
+    <div class="client">
+      <div class="avatar-container">
+        <img id="avatar" src="" alt="Client">
+        <div id="stamp" class="stamp"></div>
+      </div>
+      <p id="missatge">"Necessit que m'ajudis amb la meva nòmina..."</p>
+    </div>
+
+    <div class="post-it">
+      <h3>📌 Fórmules</h3>
+      <div class="formules">
+        <p>• <b>Salari anual net</b> = Salari brut - Retenció total</p>
+        <p>• <b>Retenció IRPF</b> = Salari brut × %IRPF</p>
+        <p>• <b>Retenció SS</b> = Salari brut × %SS</p>
+        <p>• <b>Tipus total</b> = %IRPF + %SS</p>  
+        <p>• <b>Retenció total</b> = Salari brut × %Tipus total</p>
+        <p>• <b>Mensualitat (12 pagues)</b> = Salari anual net / 12</p>
+        <p>• <b>Mensualitat (14 pagues)</b> = Salari anual net / 14</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="exercici">
+    <h2>Dades del client</h2>
+    <div class="dades-brutes" id="enunciat-dades"></div>
+    <div class="pregunta" id="pregunta-text"></div>
+
+    <input type="number" id="resposta" placeholder="Exemple: 1500,25" step="0.01">
+
+    <button id="btn-comprovar" onclick="corregir()">Comprovar resposta</button>
+    <button id="btn-nou-client" onclick="generarNouExercici()" style="background-color: #95a5a6;" disabled>Nou exercici</button>
+
+    <div class="feedback" id="feedback"></div>
+  </div>
+</div>
+
+<script>
+let dadesActuals = {};
+let tipusPregunta = "";
+
+// LÒGICA D'AVATARS AFEGIDA AQUÍ
+let avatarsTotals = []; 
+let avatarsDisponibles = [];
+const MAX_AVATARS_CERCA = 100;
+let comprovacionsFetes = 0;
+
+function descobrirAvatars() {
+  for (let i = 1; i <= MAX_AVATARS_CERCA; i++) {
+    const img = new Image();
+    img.onload = function() {
+      avatarsTotals.push(i);
+      comprovacioAcabada();
+    };
+    img.onerror = function() {
+      comprovacioAcabada();
+    };
+    img.src = `avatars/client${i}.png`;
+  }
+}
+
+function comprovacioAcabada() {
+  comprovacionsFetes++;
+  if (comprovacionsFetes === MAX_AVATARS_CERCA) {
+    if (avatarsTotals.length === 0) {
+      avatarsTotals = [1, 2, 3, 4, 5]; // Fallback
+    }
+    generarNouExercici(); 
+  }
+}
+
+function obtenirAvatarSenseRepetir() {
+  if (avatarsDisponibles.length === 0) {
+    avatarsDisponibles = [...avatarsTotals]; 
+  }
+  const indexAleatori = Math.floor(Math.random() * avatarsDisponibles.length);
+  const avatarTriat = avatarsDisponibles.splice(indexAleatori, 1)[0];
+  return avatarTriat;
+}
+// FI LÒGICA D'AVATARS
+
+const frasesCorrecte = [
+  "Moltíssimes gràcies! Ara ja ho veig tot més clar.",
+  "Perfecte, moltes gràcies per la teva ajuda amb la nòmina.",
+  "Genial! M'has tret un pes de sobre.",
+  "Què bé! M'encanta aquesta gestoria.",  
+  "Això és exactament el que necessitava saber. Gràcies!"
+];
+
+const frasesIncorrecte = [
+  "Ostres... segur? Aquest número em sembla una mica estrany.",
+  "Mmm... pots revisar-ho? No m'acaba de quadrar.",
+  "Vaja, crec que t'has equivocat en algun càlcul. Ho tornem a mirar?",
+  "Oh oh! Crec que cercaré una altra gestoria.",  
+  "Segur que és això? No voldria tenir problemes..."
+];
+
+const formatNum = (n) => new Intl.NumberFormat('ca-ES', { 
+  minimumFractionDigits: 0, 
+  maximumFractionDigits: 2 
+}).format(n);
+
+const formatEuros = (n) => formatNum(n) + " €";
+
+function generarNouExercici() {
+  const brut = Math.floor(Math.random() * 42000) + 18000;
+  
+  let irpf;
+  if (brut < 22000) irpf = 12;
+  else if (brut < 35000) irpf = 15;
+  else if (brut < 50000) irpf = 19;
+  else irpf = 23;
+
+  const ss = 6.35; 
+
+  const retIRPF = brut * (irpf / 100);
+  const retSS = brut * (ss / 100);
+  const netAnual = brut - retIRPF - retSS;
+
+  dadesActuals = { brut, irpf, ss, retIRPF, retSS, netAnual };
+
+  const preguntes = ["net_anual", "ret_total", "ret_irpf", "ret_ss", "mensual_12", "mensual_14"];
+  tipusPregunta = preguntes[Math.floor(Math.random() * preguntes.length)];
+
+  dibuixarEnunciat();
+  
+  // MODIFICAT: Crida a la nova funció d'avatars en lloc del Math.random genèric
+  const numAvatar = obtenirAvatarSenseRepetir();
+  document.getElementById("avatar").src = `avatars/client${numAvatar}.png`; 
+  
+  document.getElementById("missatge").innerText = "\"Necessit que m'ajudis amb la meva nòmina...\"";
+  document.getElementById("resposta").value = "";
+  document.getElementById("resposta").disabled = false;
+  document.getElementById("btn-comprovar").disabled = false;
+  document.getElementById("btn-nou-client").disabled = true;
+  document.getElementById("btn-nou-client").classList.remove("cridar-atencio");
+  document.getElementById("feedback").innerHTML = "";
+  document.getElementById("stamp").className = "stamp";
+}
+
+function dibuixarEnunciat() {
+  document.getElementById("enunciat-dades").innerHTML = `
+    <b>Salari brut (anual):</b> ${formatEuros(dadesActuals.brut)}<br>
+    <b>Tipus IRPF:</b> ${formatNum(dadesActuals.irpf)}%<br>
+    <b>Tipus Seguretat Social (SS):</b> ${formatNum(dadesActuals.ss)}%
+  `;
+
+  const textos = {
+    "net_anual": "Quin és el salari anual net?",
+    "ret_total": "Quina és la retenció total?",
+    "ret_irpf": "Quina quantitat se li reté per IRPF?",
+    "ret_ss": "Quina quantitat se li reté per Seguretat Social (SS)?",
+    "mensual_12": "Quina és la mensualitat neta (en 12 pagues)?",
+    "mensual_14": "Quina és la mensualitat neta (en 14 pagues)?"
+  };
+  document.getElementById("pregunta-text").innerText = textos[tipusPregunta];
+}
+
+function corregir() {
+  const resposta = parseFloat(document.getElementById("resposta").value);
+  const feedback = document.getElementById("feedback");
+  const stamp = document.getElementById("stamp");
+  const missatge = document.getElementById("missatge");
+  
+  if (isNaN(resposta)) {
+    feedback.innerHTML = "Per favor, introdueix un número vàlid.";
+    return;
+  }
+
+  let correcta;
+  switch(tipusPregunta) {
+    case "net_anual": correcta = dadesActuals.netAnual; break;
+    case "ret_total": correcta = dadesActuals.retIRPF + dadesActuals.retSS; break;
+    case "ret_irpf": correcta = dadesActuals.retIRPF; break;
+    case "ret_ss": correcta = dadesActuals.retSS; break;
+    case "mensual_12": correcta = dadesActuals.netAnual / 12; break;
+    case "mensual_14": correcta = dadesActuals.netAnual / 14; break;
+  }
+
+  const diferencia = Math.abs(resposta - correcta);
+
+  document.getElementById("resposta").disabled = true;
+  document.getElementById("btn-comprovar").disabled = true;
+  document.getElementById("btn-nou-client").disabled = false;
+  document.getElementById("btn-nou-client").classList.add("cridar-atencio");
+
+  if (diferencia < 1) {
+    stamp.innerText = "CORRECTE";
+    stamp.className = "stamp correct show";
+    const index = Math.floor(Math.random() * frasesCorrecte.length);
+    missatge.innerText = `"${frasesCorrecte[index]}"`;
+    feedback.innerHTML = `<p class="correcte">✔ Excel·lent. El resultat és ${formatEuros(correcta)}</p>`;
+  } else {
+    stamp.innerText = "FAIL";
+    stamp.className = "stamp fail show";
+    const index = Math.floor(Math.random() * frasesIncorrecte.length);
+    missatge.innerText = `"${frasesIncorrecte[index]}"`;
+    feedback.innerHTML = `<p class="incorrecte">✘ No és correcte. El resultat era ${formatEuros(correcta)}</p>`;
+  }
+}
+
+// MODIFICAT: Ara es dispara descobrirAvatars per arrencar
+window.onload = function() {
+  descobrirAvatars();
+};
+</script>
+</body>
+</html>
