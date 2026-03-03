@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestoria Polanyi</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eeeeee;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .contenidor {
+            display: flex;
+            gap: 25px;
+            max-width: 1250px;
+            margin: auto;
+            align-items: flex-start;
+        }
+
+        .col-esquerra {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .client {
+            background-color: #d4a373;
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .client img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 3px 5px 12px rgba(0,0,0,0.4);
+            transform: rotate(-3deg);
+            filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint'%3E%3CfeColorMatrix type='matrix' values='0.992 0 0 0 0 0 0.992 0 0 0 0 0 0.588 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
+        }
+
+        .client p {
+            font-size: 0.95rem;
+            font-style: italic;
+            color: #333;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .post-it {
+            background-color: #ffeb84;
+            padding: 20px;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+            transform: rotate(-2deg);
+            font-family: 'Comic Sans MS', cursive;
+            color: #333;
+            border-bottom-right-radius: 15px 5px;
+        }
+
+        .post-it h3 { margin-top: 0; border-bottom: 2px dashed #d4c890; padding-bottom: 5px; }
+        .post-it p { margin: 10px 0; font-size: 0.95rem; line-height: 1.4; }
+
+        .exercici {
+            width: 70%;
+        }
+
+        .document-nomina {
+            background-color: #fff;
+            padding: 40px;
+            border: 1px solid #ccc;
+            box-shadow: 10px 10px 0px #bbb;
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .stamp {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg) scale(2);
+            font-size: 5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 8px solid;
+            border-radius: 15px;
+            padding: 10px 30px;
+            opacity: 0;
+            z-index: 10;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .stamp.show { opacity: 0.85; transform: translate(-50%, -50%) rotate(-15deg) scale(1); }
+        .stamp.correct { color: #27ae60; border-color: #27ae60; background-color: rgba(255, 255, 255, 0.9); }
+        .stamp.fail { color: #c0392b; border-color: #c0392b; background-color: rgba(255, 255, 255, 0.9); }
+
+        .capcalera-doc {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .dades-empresa, .dades-treballador {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .titol-nomina {
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            text-decoration: underline;
+        }
+
+        .dades-brutes {
+            background-color: #f4f7f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2c3e50;
+            font-size: 1.15rem;
+            line-height: 1.7;
+        }
+
+        .pregunta {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e67e22;
+            margin: 15px 0;
+        }
+
+        input {
+            width: 160px;
+            padding: 10px;
+            border: 2px solid #3498db;
+            text-align: right;
+            font-weight: bold;
+            border-radius: 4px;
+            font-size: 1.2rem;
+        }
+
+        .marcat-error { text-decoration: line-through; color: #c0392b; background-color: #f8d7da; }
+        .marcat-correcte { background-color: #d4edda; color: #155724; }
+
+        .feedback-icon { display: inline-block; margin-left: 10px; font-size: 1.2rem; font-weight: bold; }
+        .icon-ok { color: #27ae60; }
+        .icon-ko { color: #c0392b; }
+
+        .controls { margin-top: 20px; display: flex; gap: 10px; }
+        button { flex: 1; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; font-size: 1.05rem; }
+        .btn-comprovar { background-color: #2c3e50; color: white; transition: 0.2s; }
+        .btn-comprovar:hover:not([disabled]) { background-color: #1a252f; }
+        .btn-nou { background-color: #95a5a6; color: white; }
+        .cridar-atencio { animation: wiggle 2.5s infinite; background-color: #27ae60 !important; }
+
+        @keyframes wiggle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+    </style>
+</head>
+
+<body>
+
+<div class="contenidor">
+    <div class="col-esquerra">
+        <div class="client">
+            <div class="avatar-container">
+                <img id="avatar" src="" alt="Client">
+            </div>
+            <p id="missatge">"Necessit que m'ajudis amb unes dades econòmiques..."</p>
+        </div>
+
+        <div class="post-it">
+            <h3>📝 Fórmules</h3>
+            <p><b>Taxa de variació (TV):</b></p>
+            <p>TV = [(VF - VI) / VI] × 100</p>
+            <p><b>Valor Final (VF):</b></p>
+            <p>VF = VI × (1 + TV/100)</p>
+            <p><b>Valor Inicial (VI):</b></p>
+            <p>VI = VF / (1 + TV/100)</p>
+        </div>
+    </div>
+
+    <div class="exercici">
+        <div class="document-nomina">
+            <div id="stamp" class="stamp"></div>
+            <div class="capcalera-doc">
+                <div class="dades-empresa">
+                    <strong>Gestoria Polanyi</strong><br>
+                    Departament d'anàlisi macroeconòmica
+                </div>
+                <div class="dades-treballador">
+                    <span id="nom-client">Informe</span><br>
+                    #<span id="ref-num"></span>
+                </div>
+            </div>
+
+            <div class="titol-nomina">Càlcul de taxes de variació</div>
+
+            <div class="dades-brutes" id="enunciat-dades"></div>
+            
+            <div style="margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                <span class="pregunta" id="pregunta-text" style="margin: 0;"></span>
+                <div>
+                    <input type="number" id="input-resposta" step="0.01">
+                    <span id="unitat-resposta" style="font-weight: bold; font-size: 1.1rem;"></span>
+                    <span id="feedback-icon" class="feedback-icon"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-comprovar" id="btn-comprovar" onclick="corregir()">Validar dades</button>
+            <button class="btn-nou" id="btn-nou-client" onclick="generarNouExercici()" disabled>Següent informe</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let dadesActuals = {};
+let avatarsTotals = []; 
+let avatarsDisponibles = [];
+const MAX_AVATARS_CERCA = 100;
+let comprovacionsFetes = 0;
+
+const formatNum = (n) => new Intl.NumberFormat('ca-ES', { 
+    minimumFractionDigits: 0, 
+    maximumFractionDigits: 2 
+}).format(n);
+
+// Llista massiva d'indicadors amb gènere i nombre per a la concordància
+const indicadors = [
+    { nom: "el PIB", unitat: "M€", gen: "m", plu: false, vMin: 10000, vMax: 50000 },
+    { nom: "el salari mitjà", unitat: "€", gen: "m", plu: false, vMin: 1200, vMax: 3000 },
+    { nom: "les exportacions", unitat: "M€", gen: "f", plu: true, vMin: 5000, vMax: 20000 },
+    { nom: "les importacions", unitat: "M€", gen: "f", plu: true, vMin: 5000, vMax: 20000 },
+    { nom: "l'IPC", unitat: "punts", gen: "m", plu: false, vMin: 90, vMax: 120 },
+    { nom: "la taxa d'atur", unitat: "%", gen: "f", plu: false, vMin: 5, vMax: 25 },
+    { nom: "el deute públic", unitat: "M€", gen: "m", plu: false, vMin: 20000, vMax: 80000 },
+    { nom: "el nombre de turistes", unitat: "persones", gen: "m", plu: false, vMin: 100000, vMax: 900000 },
+    { nom: "les matriculacions de vehicles", unitat: "matriculacions", gen: "f", plu: true, vMin: 1000, vMax: 15000 },
+    { nom: "el consum elèctric", unitat: "GWh", gen: "m", plu: false, vMin: 500, vMax: 3000 },
+    { nom: "la producció industrial", unitat: "punts", gen: "f", plu: false, vMin: 80, vMax: 130 },
+    { nom: "la inversió en R+D", unitat: "M€", gen: "f", plu: false, vMin: 100, vMax: 2000 },
+    { nom: "el preu de l'habitatge", unitat: "€/m²", gen: "m", plu: false, vMin: 1500, vMax: 4500 },
+    { nom: "les vendes al detall", unitat: "M€", gen: "f", plu: true, vMin: 2000, vMax: 10000 },
+    { nom: "el crèdit a les famílies", unitat: "M€", gen: "m", plu: false, vMin: 5000, vMax: 30000 },
+    { nom: "la despesa pública", unitat: "M€", gen: "f", plu: false, vMin: 10000, vMax: 40000 },
+    { nom: "la productivitat laboral", unitat: "€/h", gen: "f", plu: false, vMin: 30, vMax: 80 },
+    { nom: "els ingressos per turisme", unitat: "M€", gen: "m", plu: true, vMin: 1000, vMax: 12000 },
+    { nom: "la població activa", unitat: "persones", gen: "f", plu: false, vMin: 50000, vMax: 500000 },
+    { nom: "les noves empreses", unitat: "unitats", gen: "f", plu: true, vMin: 100, vMax: 2000 },
+    { nom: "el dèficit comercial", unitat: "M€", gen: "m", plu: false, vMin: 500, vMax: 5000 }
+];
+
+function descobrirAvatars() {
+    for (let i = 1; i <= MAX_AVATARS_CERCA; i++) {
+        const img = new Image();
+        img.onload = function() { avatarsTotals.push(i); comprovacioAcabada(); };
+        img.onerror = function() { comprovacioAcabada(); };
+        img.src = `avatars/client${i}.png`;
+    }
+}
+
+function comprovacioAcabada() {
+    comprovacionsFetes++;
+    if (comprovacionsFetes === MAX_AVATARS_CERCA) {
+        if (avatarsTotals.length === 0) avatarsTotals = [1, 2, 3, 4, 5];
+        generarNouExercici(); 
+    }
+}
+
+function obtenirAvatarSenseRepetir() {
+    if (avatarsDisponibles.length === 0) avatarsDisponibles = [...avatarsTotals]; 
+    const indexAleatori = Math.floor(Math.random() * avatarsDisponibles.length);
+    return avatarsDisponibles.splice(indexAleatori, 1)[0];
+}
+
+function generarNouExercici() {
+    const ind = indicadors[Math.floor(Math.random() * indicadors.length)];
+    const a1 = Math.floor(Math.random() * 5) + 2018;
+    const a2 = a1 + 1;
+
+    let v1 = Math.floor(Math.random() * (ind.vMax - ind.vMin)) + ind.vMin;
+    let tv = parseFloat((Math.random() * 20 - 10).toFixed(2)); // Taxa entre -10% i 10%
+    let v2 = parseFloat((v1 * (1 + tv / 100)).toFixed(2));
+    
+    // Recalcular TV exacte per evitar errors de flotant
+    tv = parseFloat((((v2 - v1) / v1) * 100).toFixed(2));
+
+    const tipus = Math.floor(Math.random() * 3); // 0:TV, 1:VF, 2:VI
+    dadesActuals = { ind, a1, a2, v1, v2, tv, tipus };
+
+    // Construcció gramatical correcta
+    let article = ind.nom.split(' ')[0]; // el, la, les, l'
+    let verbEstar = ind.plu ? "eren" : "era";
+    let interrogatiu = "Quin";
+    if (ind.gen === "f") interrogatiu = ind.plu ? "Quines" : "Quina";
+    else if (ind.plu) interrogatiu = "Quins";
+
+    let enunciat = "";
+    let pregunta = "";
+
+    if (tipus === 0) { // Demanar Taxa Variació
+        enunciat = `${ind.nom.charAt(0).toUpperCase() + ind.nom.slice(1)} d'una economia l'any ${a1} ${verbEstar} de ${formatNum(v1)} ${ind.unitat} i l'any ${a2} va passar a ser de ${formatNum(v2)} ${ind.unitat}.`;
+        pregunta = `Quina va ser la taxa de variació entre ${a1} i ${a2}?`;
+        document.getElementById("unitat-resposta").innerText = "%";
+        dadesActuals.correcta = tv;
+    } else if (tipus === 1) { // Demanar Valor Final
+        enunciat = `${ind.nom.charAt(0).toUpperCase() + ind.nom.slice(1)} d'una economia l'any ${a1} ${verbEstar} de ${formatNum(v1)} ${ind.unitat} i la taxa de variació cap a l'any ${a2} va ser del ${formatNum(tv)}%.`;
+        pregunta = `${interrogatiu} ${verbEstar} ${ind.nom} l'any ${a2}?`;
+        document.getElementById("unitat-resposta").innerText = ind.unitat;
+        dadesActuals.correcta = v2;
+    } else { // Demanar Valor Inicial
+        enunciat = `${ind.nom.charAt(0).toUpperCase() + ind.nom.slice(1)} d'una economia l'any ${a2} ${verbEstar} de ${formatNum(v2)} ${ind.unitat} i la taxa de variació respecte a l'any ${a1} va ser del ${formatNum(tv)}%.`;
+        pregunta = `${interrogatiu} ${verbEstar} ${ind.nom} l'any ${a1}?`;
+        document.getElementById("unitat-resposta").innerText = ind.unitat;
+        dadesActuals.correcta = v1;
+    }
+
+    document.getElementById("enunciat-dades").innerHTML = enunciat;
+    document.getElementById("pregunta-text").innerText = pregunta;
+    document.getElementById("ref-num").innerText = Math.floor(Math.random() * 9000) + 1000;
+    document.getElementById("avatar").src = `avatars/client${obtenirAvatarSenseRepetir()}.png`;
+    document.getElementById("missatge").innerText = `"Bon dia, em podries calcular aquesta dada per a l'informe anual?"`;
+    
+    // Reset interfície
+    document.getElementById("stamp").className = "stamp";
+    document.getElementById("btn-nou-client").disabled = true;
+    document.getElementById("btn-nou-client").classList.remove("cridar-atencio");
+    document.getElementById("btn-comprovar").disabled = false;
+    const input = document.getElementById("input-resposta");
+    input.value = ""; input.disabled = false; input.className = "";
+    document.getElementById("feedback-icon").innerHTML = "";
+}
+
+function corregir() {
+    const userVal = parseFloat(document.getElementById("input-resposta").value);
+    if (isNaN(userVal)) { alert("Introdueix un número vàlid."); return; }
+
+    const correcte = dadesActuals.correcta;
+    const esOk = Math.abs(userVal - correcte) < 0.1; // Marge d'error per arrodoniments
+
+    const input = document.getElementById("input-resposta");
+    const stamp = document.getElementById("stamp");
+    input.disabled = true;
+    document.getElementById("btn-comprovar").disabled = true;
+    document.getElementById("btn-nou-client").disabled = false;
+    document.getElementById("btn-nou-client").classList.add("cridar-atencio");
+
+    if (esOk) {
+        input.classList.add("marcat-correcte");
+        document.getElementById("feedback-icon").innerHTML = `<span class="icon-ok">✔</span>`;
+        stamp.innerText = "CORRECTE"; stamp.className = "stamp correct show";
+        document.getElementById("missatge").innerText = `"Perfecte! Amb aquesta dada ja podem tancar l'anàlisi."`;
+    } else {
+        input.classList.add("marcat-error");
+        let u = dadesActuals.tipus === 0 ? "%" : dadesActuals.ind.unitat;
+        document.getElementById("feedback-icon").innerHTML = `<span class="icon-ko">✘ Resposta correcta: ${formatNum(correcte)} ${u}</span>`;
+        stamp.innerText = "ERROR"; stamp.className = "stamp fail show";
+        document.getElementById("missatge").innerText = `"Vaja, crec que el càlcul no és correcte. Ho haurem de revisar."`;
+    }
+}
+
+window.onload = descobrirAvatars;
+</script>
+</body>
+</html>
