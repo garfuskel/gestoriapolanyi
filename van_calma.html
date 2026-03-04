@@ -2,7 +2,8 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <title>Exercici VAN - Gestoria Polanyi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,19 +13,22 @@
             min-height: 100vh;
             margin: 0;
             background-color: #fcfcfc;
+            padding: 20px;
+            box-sizing: border-box;
         }
         
         .card {
             background: white;
             padding: 40px;
             width: 100%;
-            max-width: 650px;
-            height: 530px; /* He augmentat 30px per encabir la frase final còmodament */
+            max-width: 850px; /* Ampliat per ocupar més espai */
+            min-height: 530px; /* Canviat de height fix a min-height perquè pugui créixer */
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: space-between; 
+            box-sizing: border-box;
         }
 
         .enunciat-container {
@@ -37,7 +41,7 @@
         }
 
         .enunciat {
-            font-size: 1.15rem;
+            font-size: 1.35rem; /* Lletra més grossa */
             line-height: 1.8;
             color: #333;
             text-align: justify;
@@ -52,6 +56,7 @@
             flex-direction: column;
             align-items: center;
             gap: 12px;
+            width: 100%;
         }
 
         input {
@@ -61,6 +66,7 @@
             border: 1px solid #ccc;
             font-size: 1rem;
             outline: none;
+            border-radius: 4px;
         }
 
         button {
@@ -71,6 +77,7 @@
             border: none;
             font-size: 0.9rem;
             transition: opacity 0.2s;
+            border-radius: 4px;
         }
 
         button:hover {
@@ -88,23 +95,46 @@
         /* Àrea de missatges fixa */
         .message-area {
             text-align: center;
-            height: 50px; /* Espai fix per a les dues línies de text */
+            min-height: 50px; /* Canviat a min-height per si el text és llarg al mòbil */
             display: flex;
             flex-direction: column;
             justify-content: center;
             gap: 5px;
+            width: 100%;
         }
 
         #feedback {
-            font-size: 0.95rem;
+            font-size: 1.05rem; /* Una mica més gran */
             font-weight: 600;
         }
 
         #conclusion {
-            font-size: 0.9rem;
+            font-size: 1rem; /* Una mica més gran */
             font-style: italic;
             color: #555;
             min-height: 1.2em; /* Reserva l'espai */
+        }
+
+        /* --- ADAPTACIÓ PER A MÒBILS --- */
+        @media (max-width: 600px) {
+            .card {
+                padding: 25px 20px;
+                min-height: auto;
+            }
+            .enunciat {
+                font-size: 1.15rem; /* Reduïm la lletra perquè no ofegui la pantalla */
+            }
+            .controls {
+                align-items: stretch; /* Estira els inputs i botons als extrems */
+            }
+            input {
+                width: auto;
+            }
+            button {
+                width: 100%;
+                font-size: 1rem;
+                padding: 12px 20px;
+            }
         }
     </style>
 </head>
