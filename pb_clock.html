@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payback - Contra-rellotge</title>
+    <title>Gestoria Polanyi</title>
     <style>
         /* --- ESTILS GENERALS --- */
         body { 
@@ -493,10 +493,10 @@
         attemptsLeft--;
         
         if (attemptsLeft === 2) {
-            showOverlay("INCORRECTE", `${motiuText}<br>Et queden 2 intents.`, "warning", 2000);
+            showOverlay("INCORRECTE", `<br>Et queden 2 intents`, "warning", 2000);
             document.getElementById('user-input').select(); 
         } else if (attemptsLeft === 1) {
-            showOverlay("ATENCIÓ!", "Darrera oportunitat!", "warning", 2000);
+            showOverlay("ATENCIÓ", "Darrera oportunitat", "warning", 2000);
             document.getElementById('user-input').select();
         } else {
             // Tercer error -> Mostrem solució i passem al següent
@@ -504,7 +504,7 @@
                 ? "No es recuperava mai" 
                 : `${resultatPayback.toFixed(2).replace('.', ',')} anys`;
 
-            showOverlay("EXPEDIENT PERDUT", `La solució era: ${solucioFinal}.<br>Passem al següent.`, "error", 3000);
+            showOverlay("EXPEDIENT PERDUT", `La solució era: ${solucioFinal}<br>Passem al següent`, "error", 3000);
             timerWidth -= 5; 
             setTimeout(() => {
                 generarProblema(); 
