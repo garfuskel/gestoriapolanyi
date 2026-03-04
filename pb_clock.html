@@ -448,10 +448,10 @@
         document.getElementById('input-warning').style.opacity = '0';
 
         if (resultatPayback === -1) {
-            handleSuccess("Correcte! La inversió no es recupera.");
+            handleSuccess("Correcte! La inversió no es recupera");
         } else {
             // Era recuperable, però l'alumne ha dit que no
-            handleFailure(`Incorrecte! Es recuperava en ${resultatPayback.toFixed(2).replace('.', ',')} anys.`);
+            handleFailure(`Incorrecte! Es recuperava en ${resultatPayback.toFixed(2).replace('.', ',')} anys`);
         }
     }
 
