@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eeeeee;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .contenidor {
+            display: flex;
+            gap: 25px;
+            width: 100%;
+            max-width: 1250px;
+            margin: auto;
+            align-items: flex-start;
+            flex-wrap: wrap; /* Per a pantalles mitjanes */
+        }
+
+        .col-esquerra {
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            flex-shrink: 0;
+        }
+
+        .client {
+            background-color: #d4a373;
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .client img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 3px 5px 12px rgba(0,0,0,0.4);
+            transform: rotate(-3deg);
+            filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint'%3E%3CfeColorMatrix type='matrix' values='0.992 0 0 0 0 0 0.992 0 0 0 0 0 0.588 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
+        }
+
+        .client p {
+            font-size: 0.95rem;
+            font-style: italic;
+            color: #333;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .post-it {
+            background-color: #ffeb84;
+            padding: 20px;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+            transform: rotate(-2deg);
+            font-family: 'Comic Sans MS', cursive;
+            color: #333;
+            border-bottom-right-radius: 15px 5px;
+        }
+
+        .post-it h3 { margin-top: 0; border-bottom: 2px dashed #d4c890; padding-bottom: 5px; }
+        .post-it p { margin: 8px 0; font-size: 0.85rem; line-height: 1.4; }
+
+        .exercici {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 850px;
+        }
+
+        .document-nomina {
+            background-color: #fff;
+            padding: 40px;
+            border: 1px solid #ccc;
+            box-shadow: 10px 10px 0px #bbb;
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+            border-radius: 8px;
+        }
+
+        .stamp {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg) scale(2);
+            font-size: 5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 8px solid;
+            border-radius: 15px;
+            padding: 10px 30px;
+            opacity: 0;
+            z-index: 10;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .stamp.show { opacity: 0.85; transform: translate(-50%, -50%) rotate(-15deg) scale(1); }
+        .stamp.correct { color: #27ae60; border-color: #27ae60; background-color: rgba(255, 255, 255, 0.9); }
+        .stamp.fail { color: #c0392b; border-color: #c0392b; background-color: rgba(255, 255, 255, 0.9); }
+
+        .capcalera-doc {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .dades-empresa, .dades-treballador {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .titol-nomina {
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        .taula-epa {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .taula-epa th {
+            background-color: #f2f2f2;
+            border: 1px solid #333;
+            padding: 10px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .taula-epa td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: right;
+        }
+
+        .taula-epa td:first-child {
+            text-align: left;
+            font-weight: bold;
+            background-color: #fdfdfd;
+        }
+
+        .incognita {
+            color: #bdc3c7;
+            font-style: italic;
+            text-align: center !important;
+        }
+
+        .pregunta {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #e67e22;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .controls-resposta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            background-color: #fdf2e9;
+            padding: 20px;
+            border-left: 5px solid #e67e22;
+            border-radius: 4px;
+        }
+
+        input {
+            width: 180px;
+            padding: 10px;
+            border: 2px solid #3498db;
+            text-align: right;
+            font-weight: bold;
+            border-radius: 4px;
+            font-size: 1.2rem;
+            outline: none;
+        }
+
+        .marcat-error { text-decoration: line-through; color: #c0392b; background-color: #f8d7da; }
+        .marcat-correcte { background-color: #d4edda; color: #155724; }
+
+        .feedback-icon { display: inline-block; font-size: 1.2rem; font-weight: bold; }
+        .icon-ok { color: #27ae60; }
+        .icon-ko { color: #c0392b; }
+
+        .controls { margin-top: 20px; display: flex; gap: 10px; }
+        button { flex: 1; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; font-size: 1.05rem; }
+        .btn-comprovar { background-color: #2c3e50; color: white; transition: 0.2s; }
+        .btn-comprovar:hover:not([disabled]) { background-color: #1a252f; }
+        .btn-nou { background-color: #95a5a6; color: white; }
+        .cridar-atencio { animation: wiggle 2.5s infinite; background-color: #27ae60 !important; }
+
+        @keyframes wiggle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+        /* --- ADAPTACIÓ MÒBILS --- */
+        @media (max-width: 850px) {
+            .col-esquerra { max-width: 100%; }
+            .client img { width: 120px; height: 120px; }
+        }
+        @media (max-width: 600px) {
+            .document-nomina { padding: 20px; }
+            .controls-resposta { flex-direction: column; align-items: stretch; }
+            input { width: auto; }
+            .controls { flex-direction: column; }
+            button { width: 100%; }
+            .taula-epa td, .taula-epa th { padding: 5px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenidor">
+    <div class="col-esquerra">
+        <div class="client">
+            <div class="avatar-container">
+                <img id="avatar" src="" alt="Client">
+            </div>
+            <p id="missatge">"Necessit que m'ajudis a completar les estadístiques que falten en aquest informe."</p>
+        </div>
+
+        <div class="post-it">
+            <h3>Apunts</h3>
+            <p><b>Població total:</b> La població total és la suma de la població femenina i masculina</p>
+            <p><b>PET:</b> Població en edat treballar = Població activa + Població inactiva</p>
+            <p><b>Població activa:</b> = Població ocupada + Població desocupada</p>
+            <p><b>Taxa d'activitat:</b> (Població activa / PET) × 100</p>
+            <p><b>Taxa d'ocupació:</b> (Població ocupada / PET) × 100</p>
+            <p><b>Taxa d'atur:</b> (Població desocupada / Població activa) × 100</p>
+            <p><i>Usa la coma (,) per als decimals!</i></p>
+        </div>
+    </div>
+
+    <div class="exercici">
+        <div class="document-nomina">
+            <div id="stamp" class="stamp"></div>
+            <div class="capcalera-doc">
+                <div class="dades-empresa">
+                    <strong>Gestoria Polanyi</strong><br>
+                    Departament d'anàlisi macroeconòmica
+                </div>
+                <div class="dades-treballador">
+                    <span id="nom-client">Resum EPA</span><br>
+                    Trimestre: <span id="ref-num"></span>
+                </div>
+            </div>
+
+            <div class="titol-nomina">Enquesta de Població Activa (EPA)</div>
+
+            <table class="taula-epa">
+                <thead>
+                    <tr>
+                        <th>Concepte</th>
+                        <th>Total</th>
+                        <th>Homes</th>
+                        <th>Dones</th>
+                    </tr>
+                </thead>
+                <tbody id="taula-cos">
+                    </tbody>
+            </table>
+            
+            <div class="controls-resposta">
+                <div class="pregunta" id="pregunta-text"></div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="text" id="input-resposta" oninput="validarComma(this)">
+                    <span id="unitat-resposta" style="font-weight: bold; font-size: 1.1rem;"></span>
+                </div>
+                <div id="feedback-icon" class="feedback-icon" style="width: 100%; text-align: center;"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-comprovar" id="btn-comprovar" onclick="corregir()">Validar dades</button>
+            <button class="btn-nou" id="btn-nou-client" onclick="generarNouExercici()" disabled>Següent informe</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let dadesActuals = {};
+let avatarsTotals = []; 
+let avatarsDisponibles = [];
+const MAX_AVATARS_CERCA = 100;
+let comprovacionsFetes = 0;
+
+const conceptesTaula = [
+    "Població en edat de treballar (PET)",
+    "Població activa",
+    "Població ocupada",
+    "Població desocupada (aturada)",
+    "Població inactiva"
+];
+
+function formatNum(n) {
+    return new Intl.NumberFormat('ca-ES').format(n);
+}
+
+function validarComma(input) {
+    input.value = input.value.replace(/[^0-9,.-]/g, '');
+}
+
+function descobrirAvatars() {
+    for (let i = 1; i <= MAX_AVATARS_CERCA; i++) {
+        const img = new Image();
+        img.onload = function() { avatarsTotals.push(i); comprovacioAcabada(); };
+        img.onerror = function() { comprovacioAcabada(); };
+        img.src = `avatars/client${i}.png`;
+    }
+}
+
+function comprovacioAcabada() {
+    comprovacionsFetes++;
+    if (comprovacionsFetes === MAX_AVATARS_CERCA) {
+        if (avatarsTotals.length === 0) avatarsTotals = [1, 2, 3, 4, 5];
+        generarNouExercici(); 
+    }
+}
+
+function obtenirAvatarSenseRepetir() {
+    if (avatarsDisponibles.length === 0) avatarsDisponibles = [...avatarsTotals]; 
+    const indexAleatori = Math.floor(Math.random() * avatarsDisponibles.length);
+    return avatarsDisponibles.splice(indexAleatori, 1)[0];
+}
+
+// Simulador matemàtic de taula
+function canSolveTarget(mask, reqs) {
+    let work = mask.map(row => [...row]);
+    let changed = true;
+    while(changed) {
+        changed = false;
+        // Regla 1: Columnes (Total = Homes + Dones)
+        for(let r=0; r<5; r++) {
+            if(!work[r][0] && work[r][1] && work[r][2]) { work[r][0] = true; changed = true; }
+            if(work[r][0] && !work[r][1] && work[r][2]) { work[r][1] = true; changed = true; }
+            if(work[r][0] && work[r][1] && !work[r][2]) { work[r][2] = true; changed = true; }
+        }
+        // Regla 2: PET = Activa + Inactiva (Fila 0 = 1 + 4)
+        for(let c=0; c<3; c++) {
+            if(!work[0][c] && work[1][c] && work[4][c]) { work[0][c] = true; changed = true; }
+            if(work[0][c] && !work[1][c] && work[4][c]) { work[1][c] = true; changed = true; }
+            if(work[0][c] && work[1][c] && !work[4][c]) { work[4][c] = true; changed = true; }
+        }
+        // Regla 3: Activa = Ocupada + Desocupada (Fila 1 = 2 + 3)
+        for(let c=0; c<3; c++) {
+            if(!work[1][c] && work[2][c] && work[3][c]) { work[1][c] = true; changed = true; }
+            if(work[1][c] && !work[2][c] && work[3][c]) { work[2][c] = true; changed = true; }
+            if(work[1][c] && work[2][c] && !work[3][c]) { work[3][c] = true; changed = true; }
+        }
+    }
+    // Comprovem si els requisits es poden trobar
+    for(let req of reqs) {
+        if(!work[req.r][req.c]) return false;
+    }
+    return true;
+}
+
+function generarNouExercici() {
+    // 1. Generar la realitat base
+    let total_pet = Math.floor(Math.random() * 8000000) + 30000000; // 30-38M
+    let homes_pet = Math.floor(total_pet * (0.48 + Math.random() * 0.04));
+    let dones_pet = total_pet - homes_pet;
+
+    let r_act_h = 0.58 + Math.random() * 0.10; // 58-68%
+    let r_act_d = 0.48 + Math.random() * 0.10; // 48-58%
+    let homes_act = Math.floor(homes_pet * r_act_h);
+    let dones_act = Math.floor(dones_pet * r_act_d);
+    let total_act = homes_act + dones_act;
+
+    let homes_ina = homes_pet - homes_act;
+    let dones_ina = dones_pet - dones_act;
+    let total_ina = total_pet - total_act;
+
+    let r_atur_h = 0.08 + Math.random() * 0.08; // 8-16%
+    let r_atur_d = 0.10 + Math.random() * 0.10; // 10-20%
+    let homes_des = Math.floor(homes_act * r_atur_h);
+    let dones_des = Math.floor(dones_act * r_atur_d);
+    let total_des = homes_des + dones_des;
+
+    let homes_ocu = homes_act - homes_des;
+    let dones_ocu = dones_act - dones_des;
+    let total_ocu = total_act - total_des;
+
+    // Matriu [Fil][Col] -> Fila: 0=PET, 1=Act, 2=Ocu, 3=Des, 4=Ina. Col: 0=Tot, 1=H, 2=D
+    let table = [
+        [total_pet, homes_pet, dones_pet],
+        [total_act, homes_act, dones_act],
+        [total_ocu, homes_ocu, dones_ocu],
+        [total_des, homes_des, dones_des],
+        [total_ina, homes_ina, dones_ina]
+    ];
+
+    // 2. Definir la pregunta
+    const preguntes = [
+        { id: 0, str: "la taxa d'atur", type: "rate", rNum: 3, rDen: 1 },
+        { id: 1, str: "la taxa d'ocupació", type: "rate", rNum: 2, rDen: 0 },
+        { id: 2, str: "la taxa d'activitat", type: "rate", rNum: 1, rDen: 0 },
+        { id: 3, str: "la població inactiva", type: "abs", rNum: 4 },
+        { id: 4, str: "la població activa", type: "abs", rNum: 1 },
+        { id: 5, str: "la població ocupada", type: "abs", rNum: 2 },
+        { id: 6, str: "la població desocupada", type: "abs", rNum: 3 },
+        { id: 7, str: "la població en edat de treballar (PET)", type: "abs", rNum: 0 }
+    ];
+
+    const targets = ["Total", "Homes", "Dones"];
+    const pregs = [
+        "del total de la població",
+        "masculina",
+        "femenina"
+    ];
+
+    let p = preguntes[Math.floor(Math.random() * preguntes.length)];
+    let t_col = Math.floor(Math.random() * 3); // 0=Tot, 1=Hom, 2=Don
+
+    let requisits = [];
+    if (p.type === "rate") {
+        requisits.push({r: p.rNum, c: t_col});
+        requisits.push({r: p.rDen, c: t_col});
+        dadesActuals.correcta = (table[p.rNum][t_col] / table[p.rDen][t_col]) * 100;
+        document.getElementById("unitat-resposta").innerText = "%";
+    } else {
+        requisits.push({r: p.rNum, c: t_col});
+        dadesActuals.correcta = table[p.rNum][t_col];
+        document.getElementById("unitat-resposta").innerText = "persones";
+    }
+
+    dadesActuals.tipus = p.type;
+
+    // 3. Buidar caselles garantint resolució
+    let visible = Array(5).fill().map(() => Array(3).fill(true));
+    let coords = [];
+    for(let r=0; r<5; r++) for(let c=0; c<3; c++) coords.push({r, c});
+    coords.sort(() => Math.random() - 0.5); // Shuffle
+
+    let amagades = 0;
+    // Pels absoluts, hem d'amagar el propi valor perquè l'alumne el calculi
+    if (p.type === "abs") {
+        visible[p.rNum][t_col] = false;
+        amagades++;
+    }
+
+    for (let {r, c} of coords) {
+        if (amagades >= 8) break; // Amaguem un màxim de 8 caselles per deixar context
+        if (!visible[r][c]) continue; // Ja està amagada
+        
+        visible[r][c] = false;
+        if (!canSolveTarget(visible, requisits)) {
+            visible[r][c] = true; // Si es trenca, la tornem a posar
+        } else {
+            amagades++;
+        }
+    }
+
+    // 4. Dibuixar taula
+    let htmlTaula = "";
+    for (let r=0; r<5; r++) {
+        htmlTaula += `<tr><td>${conceptesTaula[r]}</td>`;
+        for (let c=0; c<3; c++) {
+            if (visible[r][c]) {
+                htmlTaula += `<td>${formatNum(table[r][c])}</td>`;
+            } else {
+                htmlTaula += `<td class="incognita">-</td>`;
+            }
+        }
+        htmlTaula += `</tr>`;
+    }
+    document.getElementById("taula-cos").innerHTML = htmlTaula;
+
+    // 5. Ajustar UI
+    document.getElementById("pregunta-text").innerHTML = `Quina és ${p.str} ${pregs[t_col]}?`;
+    document.getElementById("ref-num").innerText = `${Math.floor(Math.random() * 4) + 1}T 202${Math.floor(Math.random() * 4)}`;
+    document.getElementById("avatar").src = `avatars/client${obtenirAvatarSenseRepetir()}.png`;
+    
+    // Reset inputs i missatges
+    document.getElementById("stamp").className = "stamp";
+    document.getElementById("btn-nou-client").disabled = true;
+    document.getElementById("btn-nou-client").classList.remove("cridar-atencio");
+    document.getElementById("btn-comprovar").disabled = false;
+    const input = document.getElementById("input-resposta");
+    input.value = ""; input.disabled = false; input.className = "";
+    document.getElementById("feedback-icon").innerHTML = "";
+    document.getElementById("missatge").innerText = `"Necessit que m'ajudis a calcular la dada que falta en aquest informe."`;
+}
+
+function corregir() {
+    let rawInput = document.getElementById("input-resposta").value.replace(',', '.');
+    const userVal = parseFloat(rawInput);
+    if (isNaN(userVal)) { alert("Introdueix un número vàlid."); return; }
+
+    const correcte = dadesActuals.correcta;
+    // Marge estricte per a persones (0.1), marge per a % (0.15) per arrodoniments
+    const marge = dadesActuals.tipus === "abs" ? 1 : 0.15; 
+    const esOk = Math.abs(userVal - correcte) <= marge; 
+
+    const input = document.getElementById("input-resposta");
+    const stamp = document.getElementById("stamp");
+    input.disabled = true;
+    document.getElementById("btn-comprovar").disabled = true;
+    document.getElementById("btn-nou-client").disabled = false;
+    document.getElementById("btn-nou-client").classList.add("cridar-atencio");
+
+    // Format text resposta correcte
+    let strCorrecte = dadesActuals.tipus === "abs" 
+        ? formatNum(correcte) + " persones" 
+        : correcte.toFixed(2).replace('.', ',') + " %";
+
+    if (esOk) {
+        input.classList.add("marcat-correcte");
+        document.getElementById("feedback-icon").innerHTML = `<span class="icon-ok">✔ Correcte!</span>`;
+        stamp.innerText = "CORRECTE"; stamp.className = "stamp correct show";
+        document.getElementById("missatge").innerText = `"Perfecte! Aquesta xifra em quadra perfectament."`;
+    } else {
+        input.classList.add("marcat-error");
+        document.getElementById("feedback-icon").innerHTML = `<span class="icon-ko">✘ La resposta era: ${strCorrecte}</span>`;
+        stamp.innerText = "ERROR"; stamp.className = "stamp fail show";
+        document.getElementById("missatge").innerText = `"Vaja, he comprovat la dada i no és correcta."`;
+    }
+}
+
+window.onload = descobrirAvatars;
+</script>
+</body>
+</html>

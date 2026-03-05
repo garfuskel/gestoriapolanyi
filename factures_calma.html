@@ -1,0 +1,397 @@
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestoria Polanyi</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #eeeeee; margin: 0; padding: 30px; }
+    .contenidor { display: flex; gap: 25px; max-width: 1450px; margin: auto; align-items: flex-start; }
+    
+    /* COLUMNA ESQUERRA - ESTIL EXACTE NÒMINA */
+    .col-esquerra { width: 28%; display: flex; flex-direction: column; gap: 25px; }
+    .client { 
+      background-color: #d4a373; padding: 20px; border-radius: 6px; text-align: center; 
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.2); 
+    }
+    .avatar-container { position: relative; display: inline-block; margin-bottom: 15px; }
+    .client img { 
+      width: 180px; height: 180px; object-fit: cover; border-radius: 4px; 
+      box-shadow: 3px 5px 12px rgba(0,0,0,0.4); transform: rotate(-3deg);
+      filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint'%3E%3CfeColorMatrix type='matrix' values='0.992 0 0 0 0 0 0.992 0 0 0 0 0 0.588 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
+    }
+    .client p { 
+      font-size: 0.95rem; font-style: italic; color: #333; padding: 10px; 
+      background-color: #f8f9fa; border-left: 4px solid #3498db; border-radius: 4px; 
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .post-it { 
+      background-color: #ffeb84; padding: 20px; box-shadow: 2px 4px 8px rgba(0,0,0,0.15); 
+      transform: rotate(-2deg); font-family: 'Comic Sans MS', cursive; color: #333; 
+      border-bottom-right-radius: 15px 5px;
+    }
+    .post-it h3 { margin-top: 0; border-bottom: 2px dashed #d4c890; padding-bottom: 5px; }
+    .post-it p { margin: 10px 0; font-size: 0.95rem; line-height: 1.4; }
+
+    /* PLANTILLA FACTURA */
+    .exercici { width: 72%; background: white; padding: 45px; border: 1px solid #ccc; box-shadow: 10px 10px 0px #bbb; position: relative; }
+    .stamp { 
+      position: absolute; top: 12%; left: 65%; transform: translate(-50%, -50%) rotate(-15deg); 
+      font-size: 4rem; font-weight: 900; border: 8px solid; padding: 10px 30px; opacity: 0; 
+      pointer-events: none; z-index: 100; transition: 0.3s; 
+    }
+    .stamp.show { opacity: 0.85; }
+    .stamp.correct { color: #27ae60; border-color: #27ae60; }
+    .stamp.fail { color: #c0392b; border-color: #c0392b; }
+    .stamp.revisar { color: #f39c12; border-color: #f39c12; }
+
+    .enunciat-box { background: #fdf2e9; border-left: 5px solid #e67e22; padding: 20px; margin-bottom: 25px; font-size: 0.95rem; line-height: 1.6; color: #444; }
+    
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #f2f2f2; padding: 8px; border: 1px solid #333; text-transform: uppercase; font-size: 0.75rem; }
+    td { border: 1px solid #333; padding: 5px; font-size: 0.85rem; }
+    .col-num { text-align: right; width: 110px; }
+    .label-art { font-weight: bold; background: #eee; }
+    
+    input, select { width: 95%; text-align: right; border: 1px solid #3498db; padding: 4px; font-family: inherit; font-size: 0.9rem; background: white; transition: background 0.3s; }
+    select { text-align-last: right; cursor: pointer; }
+    
+    /* ESTATS INPUTS */
+    input.error, select.error { background: #f8d7da !important; color: #c0392b; font-weight: bold; }
+    input.success, select.success { background: #d4edda !important; color: #155724; }
+    input.buit, select.buit { background: #f39c12 !important; color: white !important; font-weight: bold; } /* Avís taronja de buit */
+    
+    input:disabled, select:disabled { opacity: 0.8; }
+
+    .btn-validar { background: #2c3e50; color: white; padding: 18px; width: 100%; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+    .btn-validar:hover { background: #1a252f; }
+    .btn-next { background: #27ae60; color: white; padding: 18px; width: 100%; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; display: none; font-size: 1.1rem; }
+    .btn-next:hover { background: #219653; }
+  </style>
+</head>
+<body>
+
+<div class="contenidor">
+  <div class="col-esquerra">
+    <div class="client">
+      <div class="avatar-container">
+        <img id="avatar" src="">
+      </div>
+      <p id="missatge">"Bon dia! Aquí tens la informació de la comanda per calcular la factura."</p>
+    </div>
+    
+    <div class="post-it">
+      <h3>Apunts</h3>
+      <p>• <b>Ordre dels descomptes:</b> (1r) comercial, (2n) volum, (3r) pagament immediat.</p>
+      <p>• <b>Descomptes:</b> pensa a posar els descomptes en negatiu a la factura.</p>
+      <p>• <b>Descompte per volum:</b> recorda comprovar si realment se superen les unitats per article abans d'aplicar-lo!</p>
+      <p>• <b>Unitats bonificades:</b> les unitats bonificades no es cobren, però sí que augmenten el cost de l'embalatge i del transport.</p>
+      <p>• <b>Transport:</b> per calcular el cost unitari del transport es divideix el cost total del transport entre totes les unitats (comprades i bonificades).</p>
+      <p>• <b>Decimals:</b> aplica dos decimals ben arrodonits en els teus càlculs.</p>
+    </div>
+  </div>
+
+  <div class="exercici">
+    <div id="stamp" class="stamp"></div>
+    <h2 style="text-align:center; text-transform: uppercase; margin-bottom: 5px;">Càlcul de factures</h2>
+    <p style="text-align:center; font-size: 0.8rem; color: #666; margin-bottom: 25px;">Gestoria Polanyi - Àrea de facturació</p>
+    
+    <div id="enunciat" class="enunciat-box"></div>
+
+    <div id="taules-articles"></div>
+
+    <table style="width: 100%; margin-top: 30px;">
+      <thead>
+        <tr><th style="font-size: 0.9rem;">CONCEPTE</th><th>Article A</th><th>Article B</th><th>Article C</th><th>TOTAL</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight: bold;">Base Imposable</td>
+          <td><input type="text" id="bi-a" oninput="validarComma(this)"></td>
+          <td><input type="text" id="bi-b" oninput="validarComma(this)"></td>
+          <td><input type="text" id="bi-c" oninput="validarComma(this)"></td>
+          <td style="background: #fdf2e9;"><input type="text" id="bi-tot" oninput="validarComma(this)"></td>
+        </tr>
+        <tr>
+          <td style="font-weight: bold;">Tipus d'IVA (%)</td>
+          <td>
+            <select id="iva-tip-a" onchange="this.classList.remove('buit')">
+              <option value="">-</option>
+              <option value="4">4%</option>
+              <option value="10">10%</option>
+              <option value="21">21%</option>
+            </select>
+          </td>
+          <td>
+            <select id="iva-tip-b" onchange="this.classList.remove('buit')">
+              <option value="">-</option>
+              <option value="4">4%</option>
+              <option value="10">10%</option>
+              <option value="21">21%</option>
+            </select>
+          </td>
+          <td>
+            <select id="iva-tip-c" onchange="this.classList.remove('buit')">
+              <option value="">-</option>
+              <option value="4">4%</option>
+              <option value="10">10%</option>
+              <option value="21">21%</option>
+            </select>
+          </td>
+          <td style="background:#eee"></td>
+        </tr>
+        <tr>
+          <td style="font-weight: bold;">IVA (import)</td>
+          <td><input type="text" id="iva-imp-a" oninput="validarComma(this)"></td>
+          <td><input type="text" id="iva-imp-b" oninput="validarComma(this)"></td>
+          <td><input type="text" id="iva-imp-c" oninput="validarComma(this)"></td>
+          <td style="background: #fdf2e9;"><input type="text" id="iva-imp-tot" oninput="validarComma(this)"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="text-align: right; font-weight: bold; font-size: 1.4rem; border-top: 3px solid #333; padding-top: 15px; margin-top: 10px;">
+      TOTAL A PAGAR: <input type="text" id="total-pagar" style="width: 180px; font-size: 1.4rem; font-weight: bold; color: #2c3e50;" oninput="validarComma(this)"> €
+    </div>
+
+    <div style="margin-top: 30px;">
+      <button class="btn-validar" id="btn-validar" onclick="validar()">Validar Factura</button>
+      <button class="btn-next" id="btn-next" onclick="generar()">Següent factura</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let dades = {};
+let intents = 0;
+const labels = ["A", "B", "C"];
+
+function fN(num, decimals = 2) {
+  return num.toLocaleString('ca-ES', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function parseIn(val) {
+  if (!val) return 0;
+  let net = val.toString().replace(/\./g, '').replace(',', '.');
+  return parseFloat(net);
+}
+
+function validarComma(input) {
+  input.value = input.value.replace(/[^0-9,.-]/g, '');
+  input.classList.remove("buit"); // Treu el color taronja en començar a escriure
+}
+
+// Funció per imitar l'arrodoniment pas a pas que faria l'alumne
+function arrodonir(num) {
+  return Math.round(num * 100) / 100;
+}
+
+function generar() {
+  intents = 0;
+  const ivaOpcions = [4, 10, 21];
+  const dComP = Math.floor(Math.random() * 4) + 2; 
+  const dVolP = Math.floor(Math.random() * 2) + 2;
+  const dPagP = Math.floor(Math.random() * 3) + 3;
+  const volThreshold = [100, 150, 200][Math.floor(Math.random() * 3)];
+  const bonifRatio = [5, 10, 20][Math.floor(Math.random() * 3)];
+  const transportTotal = parseFloat((Math.random() * 200 + 300).toFixed(2));
+  
+  let sumaQEnv = 0;
+  
+  dades.items = labels.map((L, i) => {
+    const q = Math.floor(Math.random() * 180) + 120;
+    const p = parseFloat((Math.random() * 10 + 5).toFixed(2));
+    const bonif = Math.floor(q / 100) * bonifRatio;
+    const qEnv = q + bonif;
+    sumaQEnv += qEnv;
+    const eUnitari = [2.34, 1.22, 3.45][i];
+    const ivaVal = ivaOpcions[Math.floor(Math.random() * 3)];
+    
+    return { label: L, q, p, dComP, dVolP, dPagP, bonif, qEnv, eUnitari, iva: ivaVal/100, ivaP: ivaVal };
+  });
+
+  const tUnitari = parseFloat((transportTotal / sumaQEnv).toFixed(2));
+
+  dades.items.forEach(it => {
+    it.brut = arrodonir(it.q * it.p);
+    it.valDCom = -arrodonir(it.brut * (it.dComP / 100));
+    let baseVolum = it.brut + it.valDCom;
+    
+    it.aplicaVolum = it.q > volThreshold;
+    it.valDVol = it.aplicaVolum ? -arrodonir(baseVolum * (it.dVolP / 100)) : 0;
+    let basePagament = baseVolum + it.valDVol;
+    
+    it.valDPag = -arrodonir(basePagament * (it.dPagP / 100));
+    
+    it.valEmb = arrodonir(it.qEnv * it.eUnitari);
+    it.valTrans = arrodonir(it.qEnv * tUnitari);
+    
+    it.bi = arrodonir(basePagament + it.valDPag + it.valEmb + it.valTrans);
+  });
+
+  dades.tTotal = transportTotal;
+  dades.tUnitariCorrecte = tUnitari;
+  dades.volThreshold = volThreshold;
+  dades.bonifRatio = bonifRatio;
+  dibuixar();
+}
+
+function dibuixar() {
+  let html = "";
+  let enunciat = `<h3 style="margin-top:0">Dades de la comanda:</h3>`;
+  enunciat += `<p>• <b>Articles i IVA:</b><br>`;
+  
+  dades.items.forEach((it, i) => {
+    html += `
+    <table>
+      <thead><tr><th>ARTICLE ${it.label}</th><th class="col-num">Quantitat</th><th class="col-num">Preu unitari (€)</th><th class="col-num">Import (€)</th></tr></thead>
+      <tbody>
+        <tr><td class="label-art">Article ${it.label}</td><td class="col-num">${it.q}</td><td class="col-num">${fN(it.p)}</td><td class="col-num"><input type="text" id="i-brut-${i}" oninput="validarComma(this)"></td></tr>
+        <tr><td>Descompte comercial (${it.dComP}%)</td><td></td><td></td><td class="col-num"><input type="text" id="i-dcom-${i}" oninput="validarComma(this)"></td></tr>
+        <tr><td>Descompte per volum (${it.dVolP}%)</td><td></td><td></td><td class="col-num"><input type="text" id="i-dvol-${i}" oninput="validarComma(this)"></td></tr>
+        <tr><td>Descompte per pagament immediat (${it.dPagP}%)</td><td></td><td></td><td class="col-num"><input type="text" id="i-dpag-${i}" oninput="validarComma(this)"></td></tr>
+        <tr><td>Unitats bonificades</td><td class="col-num"><input type="text" id="q-bonif-${i}" oninput="validarComma(this)"></td><td></td><td></td></tr>
+        <tr><td>Embalatges (cost unitari)</td><td class="col-num"><input type="text" id="q-emb-${i}" oninput="validarComma(this)"></td><td class="col-num">${fN(it.eUnitari)}</td><td class="col-num"><input type="text" id="i-emb-${i}" oninput="validarComma(this)"></td></tr>
+        <tr><td>Transport (cost unitari)</td><td class="col-num"><input type="text" id="q-trans-${i}" oninput="validarComma(this)"></td><td class="col-num"><input type="text" id="p-trans-${i}" oninput="validarComma(this)"></td><td class="col-num"><input type="text" id="i-trans-${i}" oninput="validarComma(this)"></td></tr>
+        <tr style="background:#f1f1f1; font-weight:bold;"><td colspan="3" style="text-align:right">BASE IMPOSABLE ARTICLE ${it.label}</td><td class="col-num"><input type="text" id="bi-art-${i}" oninput="validarComma(this)"></td></tr>
+      </tbody>
+    </table>`;
+    enunciat += `&nbsp;&nbsp;&nbsp;- <b>Article ${it.label}</b>: ${it.q} u. a ${fN(it.p)}€/u (Tipus d'IVA: <b>${it.ivaP}%</b>).<br>`;
+  });
+
+  enunciat += `</p><p>• <b>Logística i condicions:</b><br>`;
+  enunciat += `&nbsp;&nbsp;&nbsp;- Descompte per volum: s'aplica si se superen les <b>${dades.volThreshold} unitats per article</b>.<br>`;
+  enunciat += `&nbsp;&nbsp;&nbsp;- Unitats bonificades: <b>${dades.bonifRatio} unitats</b> de regal per cada 100 de comprades.<br>`;
+  enunciat += `&nbsp;&nbsp;&nbsp;- Transport (cost total): <b>${fN(dades.tTotal)}€</b>.</p>`;
+
+  document.getElementById("taules-articles").innerHTML = html;
+  document.getElementById("enunciat").innerHTML = enunciat;
+  
+  document.getElementById("avatar").src = `avatars/client${Math.floor(Math.random()*10)+1}.png`;
+  
+  document.getElementById("stamp").className = "stamp";
+  document.getElementById("btn-validar").style.display = "block";
+  document.getElementById("btn-next").style.display = "none";
+  document.getElementById("missatge").innerText = "\"Bon dia! Aquí tens la informació de la comanda per fer la factura.\"";
+  
+  document.querySelectorAll("input").forEach(inp => { inp.value = ""; inp.classList.remove("error", "success", "buit"); inp.disabled = false; });
+  document.querySelectorAll("select").forEach(sel => { sel.value = ""; sel.classList.remove("error", "success", "buit"); sel.disabled = false; });
+}
+
+function validar() {
+  const inputs = document.querySelectorAll("input");
+  const selects = document.querySelectorAll("select");
+  let algunBuit = false;
+  
+  // Netejem classes prèvies i busquem caselles buides
+  for(let i of inputs) {
+    if(i.value === "" && !i.disabled) {
+      i.classList.add("buit");
+      algunBuit = true;
+    }
+  }
+  for(let s of selects) {
+    if(s.value === "" && !s.disabled) {
+      s.classList.add("buit");
+      algunBuit = true;
+    }
+  }
+
+  if (algunBuit) {
+    alert("Tens caselles sense emplenar!");
+    return;
+  }
+
+  let isFinal = (intents === 1); 
+  let ok = true;
+  let totalBI = 0, totalIVA = 0;
+
+  dades.items.forEach((it, i) => {
+    ok &= check(`i-brut-${i}`, it.brut, isFinal);
+    ok &= check(`i-dcom-${i}`, it.valDCom, isFinal);
+    ok &= check(`i-dvol-${i}`, it.valDVol, isFinal);
+    ok &= check(`i-dpag-${i}`, it.valDPag, isFinal);
+    ok &= check(`q-bonif-${i}`, it.bonif, isFinal, 0);
+    ok &= check(`q-emb-${i}`, it.qEnv, isFinal, 0);
+    ok &= check(`i-emb-${i}`, it.valEmb, isFinal);
+    ok &= check(`q-trans-${i}`, it.qEnv, isFinal, 0);
+    ok &= check(`p-trans-${i}`, dades.tUnitariCorrecte, isFinal, 2); 
+    ok &= check(`i-trans-${i}`, it.valTrans, isFinal);
+    ok &= check(`bi-art-${i}`, it.bi, isFinal);
+    
+    totalBI += it.bi;
+    totalIVA += it.bi * it.iva;
+  });
+
+  ok &= check("bi-a", dades.items[0].bi, isFinal);
+  ok &= check("bi-b", dades.items[1].bi, isFinal);
+  ok &= check("bi-c", dades.items[2].bi, isFinal);
+  ok &= check("bi-tot", totalBI, isFinal);
+  
+  ok &= checkSelect("iva-tip-a", dades.items[0].ivaP, isFinal);
+  ok &= checkSelect("iva-tip-b", dades.items[1].ivaP, isFinal);
+  ok &= checkSelect("iva-tip-c", dades.items[2].ivaP, isFinal);
+
+  ok &= check("iva-imp-a", dades.items[0].bi * dades.items[0].iva, isFinal);
+  ok &= check("iva-imp-b", dades.items[1].bi * dades.items[1].iva, isFinal);
+  ok &= check("iva-imp-c", dades.items[2].bi * dades.items[2].iva, isFinal);
+  ok &= check("iva-imp-tot", totalIVA, isFinal);
+  ok &= check("total-pagar", totalBI + totalIVA, isFinal);
+
+  const stamp = document.getElementById("stamp");
+  const msg = document.getElementById("missatge");
+
+  if (ok) {
+    stamp.innerText = "VALIDADA"; stamp.className = "stamp correct show";
+    document.getElementById("btn-validar").style.display = "none";
+    document.getElementById("btn-next").style.display = "block";
+    msg.innerText = "\"Excel·lent treball! La factura és totalment correcta i podem processar-la.\"";
+    desactivarInputs();
+  } else {
+    intents++;
+    if (intents === 1) {
+      stamp.innerText = "REVISAR"; stamp.className = "stamp revisar show";
+      msg.innerText = "\"Mmm... Sembla que hi ha alguns càlculs que no quadren. Tens una altra oportunitat!\"";
+    } else {
+      stamp.innerText = "ERRÒNIA"; stamp.className = "stamp fail show";
+      document.getElementById("btn-validar").style.display = "none";
+      document.getElementById("btn-next").style.display = "block";
+      msg.innerText = "\"Vaja, la factura conté errades. He corregit les xifres directament a les caselles en vermell perquè vegis on t'has equivocat.\"";
+      desactivarInputs();
+    }
+  }
+}
+
+function check(id, real, isFinal, decimals = 2) {
+  const el = document.getElementById(id);
+  const user = parseIn(el.value);
+  if (Math.abs(user - real) < 0.15) { 
+    el.classList.remove("error"); el.classList.add("success"); 
+    return true; 
+  } else { 
+    el.classList.remove("success"); el.classList.add("error"); 
+    if (isFinal) el.value = fN(real, decimals);
+    return false; 
+  }
+}
+
+function checkSelect(id, real, isFinal) {
+  const el = document.getElementById(id);
+  if (parseInt(el.value) === real) { 
+    el.classList.remove("error"); el.classList.add("success"); 
+    return true; 
+  } else { 
+    el.classList.remove("success"); el.classList.add("error"); 
+    if (isFinal) el.value = real;
+    return false; 
+  }
+}
+
+function desactivarInputs() {
+  document.querySelectorAll("input").forEach(i => i.disabled = true);
+  document.querySelectorAll("select").forEach(s => s.disabled = true);
+}
+
+window.onload = generar;
+</script>
+</body>
+</html>
