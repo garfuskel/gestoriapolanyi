@@ -2,7 +2,7 @@
 <html lang="ca">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EcoLingo</title>
   <style>
     body {
@@ -14,7 +14,9 @@
       align-items: center;
       margin: 0;
       padding: 0;
-      height: 100vh;
+      height: 100vh; /* Fallback per navegadors antics */
+      height: 100dvh; /* Alçada dinàmica exacta pel mòbil */
+      overflow: hidden; /* Bloqueja l'scroll de la pàgina sencera */
       box-sizing: border-box;
     }
     
@@ -24,17 +26,18 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      padding: 20px;
+      padding: 15px 20px; /* Una mica menys de padding dalt i baix */
       box-sizing: border-box;
     }
 
-    /* Capçalera (Sense la flama) */
+    /* Capçalera */
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 30px;
+      margin-bottom: 15px; /* Reduït perquè no ocupi tant al mòbil */
       gap: 15px;
+      flex-shrink: 0; /* Evita que la capçalera s'aixafi */
     }
     .stats-group { display: flex; gap: 15px; }
     .lives { color: #ff4b4b; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 5px; }
@@ -43,29 +46,37 @@
     .progress-bar-fill { background-color: #58cc02; height: 100%; width: 0%; border-radius: 10px; transition: width 0.3s ease; }
 
     /* Àrea de la Pregunta */
-    #question-area { flex-grow: 1; display: flex; flex-direction: column; }
+    #question-area { 
+      flex-grow: 1; 
+      display: flex; 
+      flex-direction: column; 
+      overflow-y: auto; /* Permet scroll intern només si la pregunta és gegant */
+      padding-bottom: 10px;
+    }
     
     .question-instruction {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       color: #afafaf;
       margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      flex-shrink: 0;
     }
     
     .question-content {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 800;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       color: #3c3c3c;
-      line-height: 1.4;
+      line-height: 1.3;
+      flex-shrink: 0;
     }
     
     /* Opcions */
-    .options { display: flex; flex-direction: column; gap: 12px; }
+    .options { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
     .option-btn {
-      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 15px; padding: 18px;
+      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 15px; padding: 15px;
       font-size: 1.1rem; font-weight: bold; cursor: pointer; text-align: left;
       transition: all 0.1s ease; color: #4b4b4b; box-shadow: 0 4px 0 rgba(0,0,0,0.05);
     }
@@ -76,7 +87,7 @@
 
     /* Mode Escriure */
     .text-input {
-      width: 100%; padding: 18px; border: 2px solid #e5e5e5; border-radius: 15px;
+      width: 100%; padding: 15px; border: 2px solid #e5e5e5; border-radius: 15px;
       font-size: 1.2rem; font-weight: bold; box-sizing: border-box; color: #3c3c3c;
     }
     .text-input:focus { outline: none; border-color: #1cb0f6; background: #ddf4ff; }
@@ -84,18 +95,18 @@
     .text-input.wrong { background: #ffdfe0; border-color: #ea2b2b; color: #ea2b2b; }
 
     /* Mode Ordenar */
-    .order-area { display: flex; flex-wrap: wrap; gap: 10px; min-height: 60px; padding: 15px; border-radius: 15px; }
-    .order-area.target { border: 2px dashed #afafaf; margin-bottom: 15px; background: #f7f9fa; transition: background 0.2s; }
-    .order-area.source { border: 2px solid transparent; }
+    .order-area { display: flex; flex-wrap: wrap; gap: 8px; min-height: 50px; padding: 12px; border-radius: 15px; }
+    .order-area.target { border: 2px dashed #afafaf; margin-bottom: 10px; background: #f7f9fa; transition: background 0.2s; }
+    .order-area.source { border: 2px solid transparent; padding: 0;}
     .fragment-btn {
-      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 10px; padding: 10px 15px;
+      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 10px; padding: 8px 12px;
       font-size: 1rem; font-weight: bold; cursor: pointer; color: #4b4b4b; box-shadow: 0 2px 0 rgba(0,0,0,0.05);
       transition: transform 0.1s;
     }
     .fragment-btn:hover { background: #f0f0f0; transform: scale(1.02); }
 
     /* Peu de pàgina */
-    .footer { border-top: 2px solid #e5e5e5; padding: 20px 0; margin-top: auto; }
+    .footer { border-top: 2px solid #e5e5e5; padding-top: 15px; margin-top: auto; flex-shrink: 0; }
     #action-btn {
       width: 100%; background: #e5e5e5; color: #afafaf; border: none; border-radius: 15px;
       padding: 16px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; cursor: not-allowed;
@@ -107,32 +118,32 @@
 
     /* Històric de Resultats amb Desplegables */
     #history-container {
-      margin-top: 20px;
+      margin-top: 15px;
       text-align: left;
       background: #f7f9fa;
       border: 2px solid #e5e5e5;
       border-radius: 15px;
       padding: 15px;
-      max-height: 250px;
       overflow-y: auto;
+      flex-grow: 1; /* Al final de partida, la llista agafarà tot l'espai i podrà fer scroll si cal */
     }
-    .history-title { font-size: 1.1rem; font-weight: bold; color: #afafaf; margin-bottom: 10px; text-transform: uppercase; }
+    .history-title { font-size: 1rem; font-weight: bold; color: #afafaf; margin-bottom: 10px; text-transform: uppercase; }
     
     .history-item { border-bottom: 2px solid #e5e5e5; margin-bottom: 5px; }
     .history-item:last-child { border-bottom: none; margin-bottom: 0; }
     
     .history-summary {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 0; font-size: 1.1rem; color: #4b4b4b; cursor: pointer;
-      list-style: none; /* Amaga la fletxeta per defecte del navegador */
+      padding: 10px 0; font-size: 1.1rem; color: #4b4b4b; cursor: pointer;
+      list-style: none;
     }
     .history-summary::-webkit-details-marker { display: none; }
     .history-summary:hover { color: #1cb0f6; }
     
     .history-definition {
-      padding: 12px; margin-bottom: 12px;
+      padding: 10px; margin-bottom: 10px;
       background: #ffffff; border-radius: 10px; border: 1px solid #e5e5e5;
-      font-size: 1rem; color: #555; line-height: 1.4;
+      font-size: 0.95rem; color: #555; line-height: 1.4;
     }
 
     .perc-high { color: #58cc02; font-weight: bold; }
@@ -148,9 +159,9 @@
     .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
     
     .hidden { display: none !important; }
-    #result-area { text-align: center; margin-top: 20px; flex-grow: 1; display: flex; flex-direction: column; }
-    #result-area h1 { font-size: 2.2rem; margin-bottom: 5px; }
-    .streak-final { color: #ff9600; font-weight: bold; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; gap: 5px; }
+    #result-area { text-align: center; margin-top: 10px; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #result-area h1 { font-size: 2rem; margin-bottom: 5px; }
+    .streak-final { color: #ff9600; font-weight: bold; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; gap: 5px; }
   </style>
 </head>
 <body>
@@ -168,20 +179,20 @@
       <div class="question-content" id="question-content"></div>
       
       <div class="options" id="options-container"></div>
-      <div id="feedback-msg" style="margin-top: 15px; font-weight: bold; font-size: 1.1rem; display: none;"></div>
+      <div id="feedback-msg" style="margin-top: 10px; font-weight: bold; font-size: 1.1rem; display: none; flex-shrink: 0;"></div>
     </div>
 
     <div id="result-area" class="hidden">
       <h1 id="result-title"></h1>
       <div class="streak-final">🔥 Ratxa diària: <span id="final-streak-count">0</span></div>
-      <p id="result-msg" style="font-size: 1.1rem; color: #777; margin-bottom: 10px;"></p>
+      <p id="result-msg" style="font-size: 1rem; color: #777; margin-bottom: 5px; flex-shrink: 0;"></p>
       
       <div id="history-container">
         <div class="history-title">Resum de la sessió (Clica per repassar)</div>
         <div id="history-list"></div>
       </div>
 
-      <button id="restart-btn" class="option-btn selected active" style="width: 100%; margin-top: auto; text-align: center; color: white; background: #1cb0f6;">Torna a jugar</button>
+      <button id="restart-btn" class="option-btn selected active" style="width: 100%; margin-top: 15px; text-align: center; color: white; background: #1cb0f6; flex-shrink: 0;">Torna a jugar</button>
     </div>
 
     <div class="footer" id="game-footer">
