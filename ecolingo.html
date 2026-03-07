@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoLingo</title>
+  <style>
+    body {
+      font-family: 'Nunito', 'Segoe UI', sans-serif;
+      background-color: #ffffff;
+      color: #3c3c3c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    
+    #game-wrapper {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Capçalera (Sense la flama) */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      gap: 15px;
+    }
+    .stats-group { display: flex; gap: 15px; }
+    .lives { color: #ff4b4b; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 5px; }
+    
+    .progress-bar-container { flex-grow: 1; background-color: #e5e5e5; height: 16px; border-radius: 10px; overflow: hidden; }
+    .progress-bar-fill { background-color: #58cc02; height: 100%; width: 0%; border-radius: 10px; transition: width 0.3s ease; }
+
+    /* Àrea de la Pregunta */
+    #question-area { flex-grow: 1; display: flex; flex-direction: column; }
+    
+    .question-instruction {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #afafaf;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .question-content {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 25px;
+      color: #3c3c3c;
+      line-height: 1.4;
+    }
+    
+    /* Opcions */
+    .options { display: flex; flex-direction: column; gap: 12px; }
+    .option-btn {
+      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 15px; padding: 18px;
+      font-size: 1.1rem; font-weight: bold; cursor: pointer; text-align: left;
+      transition: all 0.1s ease; color: #4b4b4b; box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+    }
+    .option-btn:hover { background: #f7f7f7; }
+    .option-btn.selected { background: #ddf4ff; border-color: #1cb0f6; color: #1899d6; box-shadow: 0 4px 0 #1899d6; }
+    .option-btn.correct { background: #d7ffb8; border-color: #58cc02; color: #58a700; box-shadow: 0 4px 0 #58a700; }
+    .option-btn.wrong { background: #ffdfe0; border-color: #ea2b2b; color: #ea2b2b; box-shadow: 0 4px 0 #ea2b2b; }
+
+    /* Mode Escriure */
+    .text-input {
+      width: 100%; padding: 18px; border: 2px solid #e5e5e5; border-radius: 15px;
+      font-size: 1.2rem; font-weight: bold; box-sizing: border-box; color: #3c3c3c;
+    }
+    .text-input:focus { outline: none; border-color: #1cb0f6; background: #ddf4ff; }
+    .text-input.correct { background: #d7ffb8; border-color: #58cc02; color: #58a700; }
+    .text-input.wrong { background: #ffdfe0; border-color: #ea2b2b; color: #ea2b2b; }
+
+    /* Mode Ordenar */
+    .order-area { display: flex; flex-wrap: wrap; gap: 10px; min-height: 60px; padding: 15px; border-radius: 15px; }
+    .order-area.target { border: 2px dashed #afafaf; margin-bottom: 15px; background: #f7f9fa; transition: background 0.2s; }
+    .order-area.source { border: 2px solid transparent; }
+    .fragment-btn {
+      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 10px; padding: 10px 15px;
+      font-size: 1rem; font-weight: bold; cursor: pointer; color: #4b4b4b; box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+      transition: transform 0.1s;
+    }
+    .fragment-btn:hover { background: #f0f0f0; transform: scale(1.02); }
+
+    /* Peu de pàgina */
+    .footer { border-top: 2px solid #e5e5e5; padding: 20px 0; margin-top: auto; }
+    #action-btn {
+      width: 100%; background: #e5e5e5; color: #afafaf; border: none; border-radius: 15px;
+      padding: 16px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; cursor: not-allowed;
+      box-shadow: 0 4px 0 #afafaf; transition: all 0.1s;
+    }
+    #action-btn.active { background: #58cc02; color: white; cursor: pointer; box-shadow: 0 4px 0 #58a700; }
+    #action-btn.active:active { transform: translateY(4px); box-shadow: 0 0 0 #58a700; }
+    #action-btn.wrong-state { background: #ea2b2b; box-shadow: 0 4px 0 #c11f1f; color: white; }
+
+    /* Històric de Resultats amb Desplegables */
+    #history-container {
+      margin-top: 20px;
+      text-align: left;
+      background: #f7f9fa;
+      border: 2px solid #e5e5e5;
+      border-radius: 15px;
+      padding: 15px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .history-title { font-size: 1.1rem; font-weight: bold; color: #afafaf; margin-bottom: 10px; text-transform: uppercase; }
+    
+    .history-item { border-bottom: 2px solid #e5e5e5; margin-bottom: 5px; }
+    .history-item:last-child { border-bottom: none; margin-bottom: 0; }
+    
+    .history-summary {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; font-size: 1.1rem; color: #4b4b4b; cursor: pointer;
+      list-style: none; /* Amaga la fletxeta per defecte del navegador */
+    }
+    .history-summary::-webkit-details-marker { display: none; }
+    .history-summary:hover { color: #1cb0f6; }
+    
+    .history-definition {
+      padding: 12px; margin-bottom: 12px;
+      background: #ffffff; border-radius: 10px; border: 1px solid #e5e5e5;
+      font-size: 1rem; color: #555; line-height: 1.4;
+    }
+
+    .perc-high { color: #58cc02; font-weight: bold; }
+    .perc-mid { color: #ff9600; font-weight: bold; }
+    .perc-low { color: #ea2b2b; font-weight: bold; }
+
+    /* Animació d'error */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    
+    .hidden { display: none !important; }
+    #result-area { text-align: center; margin-top: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+    #result-area h1 { font-size: 2.2rem; margin-bottom: 5px; }
+    .streak-final { color: #ff9600; font-weight: bold; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; gap: 5px; }
+  </style>
+</head>
+<body>
+
+  <div id="game-wrapper">
+    <div class="header" id="game-header">
+      <div class="stats-group">
+        <div class="lives">❤️ <span id="lives-count">3</span></div>
+      </div>
+      <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-bar"></div></div>
+    </div>
+
+    <div id="question-area">
+      <div class="question-instruction" id="question-instruction">Carregant...</div>
+      <div class="question-content" id="question-content"></div>
+      
+      <div class="options" id="options-container"></div>
+      <div id="feedback-msg" style="margin-top: 15px; font-weight: bold; font-size: 1.1rem; display: none;"></div>
+    </div>
+
+    <div id="result-area" class="hidden">
+      <h1 id="result-title"></h1>
+      <div class="streak-final">🔥 Ratxa diària: <span id="final-streak-count">0</span></div>
+      <p id="result-msg" style="font-size: 1.1rem; color: #777; margin-bottom: 10px;"></p>
+      
+      <div id="history-container">
+        <div class="history-title">Resum de la sessió (Clica per repassar)</div>
+        <div id="history-list"></div>
+      </div>
+
+      <button id="restart-btn" class="option-btn selected active" style="width: 100%; margin-top: auto; text-align: center; color: white; background: #1cb0f6;">Torna a jugar</button>
+    </div>
+
+    <div class="footer" id="game-footer">
+      <button id="action-btn" disabled>Comprova</button>
+    </div>
+  </div>
+
+  <script>
+    // =====================================================================
+    // 1. ENGANXA AQUÍ LA TEVA VARIABLE "db" AMB ELS 100 CONCEPTES
+    // Important: Si la base de dades està buida, el joc no pot reiniciar-se!
+    // =====================================================================
+const db = [
+  // MACROECONOMIA BÀSICA
+  { terme: "PIB", definicio_correcta: "Valor monetari de tots els béns i serveis finals que produeix una economia durant un període determinat.", fragments_definicio: ["Valor monetari", "de tots els béns", "i serveis finals", "que produeix una economia", "durant un període determinat."], definicions_falses: ["Indicador que mesura només les exportacions d'un país.", "Suma dels diners acumulats als bancs d'un país."], paraules_clau: ["Producció", "Béns finals", "Valor monetari"], paraules_trampa: ["Béns de segona mà", "Mercat negre"] },
+  { terme: "Inflació", definicio_correcta: "Augment generalitzat i continuat dels preus dels béns i serveis d'una economia.", fragments_definicio: ["Augment generalitzat", "i continuat dels preus", "dels béns i serveis", "d'una economia."], definicions_falses: ["Pèrdua de valor de les accions a la borsa.", "Augment del preu d'un sol producte per escassetat."], paraules_clau: ["Pujada de preus", "Poder adquisitiu", "Cost de la vida"], paraules_trampa: ["Deflació", "Preu fix"] },
+  { terme: "Macroeconomia", definicio_correcta: "Part de l'economia que s'encarrega d'estudiar el funcionament econòmic en general i a gran escala.", fragments_definicio: ["Part de l'economia", "que s'encarrega d'estudiar", "el funcionament econòmic", "en general i a gran escala."], definicions_falses: ["Estudi de les decisions financeres d'una sola família.", "Anàlisi detallada dels preus del mercat de la fruita."], paraules_clau: ["Global", "PIB", "Govern"], paraules_trampa: ["Consumidor individual", "Pressupost familiar"] },
+  { terme: "Atur", definicio_correcta: "Situació de les persones que estan en edat de treballar, busquen feina activament i no en troben.", fragments_definicio: ["Situació de les persones", "que estan en edat de treballar,", "busquen feina activament", "i no en troben."], definicions_falses: ["Condició de les persones jubilades.", "Nombre de persones que no volen treballar."], paraules_clau: ["Cerca activa", "Sense feina", "Població activa"], paraules_trampa: ["Jubilats", "Població inactiva"] },
+  { terme: "Deflació", definicio_correcta: "Baixada generalitzada i prolongada dels preus dels béns i serveis d'una economia.", fragments_definicio: ["Baixada generalitzada", "i prolongada", "dels preus dels béns", "i serveis d'una economia."], definicions_falses: ["Augment descontrolat i molt ràpid dels preus.", "Procés en què la moneda d'un país guanya valor respecte a una altra."], paraules_clau: ["Baixada de preus", "Contracció", "Economia", "Caiguda del consum"], paraules_trampa: ["Inflació", "Dividend"] },
+  { terme: "Estagflació", definicio_correcta: "Situació econòmica que combina una inflació alta, estancament del creixement econòmic i atur elevat.", fragments_definicio: ["Situació econòmica", "que combina una inflació alta,", "estancament del creixement", "i atur elevat."], definicions_falses: ["Creixement molt ràpid de l'economia sense augment de preus.", "Període on només baixen els preus dels aliments."], paraules_clau: ["Inflació", "Estancament", "Atur", "Crisi"], paraules_trampa: ["Superàvit", "Boom econòmic"] },
+  { terme: "Hiperinflació", definicio_correcta: "Inflació descontrolada i extremadament elevada, on els preus pugen de manera ràpida i constant.", fragments_definicio: ["Inflació descontrolada", "i extremadament elevada,", "on els preus pugen", "de manera ràpida i constant."], definicions_falses: ["Pujada moderada dels preus del 2% anual.", "Situació on els preus es mantenen congelats durant anys."], paraules_clau: ["Descontrol", "Pujada extrema", "Diners sense valor", "Pèrdua adquisitiva"], paraules_trampa: ["Deflació", "Estabilitat"] },
+  { terme: "Renda per càpita", definicio_correcta: "Indicador que divideix el PIB d'un país entre el nombre dels seus habitants per estimar la riquesa mitjana.", fragments_definicio: ["Indicador que divideix", "el PIB d'un país", "entre el nombre", "dels seus habitants."], definicions_falses: ["Sou mínim que obliga la llei a pagar als treballadors.", "Quantitat d'impostos que paga cada ciutadà a l'any."], paraules_clau: ["PIB", "Habitants", "Mitjana", "Riquesa"], paraules_trampa: ["Desigualtat", "Salari mínim"] },
+  { terme: "Deute públic", definicio_correcta: "Conjunt de deutes que manté un Estat enfront de particulars o altres països.", fragments_definicio: ["Conjunt de deutes", "que manté un Estat", "enfront de particulars", "o altres països."], definicions_falses: ["Diners que deuen les famílies als bancs en forma d'hipoteques.", "Pressupost total que té l'Estat per a sanitat i educació."], paraules_clau: ["Estat", "Préstecs", "Bo del tresor", "Dèficit acumulat"], paraules_trampa: ["Deute privat", "Superàvit"] },
+  { terme: "Dèficit públic", definicio_correcta: "Situació en què les despeses d'un govern superen els seus ingressos durant un any determinat.", fragments_definicio: ["Situació en què", "les despeses d'un govern", "superen els seus ingressos", "durant un any determinat."], definicions_falses: ["Diferència positiva quan l'Estat ingressa més del que gasta.", "Pèrdua de valor de la moneda en el mercat internacional."], paraules_clau: ["Despeses", "Ingressos", "Govern", "Falta de diners"], paraules_trampa: ["Superàvit", "Inflació"] },
+
+  // MICROECONOMIA BÀSICA
+  { terme: "Microeconomia", definicio_correcta: "Branca que estudia el comportament, les accions i les decisions dels agents econòmics individuals.", fragments_definicio: ["Branca que estudia", "el comportament, les accions", "i les decisions", "dels agents econòmics individuals."], definicions_falses: ["Anàlisi de l'evolució de l'atur i la inflació d'un Estat.", "Estudi de les relacions comercials internacionals."], paraules_clau: ["Empreses", "Famílies", "Oferta i demanda"], paraules_trampa: ["Exportacions", "Deute públic"] },
+  { terme: "Oferta", definicio_correcta: "Quantitat de béns o serveis que els productors estan disposats a vendre a un preu determinat.", fragments_definicio: ["Quantitat de béns o serveis", "que els productors", "estan disposats a vendre", "a un preu determinat."], definicions_falses: ["Desig dels consumidors de comprar un producte concret.", "Rebaixa de preu que es fa per liquidar estoc en una botiga."], paraules_clau: ["Productors", "Vendre", "Quantitat", "Mercat"], paraules_trampa: ["Demanda", "Descompte"] },
+  { terme: "Demanda", definicio_correcta: "Quantitat i qualitat de béns i serveis que els consumidors estan disposats a comprar a diferents preus.", fragments_definicio: ["Quantitat i qualitat", "de béns i serveis", "que els consumidors", "estan disposats a comprar."], definicions_falses: ["Producció total que fa una fàbrica durant un mes.", "Exigència legal que fa un treballador a la seva empresa."], paraules_clau: ["Consumidors", "Comprar", "Quantitat", "Mercat"], paraules_trampa: ["Oferta", "Cost fix"] },
+  { terme: "Cost d'oportunitat", definicio_correcta: "El valor de la millor opció a la qual es renuncia quan es pren una decisió.", fragments_definicio: ["El valor de la millor opció", "a la qual es renuncia", "quan es pren", "una decisió."], definicions_falses: ["Diners que costa fabricar la primera unitat d'un producte.", "Rebaixa en el preu per comprar un producte en època de rebaixes."], paraules_clau: ["Renúncia", "Decisió", "Millor opció", "Alternativa"], paraules_trampa: ["Oferta especial", "Cost de producció"] },
+  { terme: "Monopoli", definicio_correcta: "Situació de mercat en què una sola empresa controla tota l'oferta d'un producte o servei.", fragments_definicio: ["Situació de mercat", "en què una sola empresa", "controla tota l'oferta", "d'un producte o servei."], definicions_falses: ["Mercat on hi ha molts venedors petits competint en igualtat.", "Acord entre moltes empreses per abaixar els preus simultàniament."], paraules_clau: ["Únic venedor", "Control total", "Poder de mercat", "Sense competència"], paraules_trampa: ["Oligopoli", "Lliure mercat"] },
+  { terme: "Oligopoli", definicio_correcta: "Estructura de mercat on poques empreses grans controlen la major part de la producció o les vendes.", fragments_definicio: ["Estructura de mercat", "on poques empreses grans", "controlen la major part", "de la producció o vendes."], definicions_falses: ["Mercat controlat per una sola empresa a tot el país.", "Sistema on el govern és l'únic que pot vendre productes."], paraules_clau: ["Poques empreses", "Gran quota", "Mercat concentrat", "Competència reduïda"], paraules_trampa: ["Monopoli", "Competència perfecta"] },
+  { terme: "Càrtel", definicio_correcta: "Acord formal entre empreses del mateix sector per fixar preus o repartir-se el mercat, limitant la competència.", fragments_definicio: ["Acord formal entre empreses", "del mateix sector", "per fixar preus", "o repartir-se el mercat."], definicions_falses: ["Llista de preus oficials publicats per un govern.", "Unió de treballadors per reclamar millores salarials."], paraules_clau: ["Acord il·legal", "Fixar preus", "Empreses", "Oligopoli"], paraules_trampa: ["Sindicat", "Lliure competència"] },
+  { terme: "Monopsoni", definicio_correcta: "Tipus de mercat on hi ha un únic comprador per a un producte, fet que li dona poder per dictar el preu.", fragments_definicio: ["Tipus de mercat", "on hi ha un únic comprador", "per a un producte,", "fet que li dona poder sobre el preu."], definicions_falses: ["Mercat amb un sol venedor i molts compradors.", "Mercat on es venen productes de segona mà exclusivament."], paraules_clau: ["Únic comprador", "Poder de mercat", "Proveïdors", "Preu"], paraules_trampa: ["Monopoli", "Inflació"] },
+  { terme: "Punt d'equilibri", definicio_correcta: "Nivell de vendes en què els ingressos igualen els costos totals, sense haver-hi ni beneficis ni pèrdues.", fragments_definicio: ["Nivell de vendes en què", "els ingressos igualen", "els costos totals,", "sense haver-hi beneficis ni pèrdues."], definicions_falses: ["Moment exacte en què una empresa entra en fallida.", "Punt on es ven tot l'estoc d'una botiga al màxim preu."], paraules_clau: ["Ni guanyes ni perds", "Costos igual a ingressos", "Llindar de rendibilitat", "Vendes"], paraules_trampa: ["Superàvit", "Monopoli"] },
+  { terme: "Economia d'escala", definicio_correcta: "Reducció del cost de produir cada unitat a mesura que una empresa augmenta la seva grandària i produeix més.", fragments_definicio: ["Reducció del cost", "de produir cada unitat", "a mesura que l'empresa", "augmenta la grandària i produeix més."], definicions_falses: ["Augment dels costos per la mala gestió d'una multinacional.", "Tipus d'impost que augmenta segons el volum de l'empresa."], paraules_clau: ["Més volum", "Menys cost unitari", "Grandària", "Eficiència"], paraules_trampa: ["Cost d'oportunitat", "Inflació"] },
+
+  // FINANCES PERSONALS
+  { terme: "Pressupost", definicio_correcta: "Pla financer que preveu els ingressos i les despeses durant un període de temps determinat.", fragments_definicio: ["Pla financer", "que preveu", "els ingressos i les despeses", "durant un període determinat."], definicions_falses: ["Diners que un banc et presta per comprar un cotxe.", "Multa per pagar els impostos fora del termini establert."], paraules_clau: ["Ingressos", "Despeses", "Planificació", "Control financer"], paraules_trampa: ["Producte Interior Brut", "Acció"] },
+  { terme: "Fons d'emergència", definicio_correcta: "Diners estalviats i fàcilment accessibles per fer front a despeses imprevistes sense haver d'endeutar-se.", fragments_definicio: ["Diners estalviats", "i fàcilment accessibles", "per fer front a despeses imprevistes", "sense haver d'endeutar-se."], definicions_falses: ["Diners que el govern destina a construir infraestructures públiques.", "Préstec ràpid amb interessos molt alts per pagar deutes."], paraules_clau: ["Estalvi", "Imprevistos", "Liquiditat", "Seguretat"], paraules_trampa: ["Inversió a llarg termini", "Hipoteca"] },
+  { terme: "Hipoteca", definicio_correcta: "Préstec bancari a llarg termini que utilitza un immoble com a garantia de pagament.", fragments_definicio: ["Préstec bancari", "a llarg termini", "que utilitza un immoble", "com a garantia de pagament."], definicions_falses: ["Lloguer mensual que es paga per viure en una casa que no és teva.", "Contracte d'assegurança per protegir un habitatge contra incendis."], paraules_clau: ["Préstec", "Immoble", "Garantia", "Habitatge"], paraules_trampa: ["Targeta de crèdit", "Acció"] },
+  { terme: "Interès compost", definicio_correcta: "Interès que es calcula sobre el capital inicial i també sobre els interessos acumulats de períodes anteriors.", fragments_definicio: ["Interès que es calcula", "sobre el capital inicial", "i també sobre els", "interessos acumulats anteriors."], definicions_falses: ["Interès que només es calcula sobre els diners prestats originalment.", "Suma de l'interès del banc i l'impost de l'Estat."], paraules_clau: ["Efecte bola de neu", "Interessos sobre interessos", "Creixement", "Inversió a llarg termini"], paraules_trampa: ["Interès simple", "Inflació"] },
+  { terme: "Targeta de crèdit", definicio_correcta: "Mitjà de pagament on el banc avança els diners de la compra, i el client els ha de tornar més endavant, normalment amb interessos.", fragments_definicio: ["Mitjà de pagament on el banc", "avança els diners de la compra,", "i el client els ha de tornar", "més endavant, a vegades amb interessos."], definicions_falses: ["Targeta que només et permet gastar els diners que tens al teu compte.", "Targeta exclusiva per treure diners a l'estranger sense comissions."], paraules_clau: ["Banc avança", "Préstec a curt termini", "Deute", "Pagament ajornat"], paraules_trampa: ["Targeta de dèbit", "Ingrés directe"] },
+  { terme: "Targeta de dèbit", definicio_correcta: "Mitjà de pagament on els diners de la compra es descompten immediatament del saldo disponible al compte bancari del client.", fragments_definicio: ["Mitjà de pagament on els diners", "es descompten immediatament", "del saldo disponible", "al compte bancari del client."], definicions_falses: ["Targeta que permet comprar encara que no tinguis diners al compte.", "Préstec preaprovat pel banc per a petites compres diàries."], paraules_clau: ["Pagament immediat", "Saldo disponible", "Sense endeutar-se", "Compte corrent"], paraules_trampa: ["Targeta de crèdit", "Hipoteca"] },
+  { terme: "Liquiditat", definicio_correcta: "Facilitat i rapidesa amb què un actiu o inversió es pot convertir en diners en efectiu sense perdre valor.", fragments_definicio: ["Facilitat i rapidesa", "amb què un actiu", "es pot convertir en efectiu", "sense perdre valor."], definicions_falses: ["Capacitat d'una empresa per pagar els seus deutes a llarg termini.", "Procés d'evaporació del capital d'una empresa per mala gestió."], paraules_clau: ["Efectiu", "Disponibilitat ràpida", "Diners a mà", "Venda fàcil"], paraules_trampa: ["Solvència", "Hipoteca"] },
+  { terme: "Solvència", definicio_correcta: "Capacitat d'una persona o empresa per fer front i pagar tots els seus deutes i obligacions financeres.", fragments_definicio: ["Capacitat d'una persona o empresa", "per fer front", "i pagar tots els seus deutes", "i obligacions financeres."], definicions_falses: ["Quantitat de bitllets físics que té una empresa a la caixa.", "Velocitat per convertir un immoble en diners al moment."], paraules_clau: ["Pagar deutes", "Garantia", "Capacitat financera", "Patrimoni superior al deute"], paraules_trampa: ["Liquiditat", "Bancarrota"] },
+  { terme: "Amortització", definicio_correcta: "Procés de pagar gradualment un deute, o la pèrdua de valor comptable d'un bé al llarg del temps.", fragments_definicio: ["Procés de pagar", "gradualment un deute,", "o la pèrdua de valor comptable", "d'un bé al llarg del temps."], definicions_falses: ["Pujada sobtada de preu que experimenta un habitatge.", "Interès addicional de penalització per no pagar a temps."], paraules_clau: ["Retorn de deute", "Pèrdua de valor", "Pagaments mensuals", "Desgast"], paraules_trampa: ["Dividend", "Plusvàlua"] },
+  { terme: "Finançament", definicio_correcta: "Acció d'aconseguir els recursos i els diners necessaris per dur a terme un projecte, activitat o empresa.", fragments_definicio: ["Acció d'aconseguir", "els recursos i els diners", "necessaris per dur a terme", "un projecte o empresa."], definicions_falses: ["Diners que s'entreguen al govern en forma d'impostos anuals.", "Acte de tancar definitivament l'activitat econòmica d'un negoci."], paraules_clau: ["Aconseguir diners", "Capital", "Préstecs", "Inversió inicial"], paraules_trampa: ["Despesa", "Deflació"] },
+
+  // BORSA I INVERSIÓ
+  { terme: "Acció", definicio_correcta: "Una de les parts iguals en què es divideix el capital social d'una societat anònima.", fragments_definicio: ["Una de les parts iguals", "en què es divideix", "el capital social", "d'una societat anònima."], definicions_falses: ["Préstec que fa un banc a una empresa per finançar projectes.", "Impost que paguen les empreses sobre els seus beneficis anuals."], paraules_clau: ["Borsa", "Participació", "Capital social", "Inversió"], paraules_trampa: ["Deute públic", "Subvenció"] },
+  { terme: "Borsa", definicio_correcta: "Mercat financer on es compren i venen accions, bons i altres actius financers.", fragments_definicio: ["Mercat financer", "on es compren i venen", "accions, bons", "i altres actius financers."], definicions_falses: ["Banc central que emet la moneda i controla la inflació d'un país.", "Caixa forta on els governs guarden les seves reserves d'or."], paraules_clau: ["Mercat financer", "Accions", "Inversors", "Cotització"], paraules_trampa: ["Banc comercial", "Caixer automàtic"] },
+  { terme: "Diversificació", definicio_correcta: "Estratègia d'inversió que consisteix a repartir els diners en diferents actius per reduir el risc.", fragments_definicio: ["Estratègia d'inversió", "que consisteix a repartir", "els diners en diferents actius", "per reduir el risc."], definicions_falses: ["Concentrar tots els estalvis en una sola empresa per maximitzar els beneficis.", "Procés de canviar de moneda local a moneda estrangera."], paraules_clau: ["Reduir risc", "Estratègia", "Cartera d'inversió", "Repartir"], paraules_trampa: ["Monopoli", "Fallida"] },
+  { terme: "Dividend", definicio_correcta: "Part dels beneficis d'una empresa que es reparteix entre els seus accionistes.", fragments_definicio: ["Part dels beneficis", "d'una empresa", "que es reparteix", "entre els seus accionistes."], definicions_falses: ["Sou mensual que cobra el director general d'una multinacional.", "Deute que una empresa té amb els seus proveïdors."], paraules_clau: ["Beneficis", "Accionistes", "Repartiment", "Borsa"], paraules_trampa: ["Impost", "Tipus d'interès"] },
+  { terme: "Rendibilitat", definicio_correcta: "Benefici o guany econòmic que s'obté d'una inversió en relació amb els recursos invertits.", fragments_definicio: ["Benefici o guany econòmic", "que s'obté d'una inversió", "en relació amb", "els recursos invertits."], definicions_falses: ["Pèrdua de valor d'un producte pel pas del temps.", "Quantitat de diners que es paguen en concepte d'impostos al govern."], paraules_clau: ["Benefici", "Guany", "Inversió", "Retorn"], paraules_trampa: ["Atur", "Dèficit"] },
+  { terme: "Fons d'inversió", definicio_correcta: "Instrument que agrupa els diners de molts inversors per invertir-los conjuntament en una cartera d'actius variats gestionada per professionals.", fragments_definicio: ["Instrument que agrupa", "els diners de molts inversors", "per invertir-los conjuntament", "en una cartera gestionada per professionals."], definicions_falses: ["Diners que el govern reserva per a casos d'emergència nacional.", "Préstec que atorga el banc per crear una petita empresa."], paraules_clau: ["Diners conjunts", "Gestor professional", "Cartera variada", "Inversors"], paraules_trampa: ["Monopoli", "Criptomoneda"] },
+  { terme: "ETF", definicio_correcta: "Fons d'inversió cotitzat que replica el comportament d'un índex borsari i es compra i ven com si fos una acció.", fragments_definicio: ["Fons d'inversió cotitzat", "que replica el comportament", "d'un índex borsari", "i es compra i ven com una acció."], definicions_falses: ["Impost que grava les transaccions electròniques internacionals.", "Entitat europea encarregada de fixar el tipus d'interès."], paraules_clau: ["Fons cotitzat", "Replica índex", "Comprar i vendre", "Borsa"], paraules_trampa: ["Deute públic", "Targeta de crèdit"] },
+  { terme: "Renda variable", definicio_correcta: "Tipus d'inversió, com les accions, on no es coneix per endavant la rendibilitat ni es garanteix la recuperació del capital.", fragments_definicio: ["Tipus d'inversió", "on no es coneix per endavant la rendibilitat", "ni es garanteix", "la recuperació del capital."], definicions_falses: ["Sou que cobra un comercial i que canvia segons el que ven.", "Inversió segura on el govern et garanteix un 5% cada any."], paraules_clau: ["Accions", "Risc alt", "Rendibilitat desconeguda", "Borsa"], paraules_trampa: ["Renda fixa", "Salari mínim"] },
+  { terme: "Renda fixa", definicio_correcta: "Tipus d'inversió on l'emissor garanteix per endavant la devolució del capital i un interès fix determinat.", fragments_definicio: ["Tipus d'inversió", "on l'emissor garanteix per endavant", "la devolució del capital", "i un interès fix determinat."], definicions_falses: ["Contracte de lloguer on el preu no canvia durant 5 anys.", "Inversió en borsa on els dividends mai canvien."], paraules_clau: ["Garantia", "Interès fix", "Bons de l'Estat", "Menor risc"], paraules_trampa: ["Renda variable", "Criptomoneda"] },
+  { terme: "Broker", definicio_correcta: "Persona o empresa que actua com a intermediari en la compravenda d'actius financers a canvi d'una comissió.", fragments_definicio: ["Persona o empresa", "que actua com a intermediari", "en la compravenda d'actius", "a canvi d'una comissió."], definicions_falses: ["Persona que demana diners prestats per comprar una casa.", "Aparell electrònic utilitzat per minar bitcoins."], paraules_clau: ["Intermediari", "Comissió", "Borsa", "Plataforma d'inversió"], paraules_trampa: ["Banc Central", "Sindicat"] },
+  { terme: "Índex borsari", definicio_correcta: "Indicador que mostra l'evolució del preu d'un conjunt d'accions representatives d'un mercat (com l'IBEX 35 o l'S&P 500).", fragments_definicio: ["Indicador que mostra l'evolució", "del preu d'un conjunt d'accions", "representatives d'un mercat."], definicions_falses: ["Llista on s'inscriuen les empreses que han fet fallida.", "Taxa d'interès que cobren els bancs per donar un crèdit."], paraules_clau: ["Indicador", "Conjunt d'accions", "Evolució de mercat", "S&P 500"], paraules_trampa: ["Euríbor", "PIB"] },
+  { terme: "Especulació", definicio_correcta: "Compra o venda d'actius amb la intenció d'obtenir un benefici ràpid gràcies a les variacions dels seus preus, assumint molt de risc.", fragments_definicio: ["Compra o venda d'actius", "amb la intenció d'obtenir un benefici ràpid", "gràcies a les variacions de preus,", "assumint molt de risc."], definicions_falses: ["Inversió segura i a llarg termini en deute de l'Estat.", "Procés d'avaluar si una empresa compleix normes ecologistes."], paraules_clau: ["Risc", "Curt termini", "Canvis de preu", "Apostar"], paraules_trampa: ["Inversió en valor", "Estalvi"] },
+  { terme: "Plusvàlua", definicio_correcta: "Increment del valor d'un actiu (com una casa o unes accions) entre el moment que es compra i el moment que es ven.", fragments_definicio: ["Increment del valor", "d'un actiu", "entre el moment que es compra", "i el moment que es ven."], definicions_falses: ["Suma de tots els impostos que es paguen durant un any.", "Disminució del valor d'un cotxe just després de sortir del concessionari."], paraules_clau: ["Guany", "Increment de valor", "Diferència de preu", "Venda"], paraules_trampa: ["Minusvàlua", "Inflació"] },
+  { terme: "Minusvàlua", definicio_correcta: "Pèrdua de valor d'un actiu quan es ven a un preu inferior al preu pel qual es va comprar.", fragments_definicio: ["Pèrdua de valor", "d'un actiu", "quan es ven a un preu inferior", "al preu pel qual es va comprar."], definicions_falses: ["Diners extra que el banc et cobra per pagar amb retard.", "Ajuda econòmica del govern per a persones amb discapacitat."], paraules_clau: ["Pèrdua", "Baixada de valor", "Venda amb pèrdues", "Diferència negativa"], paraules_trampa: ["Plusvàlua", "Amortització"] },
+
+  // SISTEMA BANCARI I MONEDA
+  { terme: "Banc Central", definicio_correcta: "Entitat pública responsable d'emetre la moneda d'un país o regió i de gestionar la política monetària.", fragments_definicio: ["Entitat pública responsable", "d'emetre la moneda", "d'un país o regió", "i gestionar la política monetària."], definicions_falses: ["El banc privat més gran i amb més clients d'un país.", "El lloc on els governs guarden físicament tots els seus diners."], paraules_clau: ["Moneda", "Política monetària", "Entitat pública", "BCE"], paraules_trampa: ["Banc comercial", "Broker"] },
+  { terme: "Tipus d'interès", definicio_correcta: "El preu dels diners, expressat com a percentatge, que es paga per un préstec o es rep per un estalvi.", fragments_definicio: ["El preu dels diners,", "expressat com a percentatge,", "que es paga per un préstec", "o es rep per un estalvi."], definicions_falses: ["Comissió que cobren els caixers automàtics per treure efectiu.", "Quantitat de diners que l'Estat reté de la nòmina dels treballadors."], paraules_clau: ["Percentatge", "Préstec", "Estalvi", "Banc Central"], paraules_trampa: ["Inflació", "Dividend"] },
+  { terme: "Euríbor", definicio_correcta: "Índex de referència que indica el tipus d'interès mitjà al qual els bancs europeus es presten diners entre si.", fragments_definicio: ["Índex de referència", "que indica el tipus d'interès mitjà", "al qual els bancs europeus", "es presten diners entre si."], definicions_falses: ["Nova moneda digital creada pel Parlament Europeu.", "Banc principal de la Unió Europea situat a Frankfurt."], paraules_clau: ["Préstecs entre bancs", "Índex", "Hipoteques variables", "Europa"], paraules_trampa: ["Dòlar", "PIB"] },
+  { terme: "Moneda", definicio_correcta: "Diners de curs legal utilitzats com a mitjà d'intercanvi dins d'un país determinat.", fragments_definicio: ["Diners de curs legal", "utilitzats com a mitjà d'intercanvi", "dins d'un país determinat."], definicions_falses: ["Objecte d'or rodó que només serveix per a col·leccionistes.", "Sistema electrònic per transferir diners ràpidament."], paraules_clau: ["Curs legal", "Mitjà d'intercanvi", "Bitllets i monedes", "País"], paraules_trampa: ["Criptomoneda", "Acció"] },
+  { terme: "Divisa", definicio_correcta: "Moneda estrangera utilitzada en el comerç internacional (com el dòlar o el ien per a un europeu).", fragments_definicio: ["Moneda estrangera", "utilitzada en el comerç", "internacional."], definicions_falses: ["Lema publicitari que utilitza un banc per atreure clients.", "Tipus d'impost que s'aplica només a la frontera."], paraules_clau: ["Moneda estrangera", "Comerç exterior", "Canvi", "Dòlar"], paraules_trampa: ["Moneda local", "Aranzel"] },
+  { terme: "Tipus de canvi", definicio_correcta: "Preu d'una moneda expressat en termes d'una altra moneda diferent (per exemple, quants dòlars val un euro).", fragments_definicio: ["Preu d'una moneda", "expressat en termes", "d'una altra moneda diferent."], definicions_falses: ["Comissió que et cobra el banc per fer una transferència.", "Taxa d'interès que es paga en tornar un préstec internacional."], paraules_clau: ["Conversió", "Divises", "Dòlar/Euro", "Valor relatiu"], paraules_trampa: ["Inflació", "Euríbor"] },
+  { terme: "Devaluació", definicio_correcta: "Pèrdua de valor oficial d'una moneda respecte a altres monedes estrangeres per decisió del govern o del banc central.", fragments_definicio: ["Pèrdua de valor oficial", "d'una moneda respecte a altres", "per decisió del govern", "o del banc central."], definicions_falses: ["Pèrdua de valor d'un cotxe amb el pas dels anys.", "Baixada general de tots els preus dins d'un mateix país."], paraules_clau: ["Pèrdua de valor", "Moneda", "Decisió oficial", "Exportacions més barates"], paraules_trampa: ["Deflació", "Inflació"] },
+  { terme: "Apreciació", definicio_correcta: "Augment del valor d'una moneda en el mercat de divises respecte a la resta de monedes.", fragments_definicio: ["Augment del valor", "d'una moneda en el mercat", "respecte a la resta de monedes."], definicions_falses: ["Sentiment de respecte i agraïment cap a un treballador.", "Pujada oficial del salari mínim d'un país."], paraules_clau: ["Augment de valor", "Moneda més forta", "Divises", "Poder de compra extern"], paraules_trampa: ["Inflació", "Plusvàlua"] },
+  { terme: "Diner fiduciari", definicio_correcta: "Diners que no tenen valor intrínsec (com l'or), sinó que basen el seu valor en la confiança de la gent que els accepta.", fragments_definicio: ["Diners que no tenen valor intrínsec,", "sinó que basen el seu valor", "en la confiança de la gent", "que els accepta."], definicions_falses: ["Diners creats informàticament sense l'autorització de cap govern.", "Monedes d'or i plata que tenen valor pel material de què estan fetes."], paraules_clau: ["Confiança", "Diners moderns", "Sense suport en or", "Curs legal"], paraules_trampa: ["Criptomoneda", "Diners mercaderia"] },
+
+  // EMPRESA I COMPTABILITAT
+  { terme: "Actiu", definicio_correcta: "Conjunt de béns i drets de cobrament propietat d'una empresa o persona (com diners, locals o maquinària).", fragments_definicio: ["Conjunt de béns", "i drets de cobrament", "propietat d'una empresa", "o persona."], definicions_falses: ["Llista de deutes que una empresa ha de pagar aquest any.", "Treballador que està donat d'alta a la Seguretat Social."], paraules_clau: ["Béns", "Drets", "Propietat", "El que es té"], paraules_trampa: ["Passiu", "Població activa"] },
+  { terme: "Passiu", definicio_correcta: "Conjunt de deutes i obligacions de pagament que té una empresa o persona amb tercers.", fragments_definicio: ["Conjunt de deutes", "i obligacions de pagament", "que té una empresa", "o persona amb tercers."], definicions_falses: ["Tot l'equipament informàtic d'oficina d'una companyia.", "El capital aportat pels socis per fundar l'empresa."], paraules_clau: ["Deutes", "Obligacions", "El que es deu", "Finançament aliè"], paraules_trampa: ["Actiu", "Patrimoni net"] },
+  { terme: "Patrimoni net", definicio_correcta: "Diferència entre l'actiu (el que tens) i el passiu (el que deus). Representa la riquesa real de l'empresa.", fragments_definicio: ["Diferència entre l'actiu", "i el passiu.", "Representa la riquesa real", "de l'empresa."], definicions_falses: ["Llista de tots els edificis que ha construït l'Estat.", "El total de vendes que ha fet l'empresa sense comptar despeses."], paraules_clau: ["Riquesa real", "Actiu menys passiu", "Capital social", "Fons propis"], paraules_trampa: ["Benefici brut", "Liquiditat"] },
+  { terme: "Balanç de situació", definicio_correcta: "Document comptable que reflecteix la situació financera i patrimonial d'una empresa en un moment donat.", fragments_definicio: ["Document comptable", "que reflecteix la situació financera", "i patrimonial d'una empresa", "en un moment donat."], definicions_falses: ["Factura que es dona al client un cop ha pagat.", "Llibre on es guarden les queixes i reclamacions."], paraules_clau: ["Foto financera", "Actius i passius", "Document comptable", "Patrimoni"], paraules_trampa: ["Pressupost", "Compte de pèrdues i guanys"] },
+  { terme: "Compte de pèrdues i guanys", definicio_correcta: "Document que recull els ingressos i les despeses d'una empresa durant l'any per mostrar si ha tingut beneficis o pèrdues.", fragments_definicio: ["Document que recull", "els ingressos i les despeses", "durant l'any per mostrar", "si ha tingut beneficis o pèrdues."], definicions_falses: ["Llista on s'anoten quants treballadors entren i surten.", "Calculadora especial per a matemàtiques financeres."], paraules_clau: ["Ingressos i despeses", "Benefici", "Pèrdua", "Exercici comptable"], paraules_trampa: ["Balanç", "Pressupost"] },
+  { terme: "Cost fix", definicio_correcta: "Despesa d'una empresa que no varia depenent del nivell de producció (com el lloguer del local).", fragments_definicio: ["Despesa d'una empresa", "que no varia depenent", "del nivell de producció."], definicions_falses: ["Preu que el govern obliga a posar a productes de primera necessitat.", "Cost d'arreglar una màquina quan es trenca per sorpresa."], paraules_clau: ["No varia", "Independent de producció", "Lloguer", "Assegurança"], paraules_trampa: ["Cost variable", "Preu fix"] },
+  { terme: "Cost variable", definicio_correcta: "Despesa de l'empresa que augmenta o disminueix depenent de la quantitat de productes que es fabriquin (com les matèries primeres).", fragments_definicio: ["Despesa de l'empresa", "que augmenta o disminueix", "depenent de la quantitat", "de productes que es fabriquin."], definicions_falses: ["El sou fix que cobren els empleats de l'oficina principal.", "El lloguer del magatzem que canvia cada 5 anys de preu."], paraules_clau: ["Depèn de producció", "Matèries primeres", "Canviant", "Fabricació"], paraules_trampa: ["Cost fix", "Interès variable"] },
+  { terme: "Fallida", definicio_correcta: "Situació legal en què una empresa o persona no pot fer front als seus deutes de manera definitiva.", fragments_definicio: ["Situació legal en què", "una empresa o persona", "no pot fer front als seus deutes", "de manera definitiva."], definicions_falses: ["Quan una acció baixa molt ràpidament a la borsa.", "Quan l'Estat perd diners perquè recapta pocs impostos."], paraules_clau: ["Bancarrota", "Insolvència", "Tancament", "No pagar deutes"], paraules_trampa: ["Suspensió de pagaments", "Inflació"] },
+  { terme: "Suspensió de pagaments", definicio_correcta: "Situació temporal on una empresa no té liquiditat per pagar els seus deutes avui, però sí que té prou patrimoni per fer-ho en el futur.", fragments_definicio: ["Situació temporal", "on una empresa no té liquiditat avui,", "però sí té prou patrimoni", "per pagar en el futur."], definicions_falses: ["Vaga de treballadors on l'empresa decideix no pagar el sou.", "Mesura legal per cancel·lar tots els deutes per sempre i no pagar."], paraules_clau: ["Temporal", "Manca de liquiditat", "Concurs de creditors", "Solvència futura"], paraules_trampa: ["Fallida", "Frau fiscal"] },
+  
+  // ESTAT I IMPOSTOS
+  { terme: "Impost", definicio_correcta: "Pagament obligatori i sense contraprestació directa que els ciutadans i empreses fan a l'Estat per finançar la despesa pública.", fragments_definicio: ["Pagament obligatori", "i sense contraprestació directa", "que es fa a l'Estat", "per finançar la despesa pública."], definicions_falses: ["Diners que el banc et cobra per mantenir un compte obert.", "Propina obligatòria que cal deixar en restaurants i hotels."], paraules_clau: ["Obligatori", "Tribut", "Estat", "Finançar despeses"], paraules_trampa: ["Taxa", "Comissió"] },
+  { terme: "Impost directe", definicio_correcta: "Tipus d'impost que s'aplica directament sobre la riquesa o els ingressos d'una persona o empresa (com l'IRPF).", fragments_definicio: ["Tipus d'impost que s'aplica", "directament sobre la riquesa", "o els ingressos d'una persona", "o empresa."], definicions_falses: ["Impost que pagues quan compres qualsevol producte a la botiga.", "Multa de trànsit que s'ha de pagar al moment."], paraules_clau: ["Renda", "Patrimoni", "Personal", "IRPF"], paraules_trampa: ["Impost indirecte", "IVA"] },
+  { terme: "Impost indirecte", definicio_correcta: "Impost que grava el consum de béns i serveis i que paga el consumidor final a l'hora de comprar (com l'IVA).", fragments_definicio: ["Impost que grava", "el consum de béns i serveis", "i que paga el consumidor final", "a l'hora de comprar."], definicions_falses: ["Impost que es descompta directament del salari cada mes.", "L'impost de successions que es paga en heretar una casa."], paraules_clau: ["Consum", "Compres", "Mateix per a tothom", "IVA"], paraules_trampa: ["Impost directe", "IRPF"] },
+  { terme: "IVA", definicio_correcta: "Impost sobre el Valor Afegit. És l'impost indirecte que s'aplica al consum de la majoria de productes i serveis.", fragments_definicio: ["Impost sobre el Valor Afegit.", "Impost indirecte que s'aplica", "al consum de la majoria", "de productes i serveis."], definicions_falses: ["Impost que cobren només a la duana en viatjar.", "Impost que paguen només les grans multinacionals pels beneficis."], paraules_clau: ["Valor afegit", "Consum", "Productes", "Impost indirecte"], paraules_trampa: ["IRPF", "Aranzel"] },
+  { terme: "IRPF", definicio_correcta: "Impost sobre la Renda de les Persones Físiques. Impost directe i progressiu que grava els ingressos que té un ciutadà en un any.", fragments_definicio: ["Impost sobre la Renda", "de les Persones Físiques.", "Grava els ingressos d'un ciutadà", "durant un any."], definicions_falses: ["Impost exclusiu que paguen els bancs pel seu funcionament.", "Impost que es paga per comprar tabac o alcohol."], paraules_clau: ["Renda", "Persones físiques", "Directe", "Ingressos"], paraules_trampa: ["IVA", "Impost societats"] },
+  { terme: "Impost progressiu", definicio_correcta: "Sistema fiscal on el percentatge que cal pagar augmenta a mesura que la riquesa o els ingressos de la persona són més alts.", fragments_definicio: ["Sistema fiscal on el percentatge", "que cal pagar augmenta", "a mesura que la riquesa", "o els ingressos són més alts."], definicions_falses: ["Impost on tothom paga el mateix percentatge independentment del seu sou.", "Impost que es paga mes a mes amb petites quotes."], paraules_clau: ["Qui més té més paga", "Percentatge creixent", "Equitat", "Renda"], paraules_trampa: ["Impost proporcional", "Impost indirecte"] },
+  { terme: "Paradís fiscal", definicio_correcta: "País o territori que ofereix a ciutadans i empreses estrangeres impostos extremadament baixos o nuls i gran secretisme bancari.", fragments_definicio: ["País o territori que ofereix", "impostos extremadament baixos o nuls", "i gran secretisme bancari", "a empreses estrangeres."], definicions_falses: ["Illa on es guarden les reserves d'or de les Nacions Unides.", "Estat on l'educació i la sanitat són totalment de pagament."], paraules_clau: ["Baixos impostos", "Evasió fiscal", "Secretisme", "Offshore"], paraules_trampa: ["Estat del benestar", "Borsa"] },
+  { terme: "Política fiscal", definicio_correcta: "Decisions del govern sobre els impostos i la despesa pública per intentar controlar i dirigir l'economia del país.", fragments_definicio: ["Decisions del govern", "sobre els impostos i la despesa", "per intentar controlar i dirigir", "l'economia del país."], definicions_falses: ["Decisions del Banc Central per pujar o abaixar els tipus d'interès.", "Codi ètic d'un ajuntament contra la corrupció urbanística."], paraules_clau: ["Govern", "Impostos", "Despesa pública", "Pressupost de l'Estat"], paraules_trampa: ["Política monetària", "Mercat financer"] },
+  { terme: "Política monetària", definicio_correcta: "Decisions que pren el Banc Central respecte als tipus d'interès i la quantitat de diners en circulació per controlar la inflació.", fragments_definicio: ["Decisions que pren el Banc Central", "respecte als tipus d'interès", "i la quantitat de diners", "per controlar la inflació."], definicions_falses: ["Aprovació del pressupost de l'Estat i l'augment de l'IVA.", "Lleis per encunyar monedes de col·lecció en un país."], paraules_clau: ["Banc Central", "Tipus d'interès", "Diners en circulació", "Control de preus"], paraules_trampa: ["Política fiscal", "Deute públic"] },
+  { terme: "Estat del benestar", definicio_correcta: "Model sociopolític en què l'Estat proveeix serveis bàsics (sanitat, educació, pensions) per garantir una vida digna als ciutadans.", fragments_definicio: ["Model sociopolític en què l'Estat", "proveeix serveis bàsics gratuïts", "per garantir una vida digna", "a tots els ciutadans."], definicions_falses: ["Sistema econòmic on no hi ha empreses privades i tot és de l'Estat.", "Llei que obliga els ciutadans a fer esport diàriament."], paraules_clau: ["Serveis públics", "Sanitat", "Educació", "Protecció social"], paraules_trampa: ["Capitalisme salvatge", "Comunisme"] },
+
+  // COMERÇ INTERNACIONAL
+  { terme: "Exportació", definicio_correcta: "Venda de béns i serveis produïts en un país a compradors d'un altre país diferent.", fragments_definicio: ["Venda de béns i serveis", "produïts en un país", "a compradors d'un", "altre país diferent."], definicions_falses: ["Compra de tecnologia de l'estranger per utilitzar-la al teu país.", "Enviament de diners a familiars que viuen en un altre continent."], paraules_clau: ["Vendre a fora", "Comerç exterior", "Producte nacional", "Ingressos externs"], paraules_trampa: ["Importació", "Aranzel"] },
+  { terme: "Importació", definicio_correcta: "Compra de béns i serveis procedents de l'estranger per ser consumits o utilitzats al propi país.", fragments_definicio: ["Compra de béns i serveis", "procedents de l'estranger", "per ser consumits o utilitzats", "al propi país."], definicions_falses: ["Venda dels teus propis productes a un altre país.", "Impost que es paga per obrir un negoci nou a la ciutat."], paraules_clau: ["Comprar de fora", "Comerç exterior", "Consum intern", "Despesa externa"], paraules_trampa: ["Exportació", "Plusvàlua"] },
+  { terme: "Aranzel", definicio_correcta: "Impost o taxa que el govern cobra sobre els béns que s'importen de l'estranger per protegir la indústria nacional.", fragments_definicio: ["Impost o taxa", "que el govern cobra sobre", "els béns que s'importen", "per protegir la indústria nacional."], definicions_falses: ["Certificat de qualitat exigit per vendre menjar.", "Impost que pagues per travessar una autopista de peatge."], paraules_clau: ["Impost frontera", "Importació", "Proteccionisme", "Duana"], paraules_trampa: ["IVA", "Dividend"] },
+  { terme: "Balança comercial", definicio_correcta: "Registre de la diferència entre el valor de les exportacions i el valor de les importacions d'un país.", fragments_definicio: ["Registre de la diferència", "entre el valor de les exportacions", "i el valor de les importacions", "d'un país."], definicions_falses: ["Màquina exacta per pesar mercaderies abans de pujar a l'avió.", "La diferència entre els impostos recaptats i la despesa en sanitat."], paraules_clau: ["Exportacions menys importacions", "Diferència", "Comerç exterior", "Registre"], paraules_trampa: ["Pressupost públic", "Tipus de canvi"] },
+  { terme: "Globalització", definicio_correcta: "Procés d'integració creixent de les economies i les societats de tot el món mitjançant el comerç, les comunicacions i la tecnologia.", fragments_definicio: ["Procés d'integració creixent", "de les economies i societats de tot el món", "mitjançant el comerç, les comunicacions", "i la tecnologia."], definicions_falses: ["Adopció d'una única moneda a tots els països del món.", "Tancament de les fronteres per evitar l'entrada de productes de fora."], paraules_clau: ["Món connectat", "Sense fronteres comercials", "Tecnologia", "Integració"], paraules_trampa: ["Proteccionisme", "Aranzel"] },
+  { terme: "Proteccionisme", definicio_correcta: "Política econòmica que busca protegir els productors nacionals de la competència estrangera posant aranzels o límits a les importacions.", fragments_definicio: ["Política econòmica que busca", "protegir els productors nacionals", "posant aranzels o límits", "a les importacions."], definicions_falses: ["Sistema en què l'Estat protegeix el medi ambient.", "Acord internacional per eliminar tots els impostos."], paraules_clau: ["Aranzels", "Indústria nacional", "Frenar importacions", "Barreres"], paraules_trampa: ["Lliure comerç", "Globalització"] },
+  { terme: "Lliure comerç", definicio_correcta: "Sistema on l'intercanvi de béns i serveis entre països es fa sense aranzels ni barreres o restriccions del govern.", fragments_definicio: ["Sistema on l'intercanvi", "de béns i serveis entre països", "es fa sense aranzels", "ni restriccions del govern."], definicions_falses: ["Mercat on els productes es regalen a qui no pot pagar.", "Sistema on cada país pot copiar patents de qualsevol altre de franc."], paraules_clau: ["Sense barreres", "Sense aranzels", "Lliure circulació", "Globalització"], paraules_trampa: ["Proteccionisme", "Economia planificada"] },
+
+  // MERCAT LABORAL
+  { terme: "Població activa", definicio_correcta: "Conjunt de persones en edat de treballar que tenen feina o bé l'estan buscant activament (són a l'atur).", fragments_definicio: ["Conjunt de persones", "en edat de treballar", "que tenen feina", "o l'estan buscant activament."], definicions_falses: ["Persones menors d'edat que van a l'escola.", "Llista exclusiva de les persones que actualment tenen un contracte indefinit."], paraules_clau: ["Treballen o busquen", "Força laboral", "Mercat de treball", "Edat legal"], paraules_trampa: ["Població inactiva", "Jubilats"] },
+  { terme: "Població inactiva", definicio_correcta: "Persones en edat de treballar que no tenen feina i tampoc no en busquen (com estudiants, mestresses de casa o jubilats).", fragments_definicio: ["Persones en edat de treballar", "que no tenen feina", "i tampoc no en busquen", "(com estudiants o jubilats)."], definicions_falses: ["Persones que es passen el dia descansant sense fer res.", "Treballadors que estan de baixa mèdica temporalment."], paraules_clau: ["No treballen", "No busquen feina", "Estudiants", "Jubilats"], paraules_trampa: ["Població activa", "Aturats"] },
+  { terme: "Salari mínim", definicio_correcta: "Quantitat mínima de diners, fixada per llei, que un empresari ha de pagar al treballador per la seva jornada.", fragments_definicio: ["Quantitat mínima de diners,", "fixada per llei,", "que l'empresari ha de pagar", "per la jornada laboral."], definicions_falses: ["Els diners que cobra un aturat com a subsidi de l'Estat.", "El sou mitjà que cobra la gent que acaba de sortir de la universitat."], paraules_clau: ["Fixat per llei", "Sou mínim", "Jornada laboral", "Protecció treballador"], paraules_trampa: ["Pensió de jubilació", "Dividend"] },
+  { terme: "Productivitat", definicio_correcta: "Relació entre la quantitat de productes o serveis produïts i els recursos (temps, màquines, treballadors) utilitzats per fer-ho.", fragments_definicio: ["Relació entre la quantitat", "de productes o serveis produïts", "i els recursos utilitzats", "per fer-ho."], definicions_falses: ["Produir molta quantitat encara que costi molts més diners.", "Obligar els treballadors a fer hores extres gratuïtes."], paraules_clau: ["Rendiment", "Eficiència", "Recursos utilitzats", "Resultat"], paraules_trampa: ["Oferta", "Inflació"] },
+  { terme: "Sindicat", definicio_correcta: "Associació de treballadors creada per defensar els seus drets laborals i negociar amb les empreses millores de sou i condicions.", fragments_definicio: ["Associació de treballadors", "creada per defensar els seus drets", "i negociar amb les empreses", "millores laborals i de sou."], definicions_falses: ["Grup d'empresaris rics que controlen el mercat d'un país.", "Departament de recursos humans de dins d'una empresa gran."], paraules_clau: ["Treballadors", "Drets laborals", "Negociació", "Vaga"], paraules_trampa: ["Càrtel", "Multinacional"] },
+  { terme: "Conveni col·lectiu", definicio_correcta: "Acord escrit entre els representants dels treballadors i els empresaris que fixa les condicions de treball d'un sector.", fragments_definicio: ["Acord escrit", "entre representants dels treballadors", "i els empresaris que fixa", "les condicions d'un sector."], definicions_falses: ["Llibre on s'apunten les faltes d'assistència dels empleats.", "Contracte de lloguer d'oficines compartides per a diverses empreses."], paraules_clau: ["Acord", "Condicions de treball", "Sindicats i patronal", "Sector laboral"], paraules_trampa: ["Balanç", "Constitució"] },
+  { terme: "Vaga", definicio_correcta: "Aturada col·lectiva i voluntària de la feina per part dels treballadors per reivindicar millores laborals o protestar.", fragments_definicio: ["Aturada col·lectiva", "i voluntària de la feina", "per reivindicar millores laborals", "o protestar."], definicions_falses: ["Accident tècnic que atura la cadena de muntatge.", "Quan l'empresa fa fora a tots els treballadors d'un departament."], paraules_clau: ["Aturar de treballar", "Protesta", "Reivindicació", "Sindicat"], paraules_trampa: ["Suspensió de pagaments", "Fallida"] },
+
+  // CONCEPTES MODERNS, SISTEMES I VARIS
+  { terme: "Economia submergida", definicio_correcta: "Conjunt d'activitats econòmiques il·legals o que no es declaren a l'Estat per no pagar impostos (treballar en negre).", fragments_definicio: ["Conjunt d'activitats econòmiques", "il·legals o que no es declaren", "a l'Estat per evitar", "pagar impostos."], definicions_falses: ["Comerç que es fa sota l'aigua amb submarins.", "Economia dels països més pobres i subdesenvolupats."], paraules_clau: ["Diners en negre", "No declarat", "Evasió fiscal", "Frau"], paraules_trampa: ["Lliure mercat", "Borsa"] },
+  { terme: "Criptomoneda", definicio_correcta: "Moneda virtual i digital que utilitza la criptografia per garantir transaccions segures i que no està controlada per cap banc central.", fragments_definicio: ["Moneda virtual i digital", "que utilitza la criptografia", "per garantir seguretat", "i no està controlada per cap banc central."], definicions_falses: ["Moneda de plàstic utilitzada en casinos de tot el món.", "Aplicació de banc per pagar amb el mòbil als supermercats."], paraules_clau: ["Bitcoin", "Digital", "Descentralitzada", "Blockchain"], paraules_trampa: ["Diner fiduciari", "Euríbor"] },
+  { terme: "Blockchain", definicio_correcta: "Cadena de blocs. És una base de dades descentralitzada i extremadament segura on es registren totes les transaccions de criptomonedes.", fragments_definicio: ["Cadena de blocs.", "Base de dades descentralitzada", "on es registren les transaccions", "de forma segura i immutable."], definicions_falses: ["Llei que bloqueja la compravenda d'accions a internet.", "Pàgina web on es fabriquen bitllets de banc europeus."], paraules_clau: ["Cadena de blocs", "Tecnologia cripto", "Base de dades", "Seguretat"], paraules_trampa: ["Paradís fiscal", "Broker"] },
+  { terme: "Economia circular", definicio_correcta: "Model econòmic que busca reduir els residus al mínim, reciclant, reparant i reutilitzant els materials tantes vegades com sigui possible.", fragments_definicio: ["Model econòmic que busca", "reduir els residus al mínim,", "reciclant, reparant i reutilitzant", "els materials constantment."], definicions_falses: ["Model on els diners van del banc a l'empresa i tornen al banc idèntics.", "Sistema on tots els productes han de ser obligatòriament rodons."], paraules_clau: ["Reciclar", "Reutilitzar", "Residu zero", "Sostenibilitat"], paraules_trampa: ["Economia submergida", "Obsolescència programada"] },
+  { terme: "Obsolescència programada", definicio_correcta: "Estratègia dels fabricants per dissenyar un producte perquè s'espatlli o quedi inútil després d'un temps determinat i obligar a comprar-ne un de nou.", fragments_definicio: ["Estratègia per dissenyar un producte", "perquè s'espatlli o quedi inútil", "després d'un cert temps,", "obligant a comprar-ne un de nou."], definicions_falses: ["Sistema de programació informàtica antiga.", "Aparició de productes nous molt avançats tecnològicament."], paraules_clau: ["Trencar expressament", "Caducitat artificial", "Comprar de nou", "Consumisme"], paraules_trampa: ["Sostenibilitat", "Economia circular"] },
+  { terme: "Capitalisme", definicio_correcta: "Sistema econòmic basat en la propietat privada de les empreses, on els preus es fixen pel lliure mercat (oferta i demanda).", fragments_definicio: ["Sistema econòmic basat", "en la propietat privada de les empreses", "i el lliure mercat", "d'oferta i demanda."], definicions_falses: ["Sistema on tot pertany a l'Estat i ell decideix què es fabrica.", "Forma de govern on manen exclusivament els bancs centrals."], paraules_clau: ["Propietat privada", "Lliure mercat", "Benefici", "Oferta i demanda"], paraules_trampa: ["Comunisme", "Estat del benestar"] },
+  { terme: "Comunisme", definicio_correcta: "Sistema econòmic on la propietat dels mitjans de producció no és privada; els mitjans de producció són de l'Estat, que decideix què es produeix i a quin preu.", fragments_definicio: ["Sistema econòmic on no existeix", "la propietat privada;", "l'Estat controla la producció", "i decideix què es fabrica."], definicions_falses: ["Sistema basat exclusivament en l'exportació de tecnologia.", "Mercat controlat per dos o tres càrtels de grans empreses."], paraules_clau: ["Propietat pública", "Economia planificada", "Estat", "Sense classes socials"], paraules_trampa: ["Capitalisme", "Lliure mercat"] },
+  { terme: "Economia mixta", definicio_correcta: "Sistema que combina el lliure mercat capitalista amb la intervenció de l'Estat per corregir desigualtats i proveir serveis bàsics.", fragments_definicio: ["Sistema que combina", "el lliure mercat capitalista", "amb la intervenció de l'Estat", "per proveir serveis bàsics."], definicions_falses: ["Situació on un país té dues monedes diferents en circulació.", "Economia on la meitat dels treballadors treballen en negre."], paraules_clau: ["Mercat lliure", "Intervenció estatal", "Equilibri", "Estat del benestar"], paraules_trampa: ["Capitalisme pur", "Comunisme pur"] },
+  { terme: "Sostenibilitat", definicio_correcta: "Capacitat de créixer econòmicament i atendre les necessitats actuals sense comprometre els recursos de les generacions futures.", fragments_definicio: ["Capacitat de créixer", "i atendre les necessitats actuals", "sense comprometre els recursos", "de les generacions futures."], definicions_falses: ["Capacitat d'una empresa d'aguantar oberta sense guanys.", "Mantenir els mateixos preus per sempre sense inflació."], paraules_clau: ["Medi ambient", "Futur", "Equilibri ecològic", "Ecologia"], paraules_trampa: ["Obsolescència", "Hiperinflació"] },
+  { terme: "Subvenció", definicio_correcta: "Ajuda econòmica o diners que el govern dona de fons perdut (no s'ha de tornar) a una empresa o persona per donar suport a una activitat.", fragments_definicio: ["Ajuda econòmica", "que el govern dona a fons perdut", "a una empresa o persona", "per donar suport a una activitat."], definicions_falses: ["Préstec del banc que s'ha de tornar a poc a poc amb molts interessos.", "Impost extra que paguen les empreses que contaminen molt."], paraules_clau: ["Ajuda de l'Estat", "No es torna", "Fons perdut", "Incentiu"], paraules_trampa: ["Hipoteca", "Impost"] }
+];
+    // =====================================================================
+
+    const totalQuestions = 15;
+    let currentQuestionCount = 0;
+    let lives = 3;
+    let currentCorrectAnswer = null;
+    let currentMode = '';
+    let selectedButton = null;
+    let questionState = 'answering';
+    let currentConcept = null;
+    let gameHistory = []; 
+
+    const questionInstruction = document.getElementById('question-instruction');
+    const questionContent = document.getElementById('question-content');
+    const optionsContainer = document.getElementById('options-container');
+    const actionBtn = document.getElementById('action-btn');
+    const livesCount = document.getElementById('lives-count');
+    const progressBar = document.getElementById('progress-bar');
+    const resultArea = document.getElementById('result-area');
+    const questionArea = document.getElementById('question-area');
+    const gameHeader = document.getElementById('game-header');
+    const gameFooter = document.getElementById('game-footer');
+    const gameWrapper = document.getElementById('game-wrapper');
+    const feedbackMsg = document.getElementById('feedback-msg');
+    const historyList = document.getElementById('history-list');
+
+    // =====================================================================
+    // SISTEMA DE SO
+    // =====================================================================
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      
+      if (type === 'correct') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); 
+        gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.setValueAtTime(100, now + 0.15);
+        gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+      } else if (type === 'win') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(261.63, now); osc.frequency.setValueAtTime(329.63, now + 0.15);
+        osc.frequency.setValueAtTime(392.00, now + 0.3); osc.frequency.setValueAtTime(523.25, now + 0.45);
+        gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.8);
+        osc.start(now); osc.stop(now + 0.8);
+      } else if (type === 'lose') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(329.63, now); osc.frequency.setValueAtTime(293.66, now + 0.2);
+        osc.frequency.setValueAtTime(261.63, now + 0.4); osc.frequency.setValueAtTime(246.94, now + 0.6);
+        gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.linearRampToValueAtTime(0, now + 1);
+        osc.start(now); osc.stop(now + 1);
+      }
+    }
+
+    // =====================================================================
+    // ESTADÍSTIQUES I RATXA
+    // =====================================================================
+    function checkStreak() {
+      const lastWinDate = localStorage.getItem('ecolingo_last_win');
+      const today = new Date().toDateString();
+      let streak = parseInt(localStorage.getItem('ecolingo_streak')) || 0;
+      if (lastWinDate) {
+        const diffDays = Math.ceil(Math.abs(new Date(today) - new Date(lastWinDate)) / (1000 * 60 * 60 * 24));
+        if (diffDays > 1) { streak = 0; localStorage.setItem('ecolingo_streak', streak); }
+      }
+      return streak;
+    }
+
+    function updateStreakOnWin() {
+      const lastWinDate = localStorage.getItem('ecolingo_last_win');
+      const today = new Date().toDateString();
+      let streak = parseInt(localStorage.getItem('ecolingo_streak')) || 0;
+      if (lastWinDate !== today) {
+        streak++; 
+        localStorage.setItem('ecolingo_streak', streak); 
+        localStorage.setItem('ecolingo_last_win', today);
+      }
+      return streak;
+    }
+
+    function updateConceptStats(terme, isCorrect) {
+      let stats = JSON.parse(localStorage.getItem('ecolingo_concept_stats')) || {};
+      if (!stats[terme]) { stats[terme] = { total: 0, correct: 0 }; }
+      stats[terme].total++;
+      if (isCorrect) stats[terme].correct++;
+      localStorage.setItem('ecolingo_concept_stats', JSON.stringify(stats));
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function updateProgress() {
+      progressBar.style.width = `${(currentQuestionCount / totalQuestions) * 100}%`;
+    }
+
+    // =====================================================================
+    // GENERACIÓ DE PREGUNTES
+    // =====================================================================
+    function generateQuestion() {
+      // Prevenció d'errors si la bbdd està buida
+      if (!db || db.length === 0) {
+        questionInstruction.textContent = "Error";
+        questionContent.textContent = "La base de dades (db) està buida. Afegeix conceptes!";
+        return;
+      }
+
+      optionsContainer.innerHTML = '';
+      feedbackMsg.style.display = 'none';
+      questionState = 'answering';
+      selectedButton = null;
+      gameWrapper.classList.remove('shake');
+      
+      actionBtn.disabled = true;
+      actionBtn.textContent = 'Comprova';
+      actionBtn.className = '';
+      actionBtn.onclick = checkAnswer;
+
+      currentConcept = db[Math.floor(Math.random() * db.length)];
+      const modes = ['multiple-choice', 'true-false', 'write', 'order', 'fill-blank'];
+      currentMode = modes[Math.floor(Math.random() * modes.length)];
+
+      if (currentMode === 'multiple-choice') {
+        questionInstruction.textContent = "A quin concepte correspon aquesta definició?";
+        questionContent.textContent = `"${currentConcept.definicio_correcta}"`;
+        currentCorrectAnswer = currentConcept.terme;
+        const falsos = db.filter(c => c.terme !== currentConcept.terme).sort(() => 0.5 - Math.random()).slice(0, 2);
+        renderOptions(shuffle([currentConcept.terme, falsos[0].terme, falsos[1].terme]));
+      } 
+      else if (currentMode === 'true-false') {
+        const isTrue = Math.random() > 0.5;
+        let defToShow = currentConcept.definicio_correcta;
+        if (!isTrue) {
+          const fakeConcept = db.filter(c => c.terme !== currentConcept.terme)[Math.floor(Math.random() * (db.length - 1))];
+          defToShow = fakeConcept.definicio_correcta;
+        }
+        questionInstruction.textContent = "Vertader o Fals?";
+        questionContent.textContent = `La definició de "${currentConcept.terme}" és: "${defToShow}"`;
+        currentCorrectAnswer = isTrue ? 'Vertader' : 'Fals';
+        renderOptions(['Vertader', 'Fals']);
+      }
+      else if (currentMode === 'write') {
+        questionInstruction.textContent = "Escriu el concepte que correspon a aquesta definició:";
+        questionContent.textContent = `"${currentConcept.definicio_correcta}"`;
+        currentCorrectAnswer = currentConcept.terme.toLowerCase();
+        const input = document.createElement('input');
+        input.type = 'text'; input.id = 'write-input'; input.className = 'text-input';
+        input.placeholder = 'Escriu el terme aquí...'; input.autocomplete = 'off';
+        input.addEventListener('input', (e) => {
+          if(e.target.value.trim().length > 0) { actionBtn.disabled = false; actionBtn.classList.add('active'); } 
+          else { actionBtn.disabled = true; actionBtn.classList.remove('active'); }
+        });
+        optionsContainer.appendChild(input);
+        setTimeout(() => input.focus(), 100);
+      }
+      else if (currentMode === 'order') {
+        questionInstruction.textContent = "Ordena els fragments per formar la definició de:";
+        questionContent.textContent = `"${currentConcept.terme}"`;
+        currentCorrectAnswer = currentConcept.fragments_definicio.join(' ');
+        
+        const targetArea = document.createElement('div'); targetArea.className = 'order-area target'; targetArea.id = 'target-area';
+        const sourceArea = document.createElement('div'); sourceArea.className = 'order-area source'; sourceArea.id = 'source-area';
+        
+        optionsContainer.appendChild(targetArea);
+        optionsContainer.appendChild(sourceArea);
+
+        let fragments = shuffle([...currentConcept.fragments_definicio]);
+        fragments.forEach(frag => {
+          const btn = document.createElement('div');
+          btn.className = 'fragment-btn'; btn.textContent = frag;
+          btn.onclick = () => {
+            if (questionState !== 'answering') return;
+            if (btn.parentElement.id === 'source-area') { targetArea.appendChild(btn); } else { sourceArea.appendChild(btn); }
+            if (sourceArea.children.length === 0) { actionBtn.disabled = false; actionBtn.classList.add('active'); } 
+            else { actionBtn.disabled = true; actionBtn.classList.remove('active'); }
+          };
+          sourceArea.appendChild(btn);
+        });
+      }
+      else if (currentMode === 'fill-blank') {
+        const hideWord = currentConcept.fragments_definicio[Math.floor(Math.random() * currentConcept.fragments_definicio.length)];
+        const modifiedDef = currentConcept.definicio_correcta.replace(hideWord, "________");
+        questionInstruction.textContent = `Completa la definició de "${currentConcept.terme}":`;
+        questionContent.textContent = `"${modifiedDef}"`;
+        currentCorrectAnswer = hideWord;
+        const fake1 = db[Math.floor(Math.random() * db.length)].fragments_definicio[0] || "un impost indirecte";
+        const fake2 = db[Math.floor(Math.random() * db.length)].fragments_definicio[1] || "dels mercats financers";
+        renderOptions(shuffle([hideWord, fake1, fake2]));
+      }
+    }
+
+    function renderOptions(opts) {
+      opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn'; btn.textContent = opt;
+        btn.onclick = () => selectOption(btn);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function selectOption(btn) {
+      if (questionState !== 'answering') return;
+      const allBtns = document.querySelectorAll('.option-btn');
+      allBtns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedButton = btn;
+      actionBtn.disabled = false;
+      actionBtn.classList.add('active');
+    }
+
+    // =====================================================================
+    // VALIDACIÓ
+    // =====================================================================
+    function checkAnswer() {
+      questionState = 'checking';
+      let isCorrect = false;
+
+      if (currentMode === 'multiple-choice' || currentMode === 'true-false' || currentMode === 'fill-blank') {
+        isCorrect = (selectedButton.textContent === currentCorrectAnswer);
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => {
+          b.onclick = null; 
+          if (b.textContent === currentCorrectAnswer) b.classList.add('correct');
+        });
+        if (!isCorrect) selectedButton.classList.add('wrong');
+      } 
+      else if (currentMode === 'write') {
+        const input = document.getElementById('write-input');
+        input.disabled = true;
+        isCorrect = (input.value.trim().toLowerCase() === currentCorrectAnswer);
+        if (isCorrect) input.classList.add('correct');
+        else {
+          input.classList.add('wrong');
+          feedbackMsg.style.display = 'block'; feedbackMsg.style.color = '#ea2b2b';
+          feedbackMsg.textContent = `La resposta correcta era: ${currentConcept.terme}`;
+        }
+      }
+      else if (currentMode === 'order') {
+        const targetArea = document.getElementById('target-area');
+        const userOrder = Array.from(targetArea.children).map(b => b.textContent).join(' ');
+        isCorrect = (userOrder === currentCorrectAnswer);
+        Array.from(targetArea.children).forEach(b => {
+          b.style.borderColor = isCorrect ? '#58cc02' : '#ea2b2b';
+          b.style.background = isCorrect ? '#d7ffb8' : '#ffdfe0';
+        });
+        if (!isCorrect) {
+          feedbackMsg.style.display = 'block'; feedbackMsg.style.color = '#ea2b2b';
+          feedbackMsg.textContent = `La resposta correcta era: ${currentConcept.definicio_correcta}`;
+        }
+      }
+
+      gameHistory.push(currentConcept.terme);
+      updateConceptStats(currentConcept.terme, isCorrect);
+
+      if (isCorrect) {
+        playSound('correct'); currentQuestionCount++; updateProgress(); actionBtn.textContent = 'Continua';
+      } else {
+        playSound('wrong'); gameWrapper.classList.add('shake'); lives--; livesCount.textContent = lives;
+        actionBtn.textContent = 'Continua'; actionBtn.classList.add('wrong-state');
+      }
+
+      actionBtn.onclick = nextStep;
+    }
+
+    function nextStep() {
+      if (lives <= 0) endGame(false);
+      else if (currentQuestionCount >= totalQuestions) endGame(true);
+      else generateQuestion();
+    }
+
+    // =====================================================================
+    // FINAL DE PARTIDA I RENDER
+    // =====================================================================
+    function endGame(win) {
+      questionArea.classList.add('hidden'); gameHeader.classList.add('hidden'); gameFooter.classList.add('hidden');
+      resultArea.classList.remove('hidden');
+      
+      let finalStreak = 0;
+      if (win) {
+        playSound('win'); 
+        finalStreak = updateStreakOnWin();
+        document.getElementById('result-title').textContent = '🎉 Lliçó Superada!';
+        document.getElementById('result-title').style.color = '#58cc02';
+        document.getElementById('result-msg').textContent = `Molt bona feina completant la lliçó.`;
+      } else {
+        playSound('lose');
+        finalStreak = checkStreak();
+        document.getElementById('result-title').textContent = '💔 Sense Vides';
+        document.getElementById('result-title').style.color = '#ea2b2b';
+        document.getElementById('result-msg').textContent = 'Repassa els conceptes fallats i torna-ho a intentar.';
+      }
+
+      document.getElementById('final-streak-count').textContent = finalStreak;
+
+      // Calcular l'històric d'aquesta sessió
+      let allStats = JSON.parse(localStorage.getItem('ecolingo_concept_stats')) || {};
+      let uniqueSessionConcepts = [...new Set(gameHistory)];
+      
+      let historyData = uniqueSessionConcepts.map(terme => {
+        let stat = allStats[terme];
+        let percent = stat ? Math.round((stat.correct / stat.total) * 100) : 0;
+        return { terme, percent };
+      });
+
+      historyData.sort((a, b) => b.percent - a.percent);
+
+      // Render de l'històric amb detalls desplegables
+      historyList.innerHTML = '';
+      historyData.forEach(item => {
+        const details = document.createElement('details');
+        details.className = 'history-item';
+        
+        // Busquem la definició del concepte per mostrar-la
+        const conceptData = db.find(c => c.terme === item.terme);
+        const definitionText = conceptData ? conceptData.definicio_correcta : "Definició no disponible.";
+        
+        let colorClass = item.percent >= 80 ? 'perc-high' : (item.percent >= 50 ? 'perc-mid' : 'perc-low');
+        
+        details.innerHTML = `
+          <summary class="history-summary">
+            <span><strong>${item.terme}</strong> ▾</span>
+            <span class="${colorClass}">${item.percent}% d'encert</span>
+          </summary>
+          <div class="history-definition">${definitionText}</div>
+        `;
+        historyList.appendChild(details);
+      });
+    }
+
+    function resetGame() {
+      // Prevenció d'errors si la bbdd està buida
+      if (!db || db.length === 0) return;
+
+      currentQuestionCount = 0;
+      lives = 3;
+      livesCount.textContent = lives;
+      gameHistory = [];
+      updateProgress();
+      
+      resultArea.classList.add('hidden');
+      questionArea.classList.remove('hidden');
+      gameHeader.classList.remove('hidden');
+      gameFooter.classList.remove('hidden');
+      
+      generateQuestion();
+    }
+
+    window.onload = () => {
+      checkStreak();
+      // Vinculem el botó de reiniciar directament per codi
+      document.getElementById('restart-btn').addEventListener('click', resetGame);
+      generateQuestion();
+    };
+  </script>
+</body>
+</html>
