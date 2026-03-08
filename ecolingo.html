@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="google" content="notranslate">
   <title>EcoLingo</title>
   <style>
     body {
@@ -14,9 +15,9 @@
       align-items: center;
       margin: 0;
       padding: 0;
-      height: 100vh; /* Fallback per navegadors antics */
-      height: 100dvh; /* Alçada dinàmica exacta pel mòbil */
-      overflow: hidden; /* Bloqueja l'scroll de la pàgina sencera */
+      height: 100vh;
+      height: 100dvh; 
+      overflow: hidden; 
       box-sizing: border-box;
     }
     
@@ -26,18 +27,17 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      padding: 15px 20px; /* Una mica menys de padding dalt i baix */
+      padding: 15px 20px; 
       box-sizing: border-box;
     }
 
-    /* Capçalera */
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 15px; /* Reduït perquè no ocupi tant al mòbil */
+      margin-bottom: 15px; 
       gap: 15px;
-      flex-shrink: 0; /* Evita que la capçalera s'aixafi */
+      flex-shrink: 0; 
     }
     .stats-group { display: flex; gap: 15px; }
     .lives { color: #ff4b4b; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 5px; }
@@ -45,12 +45,11 @@
     .progress-bar-container { flex-grow: 1; background-color: #e5e5e5; height: 16px; border-radius: 10px; overflow: hidden; }
     .progress-bar-fill { background-color: #58cc02; height: 100%; width: 0%; border-radius: 10px; transition: width 0.3s ease; }
 
-    /* Àrea de la Pregunta */
     #question-area { 
       flex-grow: 1; 
       display: flex; 
       flex-direction: column; 
-      overflow-y: auto; /* Permet scroll intern només si la pregunta és gegant */
+      overflow-y: auto; 
       padding-bottom: 10px;
     }
     
@@ -73,7 +72,6 @@
       flex-shrink: 0;
     }
     
-    /* Opcions */
     .options { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
     .option-btn {
       background: #ffffff; border: 2px solid #e5e5e5; border-radius: 15px; padding: 15px;
@@ -85,7 +83,6 @@
     .option-btn.correct { background: #d7ffb8; border-color: #58cc02; color: #58a700; box-shadow: 0 4px 0 #58a700; }
     .option-btn.wrong { background: #ffdfe0; border-color: #ea2b2b; color: #ea2b2b; box-shadow: 0 4px 0 #ea2b2b; }
 
-    /* Mode Escriure */
     .text-input {
       width: 100%; padding: 15px; border: 2px solid #e5e5e5; border-radius: 15px;
       font-size: 1.2rem; font-weight: bold; box-sizing: border-box; color: #3c3c3c;
@@ -94,7 +91,6 @@
     .text-input.correct { background: #d7ffb8; border-color: #58cc02; color: #58a700; }
     .text-input.wrong { background: #ffdfe0; border-color: #ea2b2b; color: #ea2b2b; }
 
-    /* Mode Ordenar */
     .order-area { display: flex; flex-wrap: wrap; gap: 8px; min-height: 50px; padding: 12px; border-radius: 15px; }
     .order-area.target { border: 2px dashed #afafaf; margin-bottom: 10px; background: #f7f9fa; transition: background 0.2s; }
     .order-area.source { border: 2px solid transparent; padding: 0;}
@@ -105,7 +101,6 @@
     }
     .fragment-btn:hover { background: #f0f0f0; transform: scale(1.02); }
 
-    /* Peu de pàgina */
     .footer { border-top: 2px solid #e5e5e5; padding-top: 15px; margin-top: auto; flex-shrink: 0; }
     #action-btn {
       width: 100%; background: #e5e5e5; color: #afafaf; border: none; border-radius: 15px;
@@ -116,7 +111,7 @@
     #action-btn.active:active { transform: translateY(4px); box-shadow: 0 0 0 #58a700; }
     #action-btn.wrong-state { background: #ea2b2b; box-shadow: 0 4px 0 #c11f1f; color: white; }
 
-    /* Històric de Resultats amb Desplegables */
+    /* Històric de Resultats */
     #history-container {
       margin-top: 15px;
       text-align: left;
@@ -125,7 +120,9 @@
       border-radius: 15px;
       padding: 15px;
       overflow-y: auto;
-      flex-grow: 1; /* Al final de partida, la llista agafarà tot l'espai i podrà fer scroll si cal */
+      flex-grow: 1; 
+      display: flex;
+      flex-direction: column;
     }
     .history-title { font-size: 1rem; font-weight: bold; color: #afafaf; margin-bottom: 10px; text-transform: uppercase; }
     
@@ -146,11 +143,17 @@
       font-size: 0.95rem; color: #555; line-height: 1.4;
     }
 
-    .perc-high { color: #58cc02; font-weight: bold; }
-    .perc-mid { color: #ff9600; font-weight: bold; }
-    .perc-low { color: #ea2b2b; font-weight: bold; }
+    /* Animacions */
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .pop-anim {
+      animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+      display: inline-block;
+    }
 
-    /* Animació d'error */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-8px); }
@@ -161,7 +164,8 @@
     .hidden { display: none !important; }
     #result-area { text-align: center; margin-top: 10px; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
     #result-area h1 { font-size: 2rem; margin-bottom: 5px; }
-    .streak-final { color: #ff9600; font-weight: bold; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; gap: 5px; }
+    .streak-final { color: #ff9600; font-weight: bold; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; gap: 5px; }
+    .lesson-score { display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; gap: 5px; }
   </style>
 </head>
 <body>
@@ -184,8 +188,13 @@
 
     <div id="result-area" class="hidden">
       <h1 id="result-title"></h1>
-      <div class="streak-final">🔥 Ratxa diària: <span id="final-streak-count">0</span></div>
-      <p id="result-msg" style="font-size: 1rem; color: #777; margin-bottom: 5px; flex-shrink: 0;"></p>
+      <p id="result-msg" style="font-size: 1rem; color: #777; margin-bottom: 10px; flex-shrink: 0;"></p>
+      
+      <div id="stats-container">
+        <div class="streak-final">🔥 Ratxa diària: <span id="final-streak-count">0</span></div>
+        <div class="lesson-score">⏱️ Temps: <span id="lesson-time" style="display:inline-block;">0:00</span></div>
+        <div class="lesson-score" id="lesson-score-div">🎯 Encert: <span id="lesson-accuracy" style="display:inline-block;">0</span>%</div>
+      </div>
       
       <div id="history-container">
         <div class="history-title">Resum de la sessió (Clica per repassar)</div>
@@ -202,8 +211,7 @@
 
   <script>
     // =====================================================================
-    // 1. ENGANXA AQUÍ LA TEVA VARIABLE "db" AMB ELS 100 CONCEPTES
-    // Important: Si la base de dades està buida, el joc no pot reiniciar-se!
+    // ENGANXA AQUÍ LA TEVA VARIABLE "db" AMB ELS 100 CONCEPTES
     // =====================================================================
 const db = [
   // MACROECONOMIA BÀSICA
@@ -333,6 +341,7 @@ const db = [
     let questionState = 'answering';
     let currentConcept = null;
     let gameHistory = []; 
+    let startTime = 0;
 
     const questionInstruction = document.getElementById('question-instruction');
     const questionContent = document.getElementById('question-content');
@@ -348,9 +357,6 @@ const db = [
     const feedbackMsg = document.getElementById('feedback-msg');
     const historyList = document.getElementById('history-list');
 
-    // =====================================================================
-    // SISTEMA DE SO
-    // =====================================================================
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioCtx = new AudioContext();
 
@@ -383,9 +389,44 @@ const db = [
       }
     }
 
-    // =====================================================================
-    // ESTADÍSTIQUES I RATXA
-    // =====================================================================
+    // Funcions d'Animació de Números
+    function animateCounter(elementId, targetValue, duration) {
+      const element = document.getElementById(elementId);
+      element.classList.remove('pop-anim');
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        element.textContent = Math.floor(progress * targetValue);
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          element.classList.add('pop-anim');
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    function animateTime(elementId, targetSeconds, duration) {
+      const element = document.getElementById(elementId);
+      element.classList.remove('pop-anim');
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const currentSecs = Math.floor(progress * targetSeconds);
+        const m = Math.floor(currentSecs / 60);
+        const s = currentSecs % 60;
+        element.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          element.classList.add('pop-anim');
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
     function checkStreak() {
       const lastWinDate = localStorage.getItem('ecolingo_last_win');
       const today = new Date().toDateString();
@@ -409,14 +450,6 @@ const db = [
       return streak;
     }
 
-    function updateConceptStats(terme, isCorrect) {
-      let stats = JSON.parse(localStorage.getItem('ecolingo_concept_stats')) || {};
-      if (!stats[terme]) { stats[terme] = { total: 0, correct: 0 }; }
-      stats[terme].total++;
-      if (isCorrect) stats[terme].correct++;
-      localStorage.setItem('ecolingo_concept_stats', JSON.stringify(stats));
-    }
-
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -429,11 +462,12 @@ const db = [
       progressBar.style.width = `${(currentQuestionCount / totalQuestions) * 100}%`;
     }
 
-    // =====================================================================
-    // GENERACIÓ DE PREGUNTES
-    // =====================================================================
+    // Expressió Regular segura
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     function generateQuestion() {
-      // Prevenció d'errors si la bbdd està buida
       if (!db || db.length === 0) {
         questionInstruction.textContent = "Error";
         questionContent.textContent = "La base de dades (db) està buida. Afegeix conceptes!";
@@ -499,27 +533,52 @@ const db = [
         optionsContainer.appendChild(targetArea);
         optionsContainer.appendChild(sourceArea);
 
-        let fragments = shuffle([...currentConcept.fragments_definicio]);
+        let fragments = [...currentConcept.fragments_definicio];
+        let correctLength = fragments.length;
+        
+        // Afegim el fragment trampós d'un altre concepte a l'atzar
+        let fakeConcept = db.filter(c => c.terme !== currentConcept.terme)[Math.floor(Math.random() * (db.length - 1))];
+        if (fakeConcept && fakeConcept.fragments_definicio.length > 0) {
+            let fakeFragment = fakeConcept.fragments_definicio[Math.floor(Math.random() * fakeConcept.fragments_definicio.length)];
+            fragments.push(fakeFragment);
+        }
+
+        fragments = shuffle(fragments);
+
         fragments.forEach(frag => {
           const btn = document.createElement('div');
           btn.className = 'fragment-btn'; btn.textContent = frag;
           btn.onclick = () => {
             if (questionState !== 'answering') return;
             if (btn.parentElement.id === 'source-area') { targetArea.appendChild(btn); } else { sourceArea.appendChild(btn); }
-            if (sourceArea.children.length === 0) { actionBtn.disabled = false; actionBtn.classList.add('active'); } 
+            
+            // S'activa si hi ha ALMENYS 1 fragment a dalt
+            if (targetArea.children.length > 0) { actionBtn.disabled = false; actionBtn.classList.add('active'); } 
             else { actionBtn.disabled = true; actionBtn.classList.remove('active'); }
           };
           sourceArea.appendChild(btn);
         });
       }
       else if (currentMode === 'fill-blank') {
-        const hideWord = currentConcept.fragments_definicio[Math.floor(Math.random() * currentConcept.fragments_definicio.length)];
-        const modifiedDef = currentConcept.definicio_correcta.replace(hideWord, "________");
+        // Obtenim la posició del fragment correcte per buscar distractors de la mateixa posició
+        const fragmentIndex = Math.floor(Math.random() * currentConcept.fragments_definicio.length);
+        const hideWord = currentConcept.fragments_definicio[fragmentIndex];
+        
+        const regex = new RegExp(escapeRegExp(hideWord.trim()), "i");
+        const modifiedDef = currentConcept.definicio_correcta.replace(regex, "________");
+        
         questionInstruction.textContent = `Completa la definició de "${currentConcept.terme}":`;
         questionContent.textContent = `"${modifiedDef}"`;
         currentCorrectAnswer = hideWord;
-        const fake1 = db[Math.floor(Math.random() * db.length)].fragments_definicio[0] || "un impost indirecte";
-        const fake2 = db[Math.floor(Math.random() * db.length)].fragments_definicio[1] || "dels mercats financers";
+        
+        // Busquem distractors que tinguin un fragment a la mateixa posició
+        let validFakes = db.filter(c => c.terme !== currentConcept.terme && c.fragments_definicio.length > fragmentIndex);
+        if (validFakes.length < 2) validFakes = db.filter(c => c.terme !== currentConcept.terme); // Fallback per seguretat
+        validFakes = shuffle(validFakes);
+        
+        const fake1 = validFakes[0].fragments_definicio[fragmentIndex] || validFakes[0].fragments_definicio[0];
+        const fake2 = validFakes[1].fragments_definicio[fragmentIndex] || validFakes[1].fragments_definicio[0];
+        
         renderOptions(shuffle([hideWord, fake1, fake2]));
       }
     }
@@ -543,9 +602,6 @@ const db = [
       actionBtn.classList.add('active');
     }
 
-    // =====================================================================
-    // VALIDACIÓ
-    // =====================================================================
     function checkAnswer() {
       questionState = 'checking';
       let isCorrect = false;
@@ -584,8 +640,13 @@ const db = [
         }
       }
 
-      gameHistory.push(currentConcept.terme);
-      updateConceptStats(currentConcept.terme, isCorrect);
+      // Guardar a l'històric intern d'aquesta sessió
+      let existingItem = gameHistory.find(item => item.terme === currentConcept.terme);
+      if (existingItem) {
+          existingItem.correct = isCorrect; 
+      } else {
+          gameHistory.push({ terme: currentConcept.terme, correct: isCorrect });
+      }
 
       if (isCorrect) {
         playSound('correct'); currentQuestionCount++; updateProgress(); actionBtn.textContent = 'Continua';
@@ -603,58 +664,68 @@ const db = [
       else generateQuestion();
     }
 
-    // =====================================================================
-    // FINAL DE PARTIDA I RENDER
-    // =====================================================================
     function endGame(win) {
       questionArea.classList.add('hidden'); gameHeader.classList.add('hidden'); gameFooter.classList.add('hidden');
       resultArea.classList.remove('hidden');
       
-      let finalStreak = 0;
+      const statsContainer = document.getElementById('stats-container');
+      const historyContainer = document.getElementById('history-container');
+
       if (win) {
         playSound('win'); 
-        finalStreak = updateStreakOnWin();
+        let finalStreak = updateStreakOnWin();
         document.getElementById('result-title').textContent = '🎉 Lliçó Superada!';
         document.getElementById('result-title').style.color = '#58cc02';
         document.getElementById('result-msg').textContent = `Molt bona feina completant la lliçó.`;
+        
+        statsContainer.style.display = 'block';
+
+        // Calcular i animar Temps
+        let endTime = Date.now();
+        let diffSecs = Math.floor((endTime - startTime) / 1000);
+        animateTime('lesson-time', diffSecs, 1500);
+
+        // Calcular i animar Encert %
+        let mistakes = 3 - lives;
+        let totalAttempts = currentQuestionCount + mistakes; 
+        let accuracyPercentage = totalAttempts > 0 ? Math.round((currentQuestionCount / totalAttempts) * 100) : 0;
+        
+        const lessonScoreDiv = document.getElementById('lesson-score-div');
+        if (accuracyPercentage >= 80) lessonScoreDiv.style.color = '#58cc02';
+        else if (accuracyPercentage >= 50) lessonScoreDiv.style.color = '#ff9600';
+        else lessonScoreDiv.style.color = '#ea2b2b';
+
+        animateCounter('lesson-accuracy', accuracyPercentage, 1500);
+        document.getElementById('final-streak-count').textContent = finalStreak;
+
       } else {
         playSound('lose');
-        finalStreak = checkStreak();
         document.getElementById('result-title').textContent = '💔 Sense Vides';
         document.getElementById('result-title').style.color = '#ea2b2b';
-        document.getElementById('result-msg').textContent = 'Repassa els conceptes fallats i torna-ho a intentar.';
+        document.getElementById('result-msg').textContent = 'T\'has quedat sense vides. Anima\'t a repetir la lliçó!';
+        
+        statsContainer.style.display = 'none';
       }
 
-      document.getElementById('final-streak-count').textContent = finalStreak;
-
-      // Calcular l'històric d'aquesta sessió
-      let allStats = JSON.parse(localStorage.getItem('ecolingo_concept_stats')) || {};
-      let uniqueSessionConcepts = [...new Set(gameHistory)];
-      
-      let historyData = uniqueSessionConcepts.map(terme => {
-        let stat = allStats[terme];
-        let percent = stat ? Math.round((stat.correct / stat.total) * 100) : 0;
-        return { terme, percent };
-      });
-
-      historyData.sort((a, b) => b.percent - a.percent);
-
-      // Render de l'històric amb detalls desplegables
+      // Mostrar sempre l'històric (tant si es guanya com si es perd)
+      historyContainer.style.display = 'flex'; 
       historyList.innerHTML = '';
-      historyData.forEach(item => {
+      
+      gameHistory.forEach(item => {
         const details = document.createElement('details');
         details.className = 'history-item';
         
-        // Busquem la definició del concepte per mostrar-la
         const conceptData = db.find(c => c.terme === item.terme);
         const definitionText = conceptData ? conceptData.definicio_correcta : "Definició no disponible.";
         
-        let colorClass = item.percent >= 80 ? 'perc-high' : (item.percent >= 50 ? 'perc-mid' : 'perc-low');
+        let statusHtml = item.correct 
+          ? "<span style='color: #58cc02; font-weight: bold;'>Encertat</span>" 
+          : "<span style='color: #ea2b2b; font-weight: bold;'>Fallat</span>";
         
         details.innerHTML = `
           <summary class="history-summary">
             <span><strong>${item.terme}</strong> ▾</span>
-            <span class="${colorClass}">${item.percent}% d'encert</span>
+            <span>${statusHtml}</span>
           </summary>
           <div class="history-definition">${definitionText}</div>
         `;
@@ -663,7 +734,6 @@ const db = [
     }
 
     function resetGame() {
-      // Prevenció d'errors si la bbdd està buida
       if (!db || db.length === 0) return;
 
       currentQuestionCount = 0;
@@ -677,13 +747,14 @@ const db = [
       gameHeader.classList.remove('hidden');
       gameFooter.classList.remove('hidden');
       
+      startTime = Date.now(); 
       generateQuestion();
     }
 
     window.onload = () => {
       checkStreak();
-      // Vinculem el botó de reiniciar directament per codi
       document.getElementById('restart-btn').addEventListener('click', resetGame);
+      startTime = Date.now(); 
       generateQuestion();
     };
   </script>
