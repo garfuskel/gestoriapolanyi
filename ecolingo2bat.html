@@ -1,0 +1,4554 @@
+<!DOCTYPE html>
+<html lang="ca" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="google" content="notranslate">
+  <title>EcoLingo</title>
+  <style>
+    body {
+      font-family: 'Nunito', 'Segoe UI', sans-serif;
+      background-color: #ffffff;
+      color: #3c3c3c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      height: 100dvh; 
+      overflow: hidden; 
+      box-sizing: border-box;
+    }
+    
+    .screen-wrapper {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 15px 20px; 
+      box-sizing: border-box;
+    }
+
+    /* --- MENÚ PRINCIPAL I PERSONALITZADA --- */
+    #menu-screen, #custom-screen {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .app-title {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #58cc02;
+      margin-bottom: 10px;
+      letter-spacing: -1px;
+    }
+    .app-subtitle {
+      font-size: 1.2rem;
+      color: #afafaf;
+      margin-bottom: 40px;
+      font-weight: bold;
+    }
+    .menu-btn {
+      width: 100%;
+      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 15px; padding: 20px;
+      font-size: 1.2rem; font-weight: bold; cursor: pointer; text-align: center;
+      transition: all 0.1s ease; color: #4b4b4b; box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+      margin-bottom: 15px;
+    }
+    .menu-btn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0); }
+    .menu-btn.primary { background: #58cc02; color: white; border-color: #58cc02; box-shadow: 0 4px 0 #58a700; }
+    .menu-btn.primary:active { box-shadow: 0 0 0 #58a700; }
+    .menu-btn.secondary { background: #1cb0f6; color: white; border-color: #1cb0f6; box-shadow: 0 4px 0 #1899d6; }
+    .menu-btn.secondary:active { box-shadow: 0 0 0 #1899d6; }
+    .menu-btn.danger { background: #ff4b4b; color: white; border-color: #ff4b4b; box-shadow: 0 4px 0 #ea2b2b; }
+    .menu-btn.danger:active { box-shadow: 0 0 0 #ea2b2b; }
+
+    .custom-options { width: 100%; text-align: left; margin-bottom: 30px; overflow-y: auto; max-height: 50vh; }
+    .checkbox-label {
+      display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: bold;
+      padding: 15px; border: 2px solid #e5e5e5; border-radius: 15px; margin-bottom: 10px; cursor: pointer;
+      color: #4b4b4b; transition: background 0.2s;
+    }
+    .checkbox-label:hover { background: #f7f9fa; }
+    .checkbox-label input { width: 22px; height: 22px; accent-color: #1cb0f6; cursor: pointer; }
+
+    /* --- JOC PRINCIPAL --- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px; 
+      gap: 15px;
+      flex-shrink: 0; 
+    }
+    .stats-group { display: flex; gap: 15px; }
+    .lives { color: #ff4b4b; font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 5px; }
+    
+    .progress-bar-container { flex-grow: 1; background-color: #e5e5e5; height: 16px; border-radius: 10px; overflow: hidden; }
+    .progress-bar-fill { background-color: #58cc02; height: 100%; width: 0%; border-radius: 10px; transition: width 0.3s ease; }
+
+    /* Barra del Temporitzador (Mode Infinit) */
+    #timer-bar-wrapper { width: 100%; margin-bottom: 15px; display: none; }
+    .timer-bar-container { width: 100%; background-color: #e5e5e5; height: 12px; border-radius: 10px; overflow: hidden; }
+    .timer-bar-fill { background-color: #ff9600; height: 100%; width: 100%; border-radius: 10px; transition: width 0.1s linear; }
+
+    #question-area { 
+      flex-grow: 1; 
+      display: flex; 
+      flex-direction: column; 
+      overflow-y: auto; 
+      padding-bottom: 10px;
+    }
+    
+    .question-instruction {
+      font-size: 1rem; font-weight: bold; color: #afafaf; margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
+    }
+    
+    .question-content {
+      font-size: 1.3rem; font-weight: 800; margin-bottom: 20px;
+      color: #3c3c3c; line-height: 1.3; flex-shrink: 0;
+    }
+    
+    .options { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+    .option-btn {
+      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 15px; padding: 15px;
+      font-size: 1.1rem; font-weight: bold; cursor: pointer; text-align: left;
+      transition: all 0.1s ease; color: #4b4b4b; box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+    }
+    .option-btn:hover { background: #f7f7f7; }
+    .option-btn.selected { background: #ddf4ff; border-color: #1cb0f6; color: #1899d6; box-shadow: 0 4px 0 #1899d6; }
+    .option-btn.correct { background: #d7ffb8; border-color: #58cc02; color: #58a700; box-shadow: 0 4px 0 #58a700; }
+    .option-btn.wrong { background: #ffdfe0; border-color: #ea2b2b; color: #ea2b2b; box-shadow: 0 4px 0 #ea2b2b; }
+
+    .text-input {
+      width: 100%; padding: 15px; border: 2px solid #e5e5e5; border-radius: 15px;
+      font-size: 1.2rem; font-weight: bold; box-sizing: border-box; color: #3c3c3c;
+    }
+    .text-input:focus { outline: none; border-color: #1cb0f6; background: #ddf4ff; }
+    .text-input.correct { background: #d7ffb8; border-color: #58cc02; color: #58a700; }
+    .text-input.wrong { background: #ffdfe0; border-color: #ea2b2b; color: #ea2b2b; }
+
+    .order-area { display: flex; flex-wrap: wrap; gap: 8px; min-height: 50px; padding: 12px; border-radius: 15px; }
+    .order-area.target { border: 2px dashed #afafaf; margin-bottom: 10px; background: #f7f9fa; transition: background 0.2s; }
+    .order-area.source { border: 2px solid transparent; padding: 0;}
+    .fragment-btn {
+      background: #ffffff; border: 2px solid #e5e5e5; border-radius: 10px; padding: 8px 12px;
+      font-size: 1rem; font-weight: bold; cursor: pointer; color: #4b4b4b; box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+      transition: transform 0.1s;
+    }
+    .fragment-btn:hover { background: #f0f0f0; transform: scale(1.02); }
+
+    .footer { border-top: 2px solid #e5e5e5; padding-top: 15px; margin-top: auto; flex-shrink: 0; display: flex; gap: 10px; }
+    #action-btn {
+      flex-grow: 1; background: #e5e5e5; color: #afafaf; border: none; border-radius: 15px;
+      padding: 16px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; cursor: not-allowed;
+      box-shadow: 0 4px 0 #afafaf; transition: all 0.1s;
+    }
+    #action-btn.active { background: #58cc02; color: white; cursor: pointer; box-shadow: 0 4px 0 #58a700; }
+    #action-btn.active:active { transform: translateY(4px); box-shadow: 0 0 0 #58a700; }
+    #action-btn.wrong-state { background: #ea2b2b; box-shadow: 0 4px 0 #c11f1f; color: white; }
+
+    /* Històric de Resultats */
+    #history-container {
+      margin-top: 15px; text-align: left; background: #f7f9fa; border: 2px solid #e5e5e5;
+      border-radius: 15px; padding: 15px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column;
+    }
+    .history-title { font-size: 1rem; font-weight: bold; color: #afafaf; margin-bottom: 10px; text-transform: uppercase; }
+    .history-item { border-bottom: 2px solid #e5e5e5; margin-bottom: 5px; }
+    .history-item:last-child { border-bottom: none; margin-bottom: 0; }
+    .history-summary {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 0; 
+      font-size: 1.1rem; color: #4b4b4b; cursor: pointer; list-style: none;
+    }
+    .history-summary::-webkit-details-marker { display: none; }
+    .history-summary:hover { color: #1cb0f6; }
+    .history-definition {
+      padding: 10px; margin-bottom: 10px; background: #ffffff; border-radius: 10px; 
+      border: 1px solid #e5e5e5; font-size: 0.95rem; color: #555; line-height: 1.4;
+    }
+
+    /* Animacions */
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    .pop-anim { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; display: inline-block; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+    .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    
+    .hidden { display: none !important; }
+    #result-area { text-align: center; margin-top: 10px; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #result-area h1 { font-size: 2rem; margin-bottom: 5px; }
+    .streak-final { color: #ff9600; font-weight: bold; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; gap: 5px; }
+    .lesson-score { display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; gap: 5px; }
+    .buttons-row { display: flex; gap: 10px; margin-top: 15px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+  <div id="menu-screen" class="screen-wrapper">
+    <div class="app-title">EcoLingo</div>
+    <div class="app-subtitle">Aprèn economia jugant</div>
+    
+    <button class="menu-btn primary" onclick="setMode('rapid')">⚡ Partida Ràpida</button>
+    <button class="menu-btn secondary" onclick="openCustomMenu()">⚙️ Partida Personalitzada</button>
+    <button class="menu-btn danger" onclick="setMode('infinite')">♾️ Mode Infinit</button>
+  </div>
+
+  <div id="custom-screen" class="screen-wrapper hidden">
+    <div class="app-title" style="font-size: 2rem;">Temes</div>
+    <div class="app-subtitle" style="margin-bottom: 20px;">Què vols repassar avui?</div>
+    
+    <div class="custom-options" id="custom-options-container">
+      </div>
+
+    <button class="menu-btn primary" onclick="setMode('custom')">Comença a jugar</button>
+    <button class="menu-btn" onclick="goMainMenu()">Tornar al menú</button>
+  </div>
+
+  <div id="game-wrapper" class="screen-wrapper hidden">
+    <div class="header" id="game-header">
+      <div class="stats-group">
+        <div class="lives">❤️ <span id="lives-count">3</span></div>
+        <div class="lives" id="score-counter-wrapper" style="color:#1cb0f6; display:none;">⭐ <span id="score-count">0</span></div>
+      </div>
+      <div class="progress-bar-container" id="main-progress-container"><div class="progress-bar-fill" id="progress-bar"></div></div>
+    </div>
+
+    <div id="timer-bar-wrapper">
+      <div class="timer-bar-container"><div class="timer-bar-fill" id="timer-bar"></div></div>
+    </div>
+
+    <div id="question-area">
+      <div class="question-instruction" id="question-instruction">Carregant...</div>
+      <div class="question-content" id="question-content"></div>
+      
+      <div class="options" id="options-container"></div>
+      <div id="feedback-msg" style="margin-top: 10px; font-weight: bold; font-size: 1.1rem; display: none; flex-shrink: 0;"></div>
+    </div>
+
+    <div id="result-area" class="hidden">
+      <h1 id="result-title"></h1>
+      <p id="result-msg" style="font-size: 1rem; color: #777; margin-bottom: 10px; flex-shrink: 0;"></p>
+      
+      <div id="stats-container">
+        <div class="streak-final">🔥 Ratxa diària: <span id="final-streak-count">0</span></div>
+        <div class="lesson-score">⏱️ Temps: <span id="lesson-time" style="display:inline-block;">0:00</span></div>
+        <div class="lesson-score" id="lesson-score-div">🎯 Encert: <span id="lesson-accuracy" style="display:inline-block;">0</span>%</div>
+      </div>
+      
+      <div id="history-container">
+        <div class="history-title">Resum de la sessió (Clica per repassar)</div>
+        <div id="history-list"></div>
+      </div>
+
+      <div class="buttons-row">
+        <button id="restart-btn" class="menu-btn primary" style="margin-bottom:0;" onclick="resetGame()">Torna a jugar</button>
+        <button class="menu-btn" style="margin-bottom:0;" onclick="goMainMenu()">Menú</button>
+      </div>
+    </div>
+
+    <div class="footer" id="game-footer">
+      <button id="action-btn" disabled>Comprova</button>
+    </div>
+  </div>
+
+  <script>
+    // =====================================================================
+    // ENGANXA AQUÍ LA TEVA VARIABLE "db" COMPLETA AMB TOTS ELS TEMES
+    // =====================================================================
+const db = [
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Empresa",
+    termes_alternatius: [],
+    definicio_correcta: "Unitat econòmica de producció que combina els factors productius per crear béns i serveis amb l'objectiu principal d'obtenir un benefici.",
+    fragments_definicio: [
+      "Unitat econòmica de producció que",
+      "combina els factors productius per",
+      "crear béns i serveis amb",
+      "l'objectiu principal d'obtenir un benefici."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Terra",
+    termes_alternatius: [],
+    definicio_correcta: "Factor de producció que inclou els recursos naturals i l'espai físic utilitzats en el procés productiu.",
+    fragments_definicio: [
+      "Factor de producció que",
+      "inclou els recursos naturals",
+      "i l'espai físic utilitzats",
+      "en el procés productiu."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Treball",
+    termes_alternatius: [],
+    definicio_correcta: "Factor de producció que comprèn l'esforç físic i intel·lectual aportat per les persones en el procés de producció.",
+    fragments_definicio: [
+      "Factor de producció que comprèn",
+      "l'esforç físic i intel·lectual aportat",
+      "per les persones en el",
+      "procés de producció."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Capital",
+    termes_alternatius: [],
+    definicio_correcta: "Factor de producció constituït pel conjunt de béns d'inversió i recursos financers necessaris per dur a terme l'activitat econòmica.",
+    fragments_definicio: [
+      "Factor de producció constituït pel",
+      "conjunt de béns d'inversió i",
+      "recursos financers necessaris per dur",
+      "a terme l'activitat econòmica."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Factor de producció",
+    termes_alternatius: [],
+    definicio_correcta: "Cadascun dels recursos bàsics (terra, capital, treball) que s'utilitzen per produir béns i serveis.",
+    fragments_definicio: [
+      "Cadascun dels recursos bàsics",
+      "(terra, capital, treball) que",
+      "s'utilitzen per produir béns",
+      "i serveis."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Benefici",
+    termes_alternatius: [],
+    definicio_correcta: "Diferència positiva entre els ingressos totals obtinguts per la venda de productes i els costos totals de producció.",
+    fragments_definicio: [
+      "Diferència positiva entre els ingressos",
+      "totals obtinguts per la venda",
+      "de productes i els costos",
+      "totals de producció."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Rendibilitat",
+    termes_alternatius: [],
+    definicio_correcta: "Relació percentual entre el benefici obtingut per l'empresa i el capital invertit per aconseguir-lo.",
+    fragments_definicio: [
+      "Relació percentual entre el",
+      "benefici obtingut per l'empresa",
+      "i el capital invertit",
+      "per aconseguir-lo."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Estabilitzar-se",
+    termes_alternatius: [],
+    definicio_correcta: "Objectiu empresarial que consisteix a mantenir la posició al mercat i assegurar la supervivència de l'empresa a llarg termini.",
+    fragments_definicio: [
+      "Objectiu empresarial que consisteix a",
+      "mantenir la posició al mercat",
+      "i assegurar la supervivència de",
+      "l'empresa a llarg termini."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Créixer",
+    termes_alternatius: [
+      "Creixement"
+    ],
+    definicio_correcta: "Objectiu empresarial basat en l'augment de la mida de l'empresa, la seva quota de mercat o el seu volum d'ingressos.",
+    fragments_definicio: [
+      "Objectiu empresarial basat en l'augment",
+      "de la mida de l'empresa,",
+      "la seva quota de mercat",
+      "o el seu volum d'ingressos."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "RSC",
+    termes_alternatius: [],
+    definicio_correcta: "Responsabilitat Social Corporativa. Conjunt d'obligacions i compromisos ètics, socials i mediambientals que l'empresa assumeix voluntàriament amb la societat.",
+    fragments_definicio: [
+      "Responsabilitat Social Corporativa. Conjunt d'obligacions",
+      "i compromisos ètics, socials i",
+      "mediambientals que l'empresa assumeix voluntàriament",
+      "amb la societat."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Misió",
+    termes_alternatius: [],
+    definicio_correcta: "Declaració que defineix el propòsit fonamental de l'empresa, la seva raó de ser i l'activitat que realitza en el present. Respon a la pregunta: què es vol fer?",
+    fragments_definicio: [
+      "Declaració que defineix el propòsit fonamental de",
+      "l'empresa, la seva raó de ser i",
+      "l'activitat que realitza en el present. Respon",
+      "a la pregunta: què es vol fer?"
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Visió",
+    termes_alternatius: [],
+    definicio_correcta: "Imatge futura que l'empresa vol assolir a llarg termini i que serveix de guia per a les seves estratègies. Respon a la pregunta: on es vol arribar?",
+    fragments_definicio: [
+      "Imatge futura que l'empresa vol assolir a",
+      "llarg termini i que serveix de guia",
+      "per a les seves estratègies. Respon a",
+      "la pregunta: on es vol arribar?"
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Valors corporatius",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de principis ètics i creences que guien el comportament i la cultura de l'empresa. Respon a la pregunta: com es vol fer?",
+    fragments_definicio: [
+      "Conjunt de principis ètics i creences",
+      "que guien el comportament i la",
+      "cultura de l'empresa. Respon a la",
+      "pregunta: com es vol fer?"
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Objectiu general",
+    termes_alternatius: [],
+    definicio_correcta: "Fita global i a llarg termini que l'empresa vol aconseguir i que deriva directament de la seva missió i visió.",
+    fragments_definicio: [
+      "Fita global i a llarg",
+      "termini que l'empresa vol aconseguir",
+      "i que deriva directament de",
+      "la seva missió i visió."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Objectiu específic",
+    termes_alternatius: [],
+    definicio_correcta: "Fita concreta, mesurable i a curt termini que ajuda a assolir els objectius generals de l'empresa.",
+    fragments_definicio: [
+      "Fita concreta, mesurable i",
+      "a curt termini que",
+      "ajuda a assolir els",
+      "objectius generals de l'empresa."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Conflicte d'objectius",
+    termes_alternatius: [],
+    definicio_correcta: "Situació de tensió que es produeix quan els interessos dels diferents grups relacionats amb l'empresa són incompatibles entre ells.",
+    fragments_definicio: [
+      "Situació de tensió que es",
+      "produeix quan els interessos dels",
+      "diferents grups relacionats amb l'empresa",
+      "són incompatibles entre ells."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Negociació",
+    termes_alternatius: [],
+    definicio_correcta: "Procés de diàleg directe entre les parts en conflicte per intentar arribar a un acord satisfactori sense intervenció de tercers.",
+    fragments_definicio: [
+      "Procés de diàleg directe entre",
+      "les parts en conflicte per",
+      "intentar arribar a un acord",
+      "satisfactori sense intervenció de tercers."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Conciliació",
+    termes_alternatius: [],
+    definicio_correcta: "Mètode de resolució de conflictes on un tercer neutral apropa les parts perquè dialoguin, però sense proposar solucions.",
+    fragments_definicio: [
+      "Mètode de resolució de conflictes",
+      "on un tercer neutral apropa",
+      "les parts perquè dialoguin, però",
+      "sense proposar solucions."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Mediació",
+    termes_alternatius: [],
+    definicio_correcta: "Mètode de resolució de conflictes on un tercer neutral i imparcial ajuda activament les parts a trobar i acordar una solució.",
+    fragments_definicio: [
+      "Mètode de resolució de conflictes on",
+      "un tercer neutral i imparcial ajuda",
+      "activament les parts a trobar i",
+      "acordar una solució."
+    ]
+  },
+  {
+    tema: "1 - Els objectius de l'empresa i el conflicte d'objectius",
+    terme: "Arbitratge",
+    termes_alternatius: [],
+    definicio_correcta: "Mètode de resolució de conflictes on un tercer neutral escolta les parts i dicta una resolució d'obligat compliment.",
+    fragments_definicio: [
+      "Mètode de resolució de conflictes",
+      "on un tercer neutral escolta",
+      "les parts i dicta una",
+      "resolució d'obligat compliment."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Localització",
+    termes_alternatius: [],
+    definicio_correcta: "Lloc físic o espai geogràfic on l'empresa decideix instal·lar-se per dur a terme la seva activitat productiva o comercial.",
+    fragments_definicio: [
+      "Lloc físic o espai geogràfic",
+      "on l'empresa decideix instal·lar-se per",
+      "dur a terme la seva",
+      "activitat productiva o comercial."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Dimensió",
+    termes_alternatius: [
+      "Mida"
+    ],
+    definicio_correcta: "Capacitat de producció màxima que té una empresa o les seves instal·lacions en un període de temps determinat.",
+    fragments_definicio: [
+      "Capacitat de producció màxima que",
+      "té una empresa o les",
+      "seves instal·lacions en un període",
+      "de temps determinat."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Aprovisionament",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'operacions que realitza l'empresa per adquirir, transportar i emmagatzemar les matèries primeres necessàries per a la producció.",
+    fragments_definicio: [
+      "Conjunt d'operacions que realitza l'empresa",
+      "per adquirir, transportar i emmagatzemar",
+      "les matèries primeres necessàries per",
+      "a la producció."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Subministrament",
+    termes_alternatius: [
+      "Subministraments"
+    ],
+    definicio_correcta: "Serveis bàsics, com l'aigua, l'energia o les telecomunicacions.",
+    fragments_definicio: [
+      "Serveis bàsics,",
+      "com l'aigua,",
+      "l'energia o",
+      "les telecomunicacions."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Mercat de treball",
+    termes_alternatius: [],
+    definicio_correcta: "Entorn on s'intercanvia l'oferta i la demanda d'ocupació, un factor clau per trobar mà d'obra qualificada prop de l'empresa.",
+    fragments_definicio: [
+      "Entorn on s'intercanvia l'oferta i",
+      "la demanda d'ocupació, un factor",
+      "clau per trobar mà d'obra",
+      "qualificada prop de l'empresa."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Finançament",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de recursos econòmics i vies d'accés a crèdit que l'empresa necessita per pagar les seves instal·lacions i inversions.",
+    fragments_definicio: [
+      "Conjunt de recursos econòmics i",
+      "vies d'accés a crèdit que",
+      "l'empresa necessita per pagar les",
+      "seves instal·lacions i inversions."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Legislació",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de normes i lleis jurídiques, fiscals i mediambientals que condicionen l'activitat d'una empresa en un territori concret.",
+    fragments_definicio: [
+      "Conjunt de normes i lleis",
+      "jurídiques, fiscals i mediambientals que",
+      "condicionen l'activitat d'una empresa en",
+      "un territori concret."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Mercat",
+    termes_alternatius: [],
+    definicio_correcta: "Lloc físic o virtual on es troben els compradors i els venedors per intercanviar béns i serveis.",
+    fragments_definicio: [
+      "Lloc físic o virtual on",
+      "es troben els compradors i",
+      "els venedors per intercanviar béns",
+      "i serveis."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Competència",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'empreses que ofereixen productes o serveis similars i que s'adrecen al mateix grup de consumidors en una zona.",
+    fragments_definicio: [
+      "Conjunt d'empreses que ofereixen productes",
+      "o serveis similars i que",
+      "s'adrecen al mateix grup de",
+      "consumidors en una zona."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Centralització",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia organitzativa que consisteix a concentrar tota l'activitat i les instal·lacions de l'empresa en un únic espai geogràfic o seu.",
+    fragments_definicio: [
+      "Estratègia organitzativa que consisteix a",
+      "concentrar tota l'activitat i les",
+      "instal·lacions de l'empresa en un",
+      "únic espai geogràfic o seu."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Descentralització",
+    termes_alternatius: [],
+    definicio_correcta: "Distribució de les diferents instal·lacions, fàbriques o divisions de l'empresa en diverses zones geogràfiques per millorar l'eficiència.",
+    fragments_definicio: [
+      "Distribució de les diferents instal·lacions,",
+      "fàbriques o divisions de l'empresa",
+      "en diverses zones geogràfiques per",
+      "millorar l'eficiència."
+    ]
+  },
+  {
+    tema: "2 - La localització de l'empresa",
+    terme: "Deslocalització",
+    termes_alternatius: [],
+    definicio_correcta: "Trasllat de part o de tota l'activitat productiva d'una empresa cap a un altre país, generalment per reduir els costos laborals o fiscals.",
+    fragments_definicio: [
+      "Trasllat de part o de tota",
+      "l'activitat productiva d'una empresa cap a",
+      "un altre país, generalment per reduir",
+      "els costos laborals o fiscals."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Creixement intern",
+    termes_alternatius: [],
+    definicio_correcta: "Increment de la capacitat productiva de l'empresa mitjançant noves inversions en el propi patrimoni.",
+    fragments_definicio: [
+      "Increment de la capacitat",
+      "productiva de l'empresa mitjançant",
+      "noves inversions en el",
+      "propi patrimoni."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Creixement extern",
+    termes_alternatius: [],
+    definicio_correcta: "Increment de la dimensió de l'empresa mitjançant l'adquisició, participació o control d'altres empreses ja existents.",
+    fragments_definicio: [
+      "Increment de la dimensió",
+      "de l'empresa mitjançant l'adquisició,",
+      "participació o control d'altres",
+      "empreses ja existents."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Matriu d'Ansoff",
+    termes_alternatius: [],
+    definicio_correcta: "Eina d'anàlisi estratègica que relaciona els productes i els mercats per identificar oportunitats de creixement.",
+    fragments_definicio: [
+      "Eina d'anàlisi estratègica que",
+      "relaciona els productes i",
+      "els mercats per identificar",
+      "oportunitats de creixement."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Especialització",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia de creixement on l'empresa intensifica el seu esforç en els productes i mercats que ja coneix.",
+    fragments_definicio: [
+      "Estratègia de creixement on l'empresa",
+      "intensifica el seu esforç en",
+      "els productes i mercats que",
+      "ja coneix."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Diversificació",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia de creixement on l'empresa decideix afegir nous productes i entrar en nous mercats.",
+    fragments_definicio: [
+      "Estratègia de creixement on",
+      "l'empresa decideix afegir nous",
+      "productes i entrar en",
+      "nous mercats."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Diversificació horitzontal",
+    termes_alternatius: [
+      "Diversificació relacionada"
+    ],
+    definicio_correcta: "Estratègia on l'empresa ofereix nous productes que tenen relació tecnològica o comercial amb els que ja fabricava.",
+    fragments_definicio: [
+      "Estratègia on l'empresa ofereix nous",
+      "productes que tenen relació tecnològica",
+      "o comercial amb els que",
+      "ja fabricava."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Diversificació heterogènia",
+    termes_alternatius: [
+      "Diversificació no relacionada"
+    ],
+    definicio_correcta: "Estratègia on l'empresa ofereix nous productes que no tenen cap mena de relació amb la seva activitat original.",
+    fragments_definicio: [
+      "Estratègia on l'empresa ofereix nous",
+      "productes que no tenen cap",
+      "mena de relació amb la",
+      "seva activitat original."
+    ]
+  },
+  {
+    tema: "3 - La dimensió de l'empresa: creixement intern",
+    terme: "Diversificació vertical",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia on l'empresa passa a realitzar fases de la cadena de valor que abans delegava en proveïdors o distribuïdors.",
+    fragments_definicio: [
+      "Estratègia on l'empresa passa a",
+      "realitzar fases de la cadena",
+      "de valor que abans delegava",
+      "en proveïdors o distribuïdors."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Fusió pura",
+    termes_alternatius: [
+      "Fusió"
+    ],
+    definicio_correcta: "Unió de dues o més empreses per crear-ne una de nova, perdent totes elles la seva personalitat jurídica prèvia.",
+    fragments_definicio: [
+      "Unió de dues o més",
+      "empreses per crear-ne una de",
+      "nova, perdent totes elles la",
+      "seva personalitat jurídica prèvia."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Fusió per absorció",
+    termes_alternatius: [
+      "Absorció"
+    ],
+    definicio_correcta: "Operació en què una empresa adquireix una altra o altres que desapareixen, integrant el seu patrimoni a l'empresa absorbent.",
+    fragments_definicio: [
+      "Operació en què una empresa",
+      "adquireix una altra o altres",
+      "que desapareixen, integrant el seu",
+      "patrimoni a l'empresa absorbent."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Cooperació",
+    termes_alternatius: [
+      "Cooperació empresarial"
+    ],
+    definicio_correcta: "Acord entre empreses independents per associar-se i compartir recursos per tal d'aconseguir objectius comuns sense perdre la seva identitat.",
+    fragments_definicio: [
+      "Acord entre empreses independents per",
+      "associar-se i compartir recursos per",
+      "tal d'aconseguir objectius comuns sense",
+      "perdre la seva identitat."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Participació",
+    termes_alternatius: [],
+    definicio_correcta: "Adquisició d'una part de les accions d'una altra societat per tenir-hi capacitat de decisió o control.",
+    fragments_definicio: [
+      "Adquisició d'una part de",
+      "les accions d'una altra",
+      "societat per tenir-hi capacitat",
+      "de decisió o control."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Aliança d'empreses",
+    termes_alternatius: [
+      "Joint-venture",
+      "Joint venture"
+    ],
+    definicio_correcta: "Acord a llarg termini entre empreses diferents per aportar capital i crear una nova societat conjunta per desenvolupar un projecte.",
+    fragments_definicio: [
+      "Acord a llarg termini entre",
+      "empreses diferents per aportar capital",
+      "i crear una nova societat",
+      "conjunta per desenvolupar un projecte."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Clúster",
+    termes_alternatius: [
+      "Cluster"
+    ],
+    definicio_correcta: "Concentració geogràfica d'empreses, institucions i universitats relacionades amb un mateix sector que cooperen per ser més innovadores.",
+    fragments_definicio: [
+      "Concentració geogràfica d'empreses, institucions i",
+      "universitats relacionades amb un mateix",
+      "sector que cooperen per ser",
+      "més innovadores."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Trust",
+    termes_alternatius: [
+      "Concentració vertical"
+    ],
+    definicio_correcta: "Concentració d'empreses sota una mateixa direcció central amb l'objectiu d'eliminar la competència i dominar el mercat.",
+    fragments_definicio: [
+      "Concentració d'empreses sota una",
+      "mateixa direcció central amb",
+      "l'objectiu d'eliminar la competència",
+      "i dominar el mercat."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Càrtel",
+    termes_alternatius: [
+      "Cartel"
+    ],
+    definicio_correcta: "Acord informal o formal entre empreses del mateix sector per fixar preus o repartir-se el mercat, sent una pràctica normalment il·legal.",
+    fragments_definicio: [
+      "Acord informal o formal entre empreses",
+      "del mateix sector per fixar preus",
+      "o repartir-se el mercat, sent una",
+      "pràctica normalment il·legal."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Hòlding",
+    termes_alternatius: [
+      "Holding",
+      "Societat matriu"
+    ],
+    definicio_correcta: "Societat que té com a única finalitat posseir accions d'altres empreses per controlar-ne les decisions estratègiques.",
+    fragments_definicio: [
+      "Societat que té com",
+      "a única finalitat posseir",
+      "accions d'altres empreses per",
+      "controlar-ne les decisions estratègiques."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Aliances estratègiques",
+    termes_alternatius: [
+      "Acords estratègics"
+    ],
+    definicio_correcta: "Acords de cooperació entre empreses per assolir avantatges competitius compartint riscos i costos en àrees concretes.",
+    fragments_definicio: [
+      "Acords de cooperació entre",
+      "empreses per assolir avantatges",
+      "competitius compartint riscos i",
+      "costos en àrees concretes."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "UTE",
+    termes_alternatius: [
+      "Unió Temporal d'Empreses"
+    ],
+    definicio_correcta: "Acord temporal entre diverses empreses per dur a terme una obra o servei concret que no podrien fer per separat.",
+    fragments_definicio: [
+      "Acord temporal entre diverses empreses",
+      "per dur a terme una",
+      "obra o servei concret que",
+      "no podrien fer per separat."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "AIE",
+    termes_alternatius: [
+      "Agrupació d'Interès Econòmic"
+    ],
+    definicio_correcta: "Agrupació d'empreses que té com a finalitat facilitar o desenvolupar l'activitat econòmica dels seus socis sense ànim de lucre propi.",
+    fragments_definicio: [
+      "Agrupació d'empreses que té com",
+      "a finalitat facilitar o desenvolupar",
+      "l'activitat econòmica dels seus socis",
+      "sense ànim de lucre propi."
+    ]
+  },
+  {
+    tema: "4 - La dimensió de l'empresa: creixement extern",
+    terme: "Franquícia",
+    termes_alternatius: [],
+    definicio_correcta: "Acord on una empresa cedeix a una altra el dret a explotar el seu model de negoci i la seva marca a canvi d'una compensació econòmica.",
+    fragments_definicio: [
+      "Acord on una empresa cedeix a una",
+      "altra el dret a explotar el seu",
+      "model de negoci i la seva marca",
+      "a canvi d'una compensació econòmica."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Microempresa",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que té menys de 10 treballadors o un volum de facturació anual que no supera els 2 milions d'euros.",
+    fragments_definicio: [
+      "Empresa que té menys de",
+      "10 treballadors o un volum",
+      "de facturació anual que no",
+      "supera els 2 milions d'euros."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Petita empresa",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que té entre 10 i 49 treballadors o una facturació anual inferior a 10 milions d'euros.",
+    fragments_definicio: [
+      "Empresa que té entre 10",
+      "i 49 treballadors o una",
+      "facturació anual inferior a 10",
+      "milions d'euros."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Mitjana empresa",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que té entre 50 i 249 treballadors o un volum de facturació anual que no excedeix els 50 milions d'euros.",
+    fragments_definicio: [
+      "Empresa que té entre 50 i",
+      "249 treballadors o un volum de",
+      "facturació anual que no excedeix els",
+      "50 milions d'euros."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Gran empresa",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que compta amb 250 o més treballadors o una facturació anual superior als 50 milions d'euros.",
+    fragments_definicio: [
+      "Empresa que compta amb 250",
+      "o més treballadors o una",
+      "facturació anual superior als 50",
+      "milions d'euros."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Facturació",
+    termes_alternatius: [
+      "Volum de negoci"
+    ],
+    definicio_correcta: "Suma total dels ingressos que una empresa obté per la venda dels seus béns o serveis durant un període.",
+    fragments_definicio: [
+      "Suma total dels ingressos que",
+      "una empresa obté per la",
+      "venda dels seus béns o",
+      "serveis durant un període."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Sector primari",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'activitats econòmiques que s'encarreguen de l'extracció i obtenció de recursos naturals.",
+    fragments_definicio: [
+      "Conjunt d'activitats econòmiques",
+      "que s'encarreguen de",
+      "l'extracció i obtenció",
+      "de recursos naturals."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Sector secundari",
+    termes_alternatius: [
+      "Sector industrial"
+    ],
+    definicio_correcta: "Conjunt d'activitats econòmiques dedicades a la transformació de les matèries primeres en productes elaborats.",
+    fragments_definicio: [
+      "Conjunt d'activitats econòmiques dedicades",
+      "a la transformació de",
+      "les matèries primeres en",
+      "productes elaborats."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Sector terciari",
+    termes_alternatius: [
+      "Sector serveis"
+    ],
+    definicio_correcta: "Conjunt d'activitats econòmiques que no produeixen béns materials sinó que presten serveis a la societat.",
+    fragments_definicio: [
+      "Conjunt d'activitats econòmiques que",
+      "no produeixen béns materials",
+      "sinó que presten serveis",
+      "a la societat."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Sector quaternari",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'activitats econòmiques basades en el coneixement, la investigació, el desenvolupament i la innovació.",
+    fragments_definicio: [
+      "Conjunt d'activitats econòmiques basades",
+      "en el coneixement, la",
+      "investigació, el desenvolupament i",
+      "la innovació."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa local",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que desenvolupa la seva activitat comercial en una única localitat o municipi.",
+    fragments_definicio: [
+      "Empresa que desenvolupa la",
+      "seva activitat comercial en",
+      "una única localitat o",
+      "municipi."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa regional",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que estén la seva activitat comercial per una regió o comunitat autònoma concreta.",
+    fragments_definicio: [
+      "Empresa que estén la",
+      "seva activitat comercial per",
+      "una regió o comunitat",
+      "autònoma concreta."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa nacional",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que desenvolupa la seva activitat comercial per tot el territori d'un país.",
+    fragments_definicio: [
+      "Empresa que desenvolupa la",
+      "seva activitat comercial per",
+      "tot el territori d'un",
+      "país."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa internacional",
+    termes_alternatius: [
+      "Empresa exportadora"
+    ],
+    definicio_correcta: "Empresa que ven els seus productes o serveis a diferents països, però que manté la producció al seu país d'origen.",
+    fragments_definicio: [
+      "Empresa que ven els seus",
+      "productes o serveis a diferents",
+      "països, però que manté la",
+      "producció al seu país d'origen."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa multinacional",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa que no només ven, sinó que també té instal·lacions de producció o filials en diversos països.",
+    fragments_definicio: [
+      "Empresa que no només ven,",
+      "sinó que també té instal·lacions",
+      "de producció o filials en",
+      "diversos països."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Filial",
+    termes_alternatius: [],
+    definicio_correcta: "Unitat de producció o venda d'una empresa multinacional situada a un país diferent al de la seu.",
+    fragments_definicio: [
+      "Unitat de producció o venda",
+      "d'una empresa multinacional situada a",
+      "un país diferent al de",
+      "la seu."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Ànim de lucre",
+    termes_alternatius: [
+      "Finalitat lucrativa"
+    ],
+    definicio_correcta: "Objectiu principal d'una empresa que consisteix a obtenir beneficis econòmics per repartir entre els seus propietaris. Contrari a una finalitat social.",
+    fragments_definicio: [
+      "Objectiu principal d'una empresa que consisteix",
+      "a obtenir beneficis econòmics per repartir",
+      "entre els seus propietaris. Contrari a",
+      "una finalitat social."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Sense ànim de lucre",
+    termes_alternatius: [
+      "Finalitat social"
+    ],
+    definicio_correcta: "Condició d'aquelles organitzacions que reinverteixen tots els seus excedents en la pròpia entitat en lloc de repartir-los. Contrari a una finalitat lucrativa.",
+    fragments_definicio: [
+      "Condició d'aquelles organitzacions que reinverteixen tots",
+      "els seus excedents en la pròpia",
+      "entitat en lloc de repartir-los. Contrari",
+      "a una finalitat lucrativa."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa privada",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa on la propietat del capital pertany a persones físiques o a altres entitats privades.",
+    fragments_definicio: [
+      "Empresa on la propietat",
+      "del capital pertany a",
+      "persones físiques o a",
+      "altres entitats privades."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa pública",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa on el capital és propietat de l'Estat o d'altres administracions públiques.",
+    fragments_definicio: [
+      "Empresa on el",
+      "capital és propietat",
+      "de l'Estat o",
+      "d'altres administracions públiques."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa mixta",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa on la propietat del capital està compartida entre el sector públic i inversors privats.",
+    fragments_definicio: [
+      "Empresa on la propietat",
+      "del capital està compartida",
+      "entre el sector públic",
+      "i inversors privats."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Forma jurídica",
+    termes_alternatius: [],
+    definicio_correcta: "Modalitat legal que adopta una empresa per exercir la seva activitat i que determina les seves obligacions i responsabilitats.",
+    fragments_definicio: [
+      "Modalitat legal que adopta una",
+      "empresa per exercir la seva",
+      "activitat i que determina les",
+      "seves obligacions i responsabilitats."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa individual",
+    termes_alternatius: [],
+    definicio_correcta: "Empresa on el propietari és una única persona física que assumeix tot el risc i la direcció del negoci.",
+    fragments_definicio: [
+      "Empresa on el propietari és",
+      "una única persona física que",
+      "assumeix tot el risc i",
+      "la direcció del negoci."
+    ]
+  },
+  {
+    tema: "5 - Classificació de les empreses",
+    terme: "Empresa societat",
+    termes_alternatius: [
+      "Societat mercantil"
+    ],
+    definicio_correcta: "Empresa formada per una o més persones que aporten capital sota una personalitat jurídica diferent de la dels socis.",
+    fragments_definicio: [
+      "Empresa formada per una o",
+      "més persones que aporten capital",
+      "sota una personalitat jurídica diferent",
+      "de la dels socis."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Societat limitada",
+    termes_alternatius: [
+      "SL",
+      "Societat de responsabilitat limitada"
+    ],
+    definicio_correcta: "Societat mercantil de caràcter capitalista on el capital està dividit en participacions i els socis no responen personalment dels deutes.",
+    fragments_definicio: [
+      "Societat mercantil de caràcter capitalista",
+      "on el capital està dividit",
+      "en participacions i els socis",
+      "no responen personalment dels deutes."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Societat anònima",
+    termes_alternatius: [
+      "SA"
+    ],
+    definicio_correcta: "Societat mercantil capitalista on el capital està dividit en accions d'integració lliure i la responsabilitat es limita al capital aportat.",
+    fragments_definicio: [
+      "Societat mercantil capitalista on el",
+      "capital està dividit en accions",
+      "d'integració lliure i la responsabilitat",
+      "es limita al capital aportat."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Autònom",
+    termes_alternatius: [
+      "Autònoma",
+      "Empresari individual"
+    ],
+    definicio_correcta: "Persona física que realitza de forma habitual, personal i directa una activitat econòmica a títol lucratiu.",
+    fragments_definicio: [
+      "Persona física que realitza",
+      "de forma habitual, personal",
+      "i directa una activitat",
+      "econòmica a títol lucratiu."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Responsabilitat limitada",
+    termes_alternatius: [],
+    definicio_correcta: "Característica jurídica per la qual els socis només responen dels deutes de l'empresa amb el capital que hi han aportat.",
+    fragments_definicio: [
+      "Característica jurídica per la qual",
+      "els socis només responen dels",
+      "deutes de l'empresa amb el",
+      "capital que hi han aportat."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Responsabilitat il·limitada",
+    termes_alternatius: [],
+    definicio_correcta: "Condició jurídica que obliga l'empresari a respondre dels deutes del negoci amb tot el seu patrimoni present i futur.",
+    fragments_definicio: [
+      "Condició jurídica que obliga l'empresari",
+      "a respondre dels deutes del",
+      "negoci amb tot el seu",
+      "patrimoni present i futur."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "IRPF",
+    termes_alternatius: [
+      "Impost sobre la renda de les persones físiques"
+    ],
+    definicio_correcta: "Impost directe i progressiu que grava la renda obtinguda per les persones físiques, com els autònoms, durant un any.",
+    fragments_definicio: [
+      "Impost directe i progressiu que",
+      "grava la renda obtinguda per",
+      "les persones físiques, com els",
+      "autònoms, durant un any."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "IS",
+    termes_alternatius: [
+      "Impost de societats",
+      "Impost sobre societats"
+    ],
+    definicio_correcta: "Impost directe que grava la renda i els beneficis obtinguts per les societats mercantils i altres entitats jurídiques.",
+    fragments_definicio: [
+      "Impost directe que grava la",
+      "renda i els beneficis obtinguts",
+      "per les societats mercantils i",
+      "altres entitats jurídiques."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Codi civil",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de normes que regulen les relacions privades entre les persones físiques o jurídiques en un estat.",
+    fragments_definicio: [
+      "Conjunt de normes que regulen",
+      "les relacions privades entre les",
+      "persones físiques o jurídiques en",
+      "un estat."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Codi de comerç",
+    termes_alternatius: [],
+    definicio_correcta: "Normativa legal bàsica que regula l'activitat comercial i els actes de comerç que realitzen els empresaris.",
+    fragments_definicio: [
+      "Normativa legal bàsica que",
+      "regula l'activitat comercial i",
+      "els actes de comerç",
+      "que realitzen els empresaris."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Llei de societats de capital",
+    termes_alternatius: [],
+    definicio_correcta: "Text legal que regula el funcionament, la constitució i les característiques de les societats anònimes i limitades.",
+    fragments_definicio: [
+      "Text legal que regula el",
+      "funcionament, la constitució i les",
+      "característiques de les societats anònimes",
+      "i limitades."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Acció",
+    termes_alternatius: [
+      "Accions"
+    ],
+    definicio_correcta: "Cadascuna de les parts alíquotes en què es divideix el capital social d'una societat anònima, i que es poden transmetre lliurement.",
+    fragments_definicio: [
+      "Cadascuna de les parts alíquotes en",
+      "què es divideix el capital social",
+      "d'una societat anònima, i que es",
+      "poden transmetre lliurement."
+    ]
+  },
+  {
+    tema: "6 - La forma jurídica i les característiques de l'empresari individual, la SL i la SA",
+    terme: "Participacions",
+    termes_alternatius: [
+      "Participació"
+    ],
+    definicio_correcta: "Cadascuna de les parts iguals i indivisibles en què es divideix el capital d'una societat limitada i que no cotitzen a borsa.",
+    fragments_definicio: [
+      "Cadascuna de les parts iguals i",
+      "indivisibles en què es divideix el",
+      "capital d'una societat limitada i que",
+      "no cotitzen a borsa."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Factor humà",
+    termes_alternatius: [
+      "Recursos humans",
+      "Personal"
+    ],
+    definicio_correcta: "Conjunt de persones físiques que treballen a l'empresa i aporten el seu esforç físic o intel·lectual.",
+    fragments_definicio: [
+      "Conjunt de persones físiques",
+      "que treballen a l'empresa",
+      "i aporten el seu",
+      "esforç físic o intel·lectual."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Factors tangibles",
+    termes_alternatius: [
+      "Recursos materials",
+      "Béns tangibles"
+    ],
+    definicio_correcta: "Elements materials de l'empresa que es poden tocar i quantificar, com ara la maquinària o les instal·lacions.",
+    fragments_definicio: [
+      "Elements materials de l'empresa que",
+      "es poden tocar i quantificar,",
+      "com ara la maquinària o",
+      "les instal·lacions."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Factors intangibles",
+    termes_alternatius: [
+      "Recursos intangibles"
+    ],
+    definicio_correcta: "Elements immaterials de l'empresa que aporten valor, com ara la marca, el prestigi o la tecnologia.",
+    fragments_definicio: [
+      "Elements immaterials de l'empresa",
+      "que aporten valor, com",
+      "ara la marca, el",
+      "prestigi o la tecnologia."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Organització",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de relacions de coordinació i comunicació que s'estableixen entre els membres i elements de l'empresa.",
+    fragments_definicio: [
+      "Conjunt de relacions de",
+      "coordinació i comunicació que",
+      "s'estableixen entre els membres",
+      "i elements de l'empresa."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Entorn",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de factors externs a l'empresa que no pot controlar però que influeixen en la seva activitat.",
+    fragments_definicio: [
+      "Conjunt de factors externs a",
+      "l'empresa que no pot controlar",
+      "però que influeixen en la",
+      "seva activitat."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Macroentorn",
+    termes_alternatius: [
+      "Entorn general"
+    ],
+    definicio_correcta: "Conjunt de factors generals que afecten per igual a totes les empreses d'un determinat àmbit geogràfic o econòmic.",
+    fragments_definicio: [
+      "Conjunt de factors generals que",
+      "afecten per igual a totes",
+      "les empreses d'un determinat àmbit",
+      "geogràfic o econòmic."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Microentorn",
+    termes_alternatius: [
+      "Entorn específic"
+    ],
+    definicio_correcta: "Conjunt de factors específics que afecten directament a una empresa i a les altres del seu mateix sector.",
+    fragments_definicio: [
+      "Conjunt de factors específics que",
+      "afecten directament a una empresa",
+      "i a les altres del",
+      "seu mateix sector."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Anàlisi PESTEL",
+    termes_alternatius: [],
+    definicio_correcta: "Eina d'estudi del macroentorn que analitza els factors polítics, econòmics, socioculturals, tecnològics, ecològics i legals.",
+    fragments_definicio: [
+      "Eina d'estudi del macroentorn",
+      "que analitza els factors",
+      "polítics, econòmics, socioculturals, tecnològics,",
+      "ecològics i legals."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Forces de Porter",
+    termes_alternatius: [
+      "Model de Porter",
+      "Les 5 Forces de Porter"
+    ],
+    definicio_correcta: "Model d'anàlisi del microentorn que avalua la rivalitat del sector mitjançant cinc forces competitives clau.",
+    fragments_definicio: [
+      "Model d'anàlisi del microentorn",
+      "que avalua la rivalitat",
+      "del sector mitjançant cinc",
+      "forces competitives clau."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Client",
+    termes_alternatius: [
+      "Consumidor",
+      "Comprador"
+    ],
+    definicio_correcta: "Model d'anàlisi del microentorn que avalua la rivalitat del sector mitjançant cinc forces competitives clau.",
+    fragments_definicio: [
+      "Model d'anàlisi del microentorn",
+      "que avalua la rivalitat",
+      "del sector mitjançant cinc",
+      "forces competitives clau."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Proveïdor",
+    termes_alternatius: [],
+    definicio_correcta: "Persona o empresa que subministra a una altra empresa les matèries primeres o els productes necessaris per a la seva activitat.",
+    fragments_definicio: [
+      "Persona o empresa que subministra a",
+      "una altra empresa les matèries primeres",
+      "o els productes necessaris per a",
+      "la seva activitat."
+    ]
+  },
+  {
+    tema: "7 - L’empresa i l’entorn empresarial",
+    terme: "Intermediari",
+    termes_alternatius: [
+      "Distribuïdor"
+    ],
+    definicio_correcta: "Persona o empresa que facilita la distribució i la venda dels productes enllaçant el fabricant amb el consumidor final.",
+    fragments_definicio: [
+      "Persona o empresa que facilita",
+      "la distribució i la venda",
+      "dels productes enllaçant el fabricant",
+      "amb el consumidor final."
+    ]
+  },
+  {
+    tema: "8 - Responsabilitat social de l'empresa",
+    terme: "RSC",
+    termes_alternatius: [],
+    definicio_correcta: "Responsabilitat Social Corporativa. Conjunt d'obligacions i compromisos ètics, socials i mediambientals que l'empresa assumeix voluntàriament amb la societat.",
+    fragments_definicio: [
+      "Responsabilitat Social Corporativa. Conjunt d'obligacions",
+      "i compromisos ètics, socials i",
+      "mediambientals que l'empresa assumeix voluntàriament",
+      "amb la societat."
+    ]
+  },
+  {
+    tema: "8 - Responsabilitat social de l'empresa",
+    terme: "RSA",
+    termes_alternatius: [
+      "Responsabilitat social ambiental"
+    ],
+    definicio_correcta: "Conjunt d'accions voluntàries que porta a terme una empresa per minimitzar l'impacte negatiu de la seva activitat sobre el medi ambient.",
+    fragments_definicio: [
+      "Conjunt d'accions voluntàries que porta a",
+      "terme una empresa per minimitzar l'impacte",
+      "negatiu de la seva activitat sobre",
+      "el medi ambient."
+    ]
+  },
+  {
+    tema: "8 - Responsabilitat social de l'empresa",
+    terme: "ODS",
+    termes_alternatius: [
+      "Objectius de Desenvolupament Sostenible"
+    ],
+    definicio_correcta: "Conjunt de disset fites globals establertes per les Nacions Unides per erradicar la pobresa, protegir el planeta i assegurar la prosperitat.",
+    fragments_definicio: [
+      "Conjunt de disset fites globals establertes",
+      "per les Nacions Unides per erradicar",
+      "la pobresa, protegir el planeta i",
+      "assegurar la prosperitat."
+    ]
+  },
+  {
+    tema: "8 - Responsabilitat social de l'empresa",
+    terme: "Blanqueig verd",
+    termes_alternatius: [
+      "Greenwashing"
+    ],
+    definicio_correcta: "Pràctica enganyosa d'algunes empreses que consisteix a fer veure que són respectuoses amb el medi ambient només per millorar la seva imatge.",
+    fragments_definicio: [
+      "Pràctica enganyosa d'algunes empreses que consisteix",
+      "a fer veure que són respectuoses",
+      "amb el medi ambient només per",
+      "millorar la seva imatge."
+    ]
+  },
+  {
+    tema: "8 - Responsabilitat social de l'empresa",
+    terme: "Balanç social",
+    termes_alternatius: [],
+    definicio_correcta: "Document voluntari on l'empresa avalua i fa públics els resultats i els impactes de la seva responsabilitat social corporativa.",
+    fragments_definicio: [
+      "Document voluntari on l'empresa avalua",
+      "i fa públics els resultats",
+      "i els impactes de la",
+      "seva responsabilitat social corporativa."
+    ]
+  },
+  {
+    tema: "8 - Responsabilitat social de l'empresa",
+    terme: "Ètica de l'empresa",
+    termes_alternatius: [
+      "Cultura de l'empresa",
+      "Ètica empresarial"
+    ],
+    definicio_correcta: "Conjunt de valors morals i normes de conducta que guien les decisions i les accions de tots els membres de l'organització.",
+    fragments_definicio: [
+      "Conjunt de valors morals i normes",
+      "de conducta que guien les decisions",
+      "i les accions de tots els",
+      "membres de l'organització."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Dret mercantil",
+    termes_alternatius: [
+      "Legislació mercantil"
+    ],
+    definicio_correcta: "Branca del dret que regula l'activitat econòmica i comercial de les empreses i els empresaris.",
+    fragments_definicio: [
+      "Branca del dret que",
+      "regula l'activitat econòmica i",
+      "comercial de les empreses",
+      "i els empresaris."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Codi de comerç",
+    termes_alternatius: [],
+    definicio_correcta: "Normativa legal bàsica que regula l'activitat comercial i els actes de comerç que realitzen els empresaris.",
+    fragments_definicio: [
+      "Normativa legal bàsica que",
+      "regula l'activitat comercial i",
+      "els actes de comerç",
+      "que realitzen els empresaris."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Llei de societats de capital",
+    termes_alternatius: [],
+    definicio_correcta: "Text legal que regula el funcionament, la constitució i les característiques de les societats anònimes i limitades.",
+    fragments_definicio: [
+      "Text legal que regula el",
+      "funcionament, la constitució i les",
+      "característiques de les societats anònimes",
+      "i limitades."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Registre Mercantil",
+    termes_alternatius: [],
+    definicio_correcta: "Institució pública oficial on s'inscriuen els actes i documents rellevants de les societats mercantils per donar-los publicitat.",
+    fragments_definicio: [
+      "Institució pública oficial on s'inscriuen",
+      "els actes i documents rellevants",
+      "de les societats mercantils per",
+      "donar-los publicitat."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Dret fiscal",
+    termes_alternatius: [
+      "Dret tributari",
+      "Legislació fiscal"
+    ],
+    definicio_correcta: "Branca del dret que regula l'establiment i el cobrament dels tributs per part de l'Estat per finançar la despesa pública.",
+    fragments_definicio: [
+      "Branca del dret que regula",
+      "l'establiment i el cobrament dels",
+      "tributs per part de l'Estat",
+      "per finançar la despesa pública."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "PGE",
+    termes_alternatius: [
+      "Pressuposts Generals de l'Estat",
+      "Pressupostos Generals de l'Estat"
+    ],
+    definicio_correcta: "Llei que recull la previsió anual dels ingressos i les despeses del sector públic estatal.",
+    fragments_definicio: [
+      "Llei que recull la",
+      "previsió anual dels ingressos",
+      "i les despeses del",
+      "sector públic estatal."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Taxa",
+    termes_alternatius: [
+      "Taxes"
+    ],
+    definicio_correcta: "Tribut el pagament del qual està vinculat a la prestació d'un servei públic directe que beneficia el ciutadà que el paga.",
+    fragments_definicio: [
+      "Tribut el pagament del qual està",
+      "vinculat a la prestació d'un servei",
+      "públic directe que beneficia el ciutadà",
+      "que el paga."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Impost",
+    termes_alternatius: [
+      "Impostos",
+      "Imposts"
+    ],
+    definicio_correcta: "Tribut exigit per les administracions públiques sense que hi hagi una contraprestació directa per a qui el paga.",
+    fragments_definicio: [
+      "Tribut exigit per les administracions",
+      "públiques sense que hi hagi",
+      "una contraprestació directa per a",
+      "qui el paga."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Impost directe",
+    termes_alternatius: [
+      "Imposts directes",
+      "Impostos directes"
+    ],
+    definicio_correcta: "Tribut que recau sobre l'obtenció de renda o el patrimoni d'una persona física o jurídica tenint en compte la seva capacitat econòmica.",
+    fragments_definicio: [
+      "Tribut que recau sobre l'obtenció de",
+      "renda o el patrimoni d'una persona",
+      "física o jurídica tenint en compte",
+      "la seva capacitat econòmica."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Impost indirecte",
+    termes_alternatius: [
+      "Imposts indirectes",
+      "Impostos indirectes"
+    ],
+    definicio_correcta: "Tribut que grava el consum de béns i serveis sense tenir en compte la capacitat econòmica real del contribuent.",
+    fragments_definicio: [
+      "Tribut que grava el consum",
+      "de béns i serveis sense",
+      "tenir en compte la capacitat",
+      "econòmica real del contribuent."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Impost progressiu",
+    termes_alternatius: [
+      "Imposts progressius",
+      "Impostos progressius"
+    ],
+    definicio_correcta: "Tribut en el qual el percentatge que s'ha de pagar augmenta a mesura que creix la capacitat econòmica del contribuent.",
+    fragments_definicio: [
+      "Tribut en el qual el",
+      "percentatge que s'ha de pagar",
+      "augmenta a mesura que creix",
+      "la capacitat econòmica del contribuent."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Impost proporcional",
+    termes_alternatius: [
+      "Imposts proporcionals",
+      "Impostos proporcionals"
+    ],
+    definicio_correcta: "Tribut en el qual s'aplica sempre el mateix percentatge independentment de la capacitat econòmica o la base imposable.",
+    fragments_definicio: [
+      "Tribut en el qual s'aplica",
+      "sempre el mateix percentatge independentment",
+      "de la capacitat econòmica o",
+      "la base imposable."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "IRPF",
+    termes_alternatius: [
+      "Impost sobre la renda de les persones físiques"
+    ],
+    definicio_correcta: "Impost directe i progressiu que grava la renda obtinguda per les persones físiques, com els autònoms, durant un any.",
+    fragments_definicio: [
+      "Impost directe i progressiu que",
+      "grava la renda obtinguda per",
+      "les persones físiques, com els",
+      "autònoms, durant un any."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "IS",
+    termes_alternatius: [
+      "Impost de societats",
+      "Impost sobre societats"
+    ],
+    definicio_correcta: "Impost directe que grava la renda i els beneficis obtinguts per les societats mercantils i altres entitats jurídiques.",
+    fragments_definicio: [
+      "Impost directe que grava la",
+      "renda i els beneficis obtinguts",
+      "per les societats mercantils i",
+      "altres entitats jurídiques."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "IVA",
+    termes_alternatius: [
+      "Impost sobre el valor afegit"
+    ],
+    definicio_correcta: "Impost indirecte que grava el consum de béns i serveis a les diferents fases de producció i comercialització.",
+    fragments_definicio: [
+      "Impost indirecte que grava el",
+      "consum de béns i serveis",
+      "a les diferents fases de",
+      "producció i comercialització."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "IP",
+    termes_alternatius: [
+      "Impost sobre el patrimoni"
+    ],
+    definicio_correcta: "Impost directe que grava el valor dels béns i drets de les persones físiques per sobre d'un determinat mínim exempt.",
+    fragments_definicio: [
+      "Impost directe que grava el",
+      "valor dels béns i drets",
+      "de les persones físiques per",
+      "sobre d'un determinat mínim exempt."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "IBI",
+    termes_alternatius: [
+      "Impost sobre béns immobles"
+    ],
+    definicio_correcta: "Impost directe de caràcter local que grava la propietat o l'usdefruit de finques urbanes o rústiques.",
+    fragments_definicio: [
+      "Impost directe de caràcter",
+      "local que grava la",
+      "propietat o l'usdefruit de",
+      "finques urbanes o rústiques."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Equitat",
+    termes_alternatius: [
+      "Justícia fiscal",
+      "Equitat fiscal"
+    ],
+    definicio_correcta: "Principi fiscal que busca que els impostos es reparteixin de manera justa segons la capacitat econòmica de cada ciutadà.",
+    fragments_definicio: [
+      "Principi fiscal que busca que",
+      "els impostos es reparteixin de",
+      "manera justa segons la capacitat",
+      "econòmica de cada ciutadà."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Frau fiscal",
+    termes_alternatius: [
+      "Evasió fiscal"
+    ],
+    definicio_correcta: "Evasió intencionada i il·legal del pagament dels impostos que corresponen per llei a una persona o empresa.",
+    fragments_definicio: [
+      "Evasió intencionada i il·legal del",
+      "pagament dels impostos que corresponen",
+      "per llei a una persona",
+      "o empresa."
+    ]
+  },
+  {
+    tema: "9 - El marc jurídic de les empreses: legislació mercantil i fiscal",
+    terme: "Competència deslleial",
+    termes_alternatius: [],
+    definicio_correcta: "Pràctica contrària a la bona fe comercial on una empresa intenta guanyar quota de mercat de manera enganyosa o il·lícita.",
+    fragments_definicio: [
+      "Pràctica contrària a la bona",
+      "fe comercial on una empresa",
+      "intenta guanyar quota de mercat",
+      "de manera enganyosa o il·lícita."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Emprenedor",
+    termes_alternatius: [
+      "Emprenedora",
+      "Persona emprenedora"
+    ],
+    definicio_correcta: "Persona que identifica una oportunitat de negoci i assumeix el risc d'iniciar un projecte per transformar-la en una empresa real.",
+    fragments_definicio: [
+      "Persona que identifica una oportunitat",
+      "de negoci i assumeix el",
+      "risc d'iniciar un projecte per",
+      "transformar-la en una empresa real."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Knowmad",
+    termes_alternatius: [
+      "Nòmada digital",
+      "Nòmada del coneixement"
+    ],
+    definicio_correcta: "Professional innovador i creatiu que pot treballar des de qualsevol lloc i en qualsevol moment gràcies a les tecnologies.",
+    fragments_definicio: [
+      "Professional innovador i creatiu que",
+      "pot treballar des de qualsevol",
+      "lloc i en qualsevol moment",
+      "gràcies a les tecnologies."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Sostre de vidre",
+    termes_alternatius: [],
+    definicio_correcta: "Barrera invisible que dificulta o impedeix l'ascens de les dones a càrrecs de màxima responsabilitat i decisió dins de les empreses.",
+    fragments_definicio: [
+      "Barrera invisible que dificulta o impedeix",
+      "l'ascens de les dones a càrrecs",
+      "de màxima responsabilitat i decisió dins",
+      "de les empreses."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Emprenedoria inclusiva",
+    termes_alternatius: [],
+    definicio_correcta: "Creació d'empreses per part de persones pertanyents a col·lectius vulnerables o amb risc d'exclusió social, fomentant la igualtat d'oportunitats.",
+    fragments_definicio: [
+      "Creació d'empreses per part de",
+      "persones pertanyents a col·lectius vulnerables",
+      "o amb risc d'exclusió social,",
+      "fomentant la igualtat d'oportunitats."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Empresari",
+    termes_alternatius: [
+      "Empresària"
+    ],
+    definicio_correcta: "Persona que pren les decisions estratègiques, dirigeix i coordina els elements d'una empresa per assolir els seus objectius.",
+    fragments_definicio: [
+      "Persona que pren les decisions",
+      "estratègiques, dirigeix i coordina els",
+      "elements d'una empresa per assolir",
+      "els seus objectius."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Empresari professional",
+    termes_alternatius: [
+      "Empresària professional"
+    ],
+    definicio_correcta: "Persona que dirigeix i gestiona l'empresa aportant la seva formació i coneixements, però sense ser la propietària del capital. Pot no coincidir amb l'empresari patrimonial.",
+    fragments_definicio: [
+      "Persona que dirigeix i gestiona l'empresa aportant",
+      "la seva formació i coneixements, però sense",
+      "ser la propietària del capital. Pot no",
+      "coincidir amb l'empresari patrimonial."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Empresari patrimonial",
+    termes_alternatius: [
+      "Empresària patrimonial"
+    ],
+    definicio_correcta: "Persona que és la propietària de l'empresa perquè n'ha aportat el capital. Pot no coincidir amb l'empresari professional.",
+    fragments_definicio: [
+      "Persona que és la propietària",
+      "de l'empresa perquè n'ha aportat",
+      "el capital. Pot no coincidir",
+      "amb l'empresari professional."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Planificar",
+    termes_alternatius: [],
+    definicio_correcta: "Funció directiva que consisteix a fixar els objectius de l'empresa i establir les estratègies i recursos necessaris per aconseguir-los.",
+    fragments_definicio: [
+      "Funció directiva que consisteix a",
+      "fixar els objectius de l'empresa",
+      "i establir les estratègies i",
+      "recursos necessaris per aconseguir-los."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Organitzar",
+    termes_alternatius: [],
+    definicio_correcta: "Funció directiva que consisteix a dissenyar l'estructura de l'empresa, repartint les tasques i responsabilitats entre els treballadors.",
+    fragments_definicio: [
+      "Funció directiva que consisteix a",
+      "dissenyar l'estructura de l'empresa, repartint",
+      "les tasques i responsabilitats entre",
+      "els treballadors."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Gestionar",
+    termes_alternatius: [
+      "Dirigit",
+      "Executar"
+    ],
+    definicio_correcta: "Funció directiva que consisteix a liderar, guiar i motivar els recursos humans perquè duguin a terme els plans establerts.",
+    fragments_definicio: [
+      "Funció directiva que consisteix a",
+      "liderar, guiar i motivar els",
+      "recursos humans perquè duguin a",
+      "terme els plans establerts."
+    ]
+  },
+  {
+    tema: "10 - Empresari i emprenedoria: característiques i perfil emprenedor",
+    terme: "Controlar",
+    termes_alternatius: [],
+    definicio_correcta: "Funció directiva que consisteix a comparar els resultats reals obtinguts amb els objectius previstos per detectar desviacions i corregir-les.",
+    fragments_definicio: [
+      "Funció directiva que consisteix a",
+      "comparar els resultats reals obtinguts",
+      "amb els objectius previstos per",
+      "detectar desviacions i corregir-les."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Digitalització",
+    termes_alternatius: [],
+    definicio_correcta: "Procés de transformació d'informació, processos o serveis analògics a format digital mitjançant l'ús de la tecnologia i la informàtica.",
+    fragments_definicio: [
+      "Procés de transformació d'informació, processos",
+      "o serveis analògics a format",
+      "digital mitjançant l'ús de la",
+      "tecnologia i la informàtica."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Noves tecnologies",
+    termes_alternatius: [
+      "TIC",
+      "Tecnologies de la informació"
+    ],
+    definicio_correcta: "Conjunt d'eines, programari i dispositius innovadors que permeten processar, emmagatzemar i transmetre informació de forma ràpida i eficient.",
+    fragments_definicio: [
+      "Conjunt d'eines, programari i dispositius",
+      "innovadors que permeten processar, emmagatzemar",
+      "i transmetre informació de forma",
+      "ràpida i eficient."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Big data",
+    termes_alternatius: [
+      "Dades massives"
+    ],
+    definicio_correcta: "Conjunt de tecnologies i tècniques que permeten analitzar i processar un volum immens de dades per extreure'n informació útil per a l'empresa.",
+    fragments_definicio: [
+      "Conjunt de tecnologies i tècniques que",
+      "permeten analitzar i processar un volum",
+      "immens de dades per extreure'n informació",
+      "útil per a l'empresa."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "IA",
+    termes_alternatius: [
+      "Intel·ligència artificial",
+      "AI"
+    ],
+    definicio_correcta: "Branca de la informàtica que crea programes i sistemes capaços d'aprendre, raonar i prendre decisions de manera autònoma.",
+    fragments_definicio: [
+      "Branca de la informàtica que",
+      "crea programes i sistemes capaços",
+      "d'aprendre, raonar i prendre decisions",
+      "de manera autònoma."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Tecnologia 3D",
+    termes_alternatius: [
+      "Impressió 3D"
+    ],
+    definicio_correcta: "Conjunt de tècniques que permeten fabricar objectes sòlids tridimensionals a partir d'un model o disseny digital creat per ordinador.",
+    fragments_definicio: [
+      "Conjunt de tècniques que permeten",
+      "fabricar objectes sòlids tridimensionals a",
+      "partir d'un model o disseny",
+      "digital creat per ordinador."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Realitat virtual",
+    termes_alternatius: [
+      "VR",
+      "RV"
+    ],
+    definicio_correcta: "Entorn generat per ordinador que simula de manera realista situacions i llocs, permetent a l'usuari interactuar-hi mitjançant dispositius especials.",
+    fragments_definicio: [
+      "Entorn generat per ordinador que",
+      "simula de manera realista situacions",
+      "i llocs, permetent a l'usuari",
+      "interactuar-hi mitjançant dispositius especials."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Blockchain",
+    termes_alternatius: [
+      "Cadena de blocs"
+    ],
+    definicio_correcta: "Tecnologia d'emmagatzematge de dades descentralitzada i extremadament segura on la informació s'agrupa en blocs enllaçats de forma criptogràfica.",
+    fragments_definicio: [
+      "Tecnologia d'emmagatzematge de dades descentralitzada",
+      "i extremadament segura on la",
+      "informació s'agrupa en blocs enllaçats",
+      "de forma criptogràfica."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Criptomoneda",
+    termes_alternatius: [
+      "Criptodivisa",
+      "Moneda virtual"
+    ],
+    definicio_correcta: "Actiu digital que utilitza el xifratge criptogràfic per garantir la seguretat de les transaccions sense necessitat d'un banc central.",
+    fragments_definicio: [
+      "Actiu digital que utilitza el",
+      "xifratge criptogràfic per garantir la",
+      "seguretat de les transaccions sense",
+      "necessitat d'un banc central."
+    ]
+  },
+  {
+    tema: "11 - La digitalització i les noves tecnologies",
+    terme: "Indústria 4.0",
+    termes_alternatius: [
+      "Quarta revolució industrial",
+      "4a revolució industrial"
+    ],
+    definicio_correcta: "Nova fase de la producció industrial caracteritzada per l'automatització avançada, la interconnexió de màquines i l'ús de dades en temps real.",
+    fragments_definicio: [
+      "Nova fase de la producció industrial",
+      "caracteritzada per l'automatització avançada, la interconnexió",
+      "de màquines i l'ús de dades",
+      "en temps real."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "R+D+I",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'activitats sistemàtiques que realitza una empresa per millorar o crear nous productes, processos o serveis. Sigles de recerca, desenvolupament i innovació.",
+    fragments_definicio: [
+      "Conjunt d'activitats sistemàtiques que realitza una",
+      "empresa per millorar o crear nous",
+      "productes, processos o serveis. Sigles de",
+      "recerca, desenvolupament i innovació."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació",
+    termes_alternatius: [],
+    definicio_correcta: "Aplicació amb èxit d'una idea o invenció al mercat, transformant-la en un producte, servei o procés nou o significativament millorat.",
+    fragments_definicio: [
+      "Aplicació amb èxit d'una idea",
+      "o invenció al mercat, transformant-la",
+      "en un producte, servei o",
+      "procés nou o significativament millorat."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació de producte",
+    termes_alternatius: [],
+    definicio_correcta: "Introducció al mercat d'un bé o servei nou o significativament millorat pel que fa a les seves característiques, components o usos.",
+    fragments_definicio: [
+      "Introducció al mercat d'un bé o",
+      "servei nou o significativament millorat pel",
+      "que fa a les seves característiques,",
+      "components o usos."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació de procés",
+    termes_alternatius: [],
+    definicio_correcta: "Implementació d'un mètode de producció o de distribució nou o millorat, amb l'objectiu de reduir costos o augmentar la qualitat.",
+    fragments_definicio: [
+      "Implementació d'un mètode de producció",
+      "o de distribució nou o",
+      "millorat, amb l'objectiu de reduir",
+      "costos o augmentar la qualitat."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació radical",
+    termes_alternatius: [
+      "Innovació disruptiva"
+    ],
+    definicio_correcta: "Tipus d'innovació que suposa un trencament total amb el que existia anteriorment, creant nous mercats i transformant el sector.",
+    fragments_definicio: [
+      "Tipus d'innovació que suposa un",
+      "trencament total amb el que",
+      "existia anteriorment, creant nous mercats",
+      "i transformant el sector."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació incremental",
+    termes_alternatius: [],
+    definicio_correcta: "Tipus d'innovació que consisteix a introduir petites millores o modificacions contínues en productes o processos ja existents.",
+    fragments_definicio: [
+      "Tipus d'innovació que consisteix a",
+      "introduir petites millores o modificacions",
+      "contínues en productes o processos",
+      "ja existents."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació tecnològica",
+    termes_alternatius: [],
+    definicio_correcta: "Tipus d'innovació basada exclusivament en l'aplicació de coneixements científics i tècnics per desenvolupar sistemes o productes nous.",
+    fragments_definicio: [
+      "Tipus d'innovació basada exclusivament en",
+      "l'aplicació de coneixements científics i",
+      "tècnics per desenvolupar sistemes o",
+      "productes nous."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació social",
+    termes_alternatius: [],
+    definicio_correcta: "Desenvolupament de noves solucions, models o pràctiques que busquen resoldre problemes socials o mediambientals i millorar el benestar de la comunitat.",
+    fragments_definicio: [
+      "Desenvolupament de noves solucions, models o",
+      "pràctiques que busquen resoldre problemes socials",
+      "o mediambientals i millorar el benestar",
+      "de la comunitat."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Innovació educativa",
+    termes_alternatius: [],
+    definicio_correcta: "Introducció de canvis significatius en els processos d'ensenyament i aprenentatge, utilitzant noves metodologies o recursos didàctics.",
+    fragments_definicio: [
+      "Introducció de canvis significatius",
+      "en els processos d'ensenyament",
+      "i aprenentatge, utilitzant noves",
+      "metodologies o recursos didàctics."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Estratègia",
+    termes_alternatius: [
+      "Estratègia empresarial"
+    ],
+    definicio_correcta: "Conjunt d'accions planificades a llarg termini que dissenya l'empresa per assolir els seus objectius i obtenir un avantatge competitiu.",
+    fragments_definicio: [
+      "Conjunt d'accions planificades a llarg",
+      "termini que dissenya l'empresa per",
+      "assolir els seus objectius i",
+      "obtenir un avantatge competitiu."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Món VICA",
+    termes_alternatius: [
+      "VICA",
+      "VUCA"
+    ],
+    definicio_correcta: "Entorn empresarial actual que es caracteritza per ser Volàtil, Incert, Complex i Ambigu, i que exigeix una gran capacitat d'adaptació.",
+    fragments_definicio: [
+      "Entorn empresarial actual que es",
+      "caracteritza per ser Volàtil, Incert,",
+      "Complex i Ambigu, i que",
+      "exigeix una gran capacitat d'adaptació."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Empresa ambidextra",
+    termes_alternatius: [
+      "Ambidextra"
+    ],
+    definicio_correcta: "Organització que és capaç d'explotar de manera eficient el seu negoci actual mentre, simultàniament, explora noves oportunitats i innovacions pel futur.",
+    fragments_definicio: [
+      "Organització que és capaç d'explotar de",
+      "manera eficient el seu negoci actual",
+      "mentre, simultàniament, explora noves oportunitats i",
+      "innovacions pel futur."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Propietat industrial",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de drets exclusius que protegeixen legalment les invencions, marques i dissenys industrials d'una empresa en el mercat.",
+    fragments_definicio: [
+      "Conjunt de drets exclusius que",
+      "protegeixen legalment les invencions, marques",
+      "i dissenys industrials d'una empresa",
+      "en el mercat."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Propietat intel·lectual",
+    termes_alternatius: [],
+    definicio_correcta: "Drets legals que protegeixen les creacions originals de caràcter literari, artístic o científic des del moment mateix de la seva creació.",
+    fragments_definicio: [
+      "Drets legals que protegeixen les creacions",
+      "originals de caràcter literari, artístic o",
+      "científic des del moment mateix de",
+      "la seva creació."
+    ]
+  },
+  {
+    tema: "12 - La innovació: concepte, tipus, estratègies i patents",
+    terme: "Patent",
+    termes_alternatius: [],
+    definicio_correcta: "Títol atorgat per l'Estat que reconeix el dret exclusiu d'explotar una invenció tecnològica durant un temps determinat, impedint que altres la copiïn o venguin.",
+    fragments_definicio: [
+      "Títol atorgat per l'Estat que reconeix",
+      "el dret exclusiu d'explotar una invenció",
+      "tecnològica durant un temps determinat, impedint",
+      "que altres la copiïn o venguin."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea funcional",
+    termes_alternatius: [
+      "Departament"
+    ],
+    definicio_correcta: "Agrupació de treballadors i tasques d'una empresa que es dediquen a una activitat específica i coordinada per assolir els objectius generals.",
+    fragments_definicio: [
+      "Agrupació de treballadors i tasques d'una",
+      "empresa que es dediquen a una",
+      "activitat específica i coordinada per assolir",
+      "els objectius generals."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea d'aprovisionament",
+    termes_alternatius: [
+      "Departament de compres",
+      "Departament d'aprovisionament"
+    ],
+    definicio_correcta: "Departament encarregat d'adquirir, emmagatzemar i gestionar les matèries primeres i els components necessaris per a l'activitat de l'empresa.",
+    fragments_definicio: [
+      "Departament encarregat d'adquirir, emmagatzemar i",
+      "gestionar les matèries primeres i",
+      "els components necessaris per a",
+      "l'activitat de l'empresa."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea de producció",
+    termes_alternatius: [
+      "Departament de producció"
+    ],
+    definicio_correcta: "Departament que s'ocupa de transformar les matèries primeres en productes acabats mitjançant l'aplicació de tecnologia i treball humà.",
+    fragments_definicio: [
+      "Departament que s'ocupa de transformar",
+      "les matèries primeres en productes",
+      "acabats mitjançant l'aplicació de tecnologia",
+      "i treball humà."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea comercial",
+    termes_alternatius: [
+      "Àrea de màrqueting i vendes",
+      "Departament comercial"
+    ],
+    definicio_correcta: "Departament responsable d'estudiar el mercat, dissenyar estratègies de màrqueting i gestionar la distribució i venda dels productes.",
+    fragments_definicio: [
+      "Departament responsable d'estudiar el mercat,",
+      "dissenyar estratègies de màrqueting i",
+      "gestionar la distribució i venda",
+      "dels productes."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea d'inversió",
+    termes_alternatius: [
+      "Departament d'inversió"
+    ],
+    definicio_correcta: "Departament encarregat d'analitzar i decidir on destinar els recursos econòmics de l'empresa per adquirir béns que generin beneficis futurs.",
+    fragments_definicio: [
+      "Departament encarregat d'analitzar i decidir",
+      "on destinar els recursos econòmics",
+      "de l'empresa per adquirir béns",
+      "que generin beneficis futurs."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea de finançament",
+    termes_alternatius: [
+      "Departament de finançament"
+    ],
+    definicio_correcta: "Departament responsable de captar els fons i recursos econòmics necessaris, al menor cost possible, per mantenir l'activitat de l'empresa.",
+    fragments_definicio: [
+      "Departament responsable de captar els",
+      "fons i recursos econòmics necessaris,",
+      "al menor cost possible, per",
+      "mantenir l'activitat de l'empresa."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea d'administració",
+    termes_alternatius: [
+      "Departament d'administració"
+    ],
+    definicio_correcta: "Departament que s'ocupa de la gestió documental, la comptabilitat, els tràmits legals i el control intern de tota l'empresa.",
+    fragments_definicio: [
+      "Departament que s'ocupa de la",
+      "gestió documental, la comptabilitat, els",
+      "tràmits legals i el control",
+      "intern de tota l'empresa."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea de recursos humans",
+    termes_alternatius: [
+      "Departament de recursos humans",
+      "Àrea de RH"
+    ],
+    definicio_correcta: "Departament encarregat de la selecció, contractació, formació, motivació i gestió dels treballadors de l'empresa.",
+    fragments_definicio: [
+      "Departament encarregat de la",
+      "selecció, contractació, formació, motivació",
+      "i gestió dels treballadors",
+      "de l'empresa."
+    ]
+  },
+  {
+    tema: "13 - Àrees funcionals de l’empresa",
+    terme: "Àrea de R+D+I",
+    termes_alternatius: [
+      "Departament de R+D+I"
+    ],
+    definicio_correcta: "Departament dedicat a la recerca i el desenvolupament de nous productes, processos o millores tecnològiques per augmentar la competitivitat.",
+    fragments_definicio: [
+      "Departament dedicat a la recerca",
+      "i el desenvolupament de nous",
+      "productes, processos o millores tecnològiques",
+      "per augmentar la competitivitat."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Procés administratiu",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de fases o etapes successives (planificació, organització, gestió i control) que segueix la direcció per assolir els objectius de l'empresa.",
+    fragments_definicio: [
+      "Conjunt de fases o etapes successives",
+      "(planificació, organització, gestió i control) que",
+      "segueix la direcció per assolir els",
+      "objectius de l'empresa."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Planificació",
+    termes_alternatius: [],
+    definicio_correcta: "Primera fase del procés administratiu que consisteix a fixar els objectius i establir les estratègies i els recursos necessaris per assolir-los.",
+    fragments_definicio: [
+      "Primera fase del procés administratiu que",
+      "consisteix a fixar els objectius i",
+      "establir les estratègies i els recursos",
+      "necessaris per assolir-los."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Organització",
+    termes_alternatius: [],
+    definicio_correcta: "Segona fase del procés administratiu que consisteix a dissenyar l'estructura de l'empresa, repartint les tasques, l'autoritat i les responsabilitats.",
+    fragments_definicio: [
+      "Segona fase del procés administratiu",
+      "que consisteix a dissenyar l'estructura",
+      "de l'empresa, repartint les tasques,",
+      "l'autoritat i les responsabilitats."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Gestió",
+    termes_alternatius: [
+      "Direcció",
+      "Execució"
+    ],
+    definicio_correcta: "Tercera fase del procés administratiu que consisteix a liderar, guiar i motivar els recursos humans perquè duguin a terme els plans establerts.",
+    fragments_definicio: [
+      "Tercera fase del procés administratiu que",
+      "consisteix a liderar, guiar i motivar",
+      "els recursos humans perquè duguin a",
+      "terme els plans establerts."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Control",
+    termes_alternatius: [],
+    definicio_correcta: "Quarta fase del procés administratiu que consisteix a comparar els resultats reals obtinguts amb els objectius previstos per detectar desviacions i corregir-les.",
+    fragments_definicio: [
+      "Quarta fase del procés administratiu que",
+      "consisteix a comparar els resultats reals",
+      "obtinguts amb els objectius previstos per",
+      "detectar desviacions i corregir-les."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Fase mecànica",
+    termes_alternatius: [],
+    definicio_correcta: "Part teòrica del procés administratiu que inclou la planificació i l'organització, on es decideix què es farà i com s'estructurarà.",
+    fragments_definicio: [
+      "Part teòrica del procés administratiu",
+      "que inclou la planificació i",
+      "l'organització, on es decideix què",
+      "es farà i com s'estructurarà."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Fase dinàmica",
+    termes_alternatius: [],
+    definicio_correcta: "Part pràctica del procés administratiu que inclou la gestió i el control, on s'executa allò planificat i se'n supervisen els resultats reals.",
+    fragments_definicio: [
+      "Part pràctica del procés administratiu que",
+      "inclou la gestió i el control,",
+      "on s'executa allò planificat i se'n",
+      "supervisen els resultats reals."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Organigrama",
+    termes_alternatius: [],
+    definicio_correcta: "Representació gràfica i visual de l'estructura organitzativa d'una empresa, que mostra els departaments, els càrrecs i les relacions jeràrquiques.",
+    fragments_definicio: [
+      "Representació gràfica i visual de",
+      "l'estructura organitzativa d'una empresa, que",
+      "mostra els departaments, els càrrecs",
+      "i les relacions jeràrquiques."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Divisió del treball",
+    termes_alternatius: [],
+    definicio_correcta: "Fragmentació d'un procés productiu o administratiu en tasques més petites i especialitzades assignades a diferents treballadors per augmentar l'eficiència.",
+    fragments_definicio: [
+      "Fragmentació d'un procés productiu o",
+      "administratiu en tasques més petites",
+      "i especialitzades assignades a diferents",
+      "treballadors per augmentar l'eficiència."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Lideratge autoritari",
+    termes_alternatius: [
+      "Lideratge autocràtic"
+    ],
+    definicio_correcta: "Estil de direcció on el líder pren totes les decisions de manera unilateral i exigeix obediència estricta als subordinats sense consultar-los.",
+    fragments_definicio: [
+      "Estil de direcció on el líder",
+      "pren totes les decisions de manera",
+      "unilateral i exigeix obediència estricta als",
+      "subordinats sense consultar-los."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Lideratge democràtic",
+    termes_alternatius: [
+      "Lideratge liberal",
+      "Lideratge participatiu"
+    ],
+    definicio_correcta: "Estil de direcció on el líder fomenta la participació dels treballadors en la presa de decisions, escolta activament i valora les seves opinions.",
+    fragments_definicio: [
+      "Estil de direcció on el líder",
+      "fomenta la participació dels treballadors en",
+      "la presa de decisions, escolta activament",
+      "i valora les seves opinions."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Teoria X i Y",
+    termes_alternatius: [],
+    definicio_correcta: "Model sobre el comportament humà a la feina que oposa una visió pessimista del treballador (X, mandrós i passiu) amb una d'optimista (Y, motivat i responsable).",
+    fragments_definicio: [
+      "Model sobre el comportament humà a la",
+      "feina que oposa una visió pessimista del",
+      "treballador (X, mandrós i passiu) amb una",
+      "d'optimista (Y, motivat i responsable)."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Teoria Z",
+    termes_alternatius: [
+      "Teoria d'Ouchi"
+    ],
+    definicio_correcta: "Model de gestió d'origen japonès basat en el compromís a llarg termini de l'empresa amb el treballador, la confiança mútua i la presa de decisions per consens.",
+    fragments_definicio: [
+      "Model de gestió d'origen japonès basat en",
+      "el compromís a llarg termini de l'empresa",
+      "amb el treballador, la confiança mútua i",
+      "la presa de decisions per consens."
+    ]
+  },
+  {
+    tema: "14 - La direcció de l'empresa: el procés administratiu",
+    terme: "Auditoria",
+    termes_alternatius: [],
+    definicio_correcta: "Procés de revisió i avaluació exhaustiva dels comptes, procediments o sistemes d'una empresa per comprovar que s'ajusten a la normativa legal o als estàndards de qualitat.",
+    fragments_definicio: [
+      "Procés de revisió i avaluació exhaustiva dels",
+      "comptes, procediments o sistemes d'una empresa per",
+      "comprovar que s'ajusten a la normativa legal",
+      "o als estàndards de qualitat."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Recursos humans",
+    termes_alternatius: [
+      "RH"
+    ],
+    definicio_correcta: "Conjunt de persones que formen la plantilla d'una empresa i que aporten el seu treball per assolir els objectius de l'organització.",
+    fragments_definicio: [
+      "Conjunt de persones que formen la",
+      "plantilla d'una empresa i que aporten",
+      "el seu treball per assolir els",
+      "objectius de l'organització."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Capital humà",
+    termes_alternatius: [],
+    definicio_correcta: "Valor econòmic i estratègic que representen els coneixements, les habilitats i l'experiència que posseeixen els treballadors d'una empresa.",
+    fragments_definicio: [
+      "Valor econòmic i estratègic que",
+      "representen els coneixements, les habilitats",
+      "i l'experiència que posseeixen els",
+      "treballadors d'una empresa."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Planificació del personal",
+    termes_alternatius: [],
+    definicio_correcta: "Procés d'anàlisi i previsió de les necessitats futures de treballadors que tindrà l'empresa per complir amb els seus objectius estratègics.",
+    fragments_definicio: [
+      "Procés d'anàlisi i previsió de",
+      "les necessitats futures de treballadors",
+      "que tindrà l'empresa per complir",
+      "amb els seus objectius estratègics."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Reclutament",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de tècniques i procediments orientats a atreure candidats potencialment qualificats i capaços d'ocupar els llocs de treball vacants a l'empresa.",
+    fragments_definicio: [
+      "Conjunt de tècniques i procediments orientats",
+      "a atreure candidats potencialment qualificats i",
+      "capaços d'ocupar els llocs de treball",
+      "vacants a l'empresa."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Selecció",
+    termes_alternatius: [],
+    definicio_correcta: "Procés de tria del candidat més adequat per a un lloc de treball específic entre tots els que s'han presentat durant la fase de reclutament.",
+    fragments_definicio: [
+      "Procés de tria del candidat més adequat",
+      "per a un lloc de treball específic",
+      "entre tots els que s'han presentat durant",
+      "la fase de reclutament."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Plans d'acollida",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'accions dissenyades per facilitar la integració, l'adaptació i la formació inicial d'un nou treballador que s'incorpora a l'empresa.",
+    fragments_definicio: [
+      "Conjunt d'accions dissenyades per facilitar",
+      "la integració, l'adaptació i la",
+      "formació inicial d'un nou treballador",
+      "que s'incorpora a l'empresa."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Plans de carrera",
+    termes_alternatius: [
+      "Promoció professional"
+    ],
+    definicio_correcta: "Projectes de formació i desenvolupament professional dissenyats per l'empresa perquè els treballadors puguin promocionar i assumir més responsabilitats.",
+    fragments_definicio: [
+      "Projectes de formació i desenvolupament",
+      "professional dissenyats per l'empresa perquè",
+      "els treballadors puguin promocionar i",
+      "assumir més responsabilitats."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Formació",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'accions educatives i d'aprenentatge continu que l'empresa ofereix als seus empleats per millorar les seves competències i habilitats.",
+    fragments_definicio: [
+      "Conjunt d'accions educatives i d'aprenentatge",
+      "continu que l'empresa ofereix als",
+      "seus empleats per millorar les",
+      "seves competències i habilitats."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Avaluació de l'exercici",
+    termes_alternatius: [],
+    definicio_correcta: "Sistema objectiu que permet mesurar i valorar el rendiment, l'actitud i la productivitat de cada treballador en el seu lloc de feina.",
+    fragments_definicio: [
+      "Sistema objectiu que permet mesurar i",
+      "valorar el rendiment, l'actitud i la",
+      "productivitat de cada treballador en el",
+      "seu lloc de feina."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Clima laboral",
+    termes_alternatius: [
+      "Satisfacció laboral"
+    ],
+    definicio_correcta: "Ambient de treball, físic i psicològic, que es respira a l'empresa i que influeix directament en la satisfacció i la motivació dels empleats.",
+    fragments_definicio: [
+      "Ambient de treball, físic i psicològic,",
+      "que es respira a l'empresa i",
+      "que influeix directament en la satisfacció",
+      "i la motivació dels empleats."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Administració del personal",
+    termes_alternatius: [],
+    definicio_correcta: "Funció centrada en la gestió dels tràmits burocràtics, legals i econòmics dels treballadors, com l'elaboració de nòmines i contractes.",
+    fragments_definicio: [
+      "Funció centrada en la gestió",
+      "dels tràmits burocràtics, legals i",
+      "econòmics dels treballadors, com l'elaboració",
+      "de nòmines i contractes."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Relacions laborals",
+    termes_alternatius: [],
+    definicio_correcta: "Àrea encarregada de gestionar els tràmits burocràtics, legals i econòmics dels treballadors, com l'elaboració de nòmines i contractes.",
+    fragments_definicio: [
+      "Àrea encarregada de gestionar els",
+      "tràmits burocràtics, legals i econòmics",
+      "dels treballadors, com l'elaboració de",
+      "nòmines i contractes."
+    ]
+  },
+  {
+    tema: "15 - Funcions del departament de recursos humans",
+    terme: "Prevenció de riscos laborals",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de mesures i activitats que l'empresa adopta per evitar o minimitzar els accidents de treball i les malalties professionals.",
+    fragments_definicio: [
+      "Conjunt de mesures i activitats",
+      "que l'empresa adopta per evitar",
+      "o minimitzar els accidents de",
+      "treball i les malalties professionals."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Segmentació del mercat",
+    termes_alternatius: [],
+    definicio_correcta: "Procés de divisió del mercat global en grups més petits de consumidors que comparteixen necessitats i característiques similars.",
+    fragments_definicio: [
+      "Procés de divisió del mercat",
+      "global en grups més petits",
+      "de consumidors que comparteixen necessitats",
+      "i característiques similars."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Públic objectiu",
+    termes_alternatius: [
+      "Target"
+    ],
+    definicio_correcta: "Grup específic de consumidors al qual una empresa decideix dirigir els seus productes i les seves accions de màrqueting.",
+    fragments_definicio: [
+      "Grup específic de consumidors al",
+      "qual una empresa decideix dirigir",
+      "els seus productes i les",
+      "seves accions de màrqueting."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Criteri de segmentació",
+    termes_alternatius: [],
+    definicio_correcta: "Grup específic de consumidors al qual una empresa decideix dirigir els seus productes i les seves accions de màrqueting.",
+    fragments_definicio: [
+      "Grup específic de consumidors al",
+      "qual una empresa decideix dirigir",
+      "els seus productes i les",
+      "seves accions de màrqueting."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Criteris geogràfics",
+    termes_alternatius: [],
+    definicio_correcta: "Variables de segmentació que divideixen el mercat segons la ubicació física dels consumidors, com ara el país, la regió, la ciutat o el clima.",
+    fragments_definicio: [
+      "Variables de segmentació que divideixen el",
+      "mercat segons la ubicació física dels",
+      "consumidors, com ara el país, la",
+      "regió, la ciutat o el clima."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Criteris demogràfics",
+    termes_alternatius: [],
+    definicio_correcta: "Variables de segmentació basades en les característiques personals dels consumidors, com l'edat, el gènere, l'estat civil o l'etapa del cicle de vida familiar.",
+    fragments_definicio: [
+      "Variables de segmentació basades en les",
+      "característiques personals dels consumidors, com l'edat,",
+      "el gènere, l'estat civil o l'etapa",
+      "del cicle de vida familiar."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Criteris psicogràfics",
+    termes_alternatius: [],
+    definicio_correcta: "Variables de segmentació que classifiquen els consumidors segons la seva personalitat, l'estil de vida, els valors o els seus interessos personals.",
+    fragments_definicio: [
+      "Variables de segmentació que classifiquen els",
+      "consumidors segons la seva personalitat, l'estil",
+      "de vida, els valors o els",
+      "seus interessos personals."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Criteris socioeconòmics",
+    termes_alternatius: [],
+    definicio_correcta: "Variables de segmentació que agrupen els consumidors segons el seu nivell d'ingressos, la classe social, l'ocupació professional o el nivell educatiu.",
+    fragments_definicio: [
+      "Variables de segmentació que agrupen els",
+      "consumidors segons el seu nivell d'ingressos,",
+      "la classe social, l'ocupació professional o",
+      "el nivell educatiu."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Criteris conductuals",
+    termes_alternatius: [],
+    definicio_correcta: "Variables de segmentació basades en l'actitud del consumidor cap al producte, la seva freqüència de compra o els beneficis que espera obtenir-ne.",
+    fragments_definicio: [
+      "Variables de segmentació basades en l'actitud",
+      "del consumidor cap al producte, la",
+      "seva freqüència de compra o els",
+      "beneficis que espera obtenir-ne."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Veta de mercat",
+    termes_alternatius: [
+      "veta",
+      "Nínxol de mercat"
+    ],
+    definicio_correcta: "Grup molt reduït i específic de consumidors amb unes necessitats molt concretes que encara no estan ben cobertes per les empreses actuals.",
+    fragments_definicio: [
+      "Grup molt reduït i específic de",
+      "consumidors amb unes necessitats molt concretes",
+      "que encara no estan ben cobertes",
+      "per les empreses actuals."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Estratègia de segmentació",
+    termes_alternatius: [],
+    definicio_correcta: "Pla d'acció que defineix a quins segments concrets s'adreçarà l'empresa i com adaptarà la seva oferta comercial per satisfer-los.",
+    fragments_definicio: [
+      "Pla d'acció que defineix a",
+      "quins segments concrets s'adreçarà l'empresa",
+      "i com adaptarà la seva",
+      "oferta comercial per satisfer-los."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Estratègia indiferenciada",
+    termes_alternatius: [
+      "Màrqueting massiu"
+    ],
+    definicio_correcta: "Estratègia on l'empresa ignora les diferències entre els segments i s'adreça a tot el mercat amb una única oferta i el mateix producte.",
+    fragments_definicio: [
+      "Estratègia on l'empresa ignora les diferències",
+      "entre els segments i s'adreça a",
+      "tot el mercat amb una única",
+      "oferta i el mateix producte."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Estratègia diferenciada",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia on l'empresa s'adreça a diversos segments del mercat oferint productes i campanyes de màrqueting específicament adaptats a cadascun d'ells.",
+    fragments_definicio: [
+      "Estratègia on l'empresa s'adreça a",
+      "diversos segments del mercat oferint",
+      "productes i campanyes de màrqueting",
+      "específicament adaptats a cadascun d'ells."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Estratègia concentrada",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia on l'empresa centra tots els seus esforços i recursos comercials a satisfer les necessitats d'un únic segment o veta de mercat específic.",
+    fragments_definicio: [
+      "Estratègia on l'empresa centra tots els",
+      "seus esforços i recursos comercials a",
+      "satisfer les necessitats d'un únic segment",
+      "o veta de mercat específic."
+    ]
+  },
+  {
+    tema: "16 - La segmentació del mercat. Estratègies de segmentació",
+    terme: "Estratègia personalitzada",
+    termes_alternatius: [
+      "Micromàrqueting"
+    ],
+    definicio_correcta: "Estratègia on l'empresa adapta el producte i el missatge comercial a les necessitats, gustos i preferències individuals de cada client.",
+    fragments_definicio: [
+      "Estratègia on l'empresa adapta el",
+      "producte i el missatge comercial",
+      "a les necessitats, gustos i",
+      "preferències individuals de cada client."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Pla de màrqueting",
+    termes_alternatius: [
+      "Pla de marketing"
+    ],
+    definicio_correcta: "Document que detalla els objectius comercials de l'empresa i les estratègies o accions que es duran a terme per assolir-los.",
+    fragments_definicio: [
+      "Document que detalla els objectius",
+      "comercials de l'empresa i les",
+      "estratègies o accions que es",
+      "duran a terme per assolir-los."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Estudi de mercat",
+    termes_alternatius: [],
+    definicio_correcta: "Procés de recollida i anàlisi d'informació sobre l'entorn, la competència i els consumidors per prendre decisions comercials encertades.",
+    fragments_definicio: [
+      "Procés de recollida i anàlisi",
+      "d'informació sobre l'entorn, la competència",
+      "i els consumidors per prendre",
+      "decisions comercials encertades."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Macroentorn",
+    termes_alternatius: [
+      "Entorn general"
+    ],
+    definicio_correcta: "Conjunt de factors generals que afecten per igual a totes les empreses d'un determinat àmbit geogràfic o econòmic.",
+    fragments_definicio: [
+      "Conjunt de factors generals que",
+      "afecten per igual a totes",
+      "les empreses d'un determinat àmbit",
+      "geogràfic o econòmic."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Microentorn",
+    termes_alternatius: [
+      "Entorn específic"
+    ],
+    definicio_correcta: "Conjunt de factors específics que afecten directament a una empresa i a les altres del seu mateix sector.",
+    fragments_definicio: [
+      "Conjunt de factors específics que",
+      "afecten directament a una empresa",
+      "i a les altres del",
+      "seu mateix sector."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Anàlisi PESTEL",
+    termes_alternatius: [],
+    definicio_correcta: "Eina d'estudi del macroentorn que analitza els factors polítics, econòmics, socioculturals, tecnològics, ecològics i legals.",
+    fragments_definicio: [
+      "Eina d'estudi del macroentorn",
+      "que analitza els factors",
+      "polítics, econòmics, socioculturals, tecnològics,",
+      "ecològics i legals."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Forces de Porter",
+    termes_alternatius: [
+      "Model de Porter",
+      "Les 5 Forces de Porter"
+    ],
+    definicio_correcta: "Model d'anàlisi del microentorn que avalua la rivalitat del sector mitjançant cinc forces competitives clau.",
+    fragments_definicio: [
+      "Model d'anàlisi del microentorn",
+      "que avalua la rivalitat",
+      "del sector mitjançant cinc",
+      "forces competitives clau."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Anàlisi de l'entorn",
+    termes_alternatius: [],
+    definicio_correcta: "Part de l'estudi de mercat que investiga els factors externs (macroentorn i microentorn) que poden afavorir o perjudicar el negoci.",
+    fragments_definicio: [
+      "Part de l'estudi de mercat",
+      "que investiga els factors externs",
+      "(macroentorn i microentorn) que poden",
+      "afavorir o perjudicar el negoci."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Anàlisi de la competència",
+    termes_alternatius: [],
+    definicio_correcta: "Avaluació detallada de les empreses rivals per conèixer els seus productes, preus, estratègies i la seva quota de mercat.",
+    fragments_definicio: [
+      "Avaluació detallada de les empreses",
+      "rivals per conèixer els seus",
+      "productes, preus, estratègies i la",
+      "seva quota de mercat."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Anàlisi dels consumidors",
+    termes_alternatius: [],
+    definicio_correcta: "Estudi de les necessitats, motivacions, hàbits de compra i preferències del públic objectiu al qual s'adreça l'empresa.",
+    fragments_definicio: [
+      "Estudi de les necessitats, motivacions,",
+      "hàbits de compra i preferències",
+      "del públic objectiu al qual",
+      "s'adreça l'empresa."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Proposta de valor",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de beneficis i solucions úniques que una empresa promet lliurar als seus clients perquè la triïn per davant de la competència.",
+    fragments_definicio: [
+      "Conjunt de beneficis i solucions úniques",
+      "que una empresa promet lliurar als",
+      "seus clients perquè la triïn per",
+      "davant de la competència."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Factor diferencial",
+    termes_alternatius: [
+      "Avantatge competitiu"
+    ],
+    definicio_correcta: "Característica única i difícil d'imitar d'un producte o empresa que li atorga superioritat sobre els seus competidors.",
+    fragments_definicio: [
+      "Característica única i difícil d'imitar",
+      "d'un producte o empresa que",
+      "li atorga superioritat sobre els",
+      "seus competidors."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Oceans blaus",
+    termes_alternatius: [
+      "Estratègia dels oceans blaus",
+      "Estratègia de l'oceà blau"
+    ],
+    definicio_correcta: "Espais de mercat inexplorats i sense competència on l'empresa pot crear i capturar una nova demanda oferint un gran valor.",
+    fragments_definicio: [
+      "Espais de mercat inexplorats i",
+      "sense competència on l'empresa pot",
+      "crear i capturar una nova",
+      "demanda oferint un gran valor."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Estudi de la localització",
+    termes_alternatius: [
+      "Estudi de localització"
+    ],
+    definicio_correcta: "Anàlisi dels factors geogràfics, econòmics i legals per decidir quin és el lloc més adequat per instal·lar físicament l'empresa.",
+    fragments_definicio: [
+      "Anàlisi dels factors geogràfics, econòmics",
+      "i legals per decidir quin",
+      "és el lloc més adequat",
+      "per instal·lar físicament l'empresa."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Anàlisi DAFO",
+    termes_alternatius: [
+      "DAFO",
+      "Matriu DAFO"
+    ],
+    definicio_correcta: "Eina estratègica que avalua la situació global d'una empresa analitzant les seves debilitats, amenaces, fortaleses i oportunitats.",
+    fragments_definicio: [
+      "Eina estratègica que avalua la",
+      "situació global d'una empresa analitzant",
+      "les seves debilitats, amenaces, fortaleses",
+      "i oportunitats."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Factor intern",
+    termes_alternatius: [],
+    definicio_correcta: "Element propi de l'empresa que es pot controlar i modificar directament, com ara els recursos humans, la tecnologia o la capacitat financera.",
+    fragments_definicio: [
+      "Element propi de l'empresa que es",
+      "pot controlar i modificar directament, com",
+      "ara els recursos humans, la tecnologia",
+      "o la capacitat financera."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Factor extern",
+    termes_alternatius: [],
+    definicio_correcta: "Element de l'entorn empresarial que l'empresa no pot controlar però al qual s'ha d'adaptar obligatòriament, com les lleis o les crisis econòmiques.",
+    fragments_definicio: [
+      "Element de l'entorn empresarial que l'empresa",
+      "no pot controlar però al qual",
+      "s'ha d'adaptar obligatòriament, com les lleis",
+      "o les crisis econòmiques."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Debilitats",
+    termes_alternatius: [],
+    definicio_correcta: "Aspectes interns i desfavorables de l'empresa que la situen en una posició de desavantatge respecte als seus competidors.",
+    fragments_definicio: [
+      "Aspectes interns i desfavorables de",
+      "l'empresa que la situen en",
+      "una posició de desavantatge respecte",
+      "als seus competidors."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Amenaces",
+    termes_alternatius: [],
+    definicio_correcta: "Factors externs negatius de l'entorn que poden posar en perill la supervivència, la rendibilitat o l'èxit de l'empresa.",
+    fragments_definicio: [
+      "Factors externs negatius de l'entorn",
+      "que poden posar en perill",
+      "la supervivència, la rendibilitat o",
+      "l'èxit de l'empresa."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Fortaleses",
+    termes_alternatius: [],
+    definicio_correcta: "Aspectes interns i positius de l'empresa en els quals destaca i que li proporcionen un clar avantatge competitiu al mercat.",
+    fragments_definicio: [
+      "Aspectes interns i positius de",
+      "l'empresa en els quals destaca",
+      "i que li proporcionen un",
+      "clar avantatge competitiu al mercat."
+    ]
+  },
+  {
+    tema: "17 - L'estudi de mercat i l'anàlisi DAFO",
+    terme: "Oportunitats",
+    termes_alternatius: [],
+    definicio_correcta: "Factors externs i favorables de l'entorn que l'empresa pot aprofitar per créixer, millorar o augmentar els seus beneficis.",
+    fragments_definicio: [
+      "Factors externs i favorables de",
+      "l'entorn que l'empresa pot aprofitar",
+      "per créixer, millorar o augmentar",
+      "els seus beneficis."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Màrqueting",
+    termes_alternatius: [
+      "Marketing"
+    ],
+    definicio_correcta: "Conjunt de tècniques i estudis que tenen com a objectiu millorar la comercialització d'un producte i satisfer les necessitats del consumidor.",
+    fragments_definicio: [
+      "Conjunt de tècniques i estudis que",
+      "tenen com a objectiu millorar la",
+      "comercialització d'un producte i satisfer les",
+      "necessitats del consumidor."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Màrqueting mix",
+    termes_alternatius: [
+      "Marketing mix",
+      "4P"
+    ],
+    definicio_correcta: "Conjunt de quatre variables o instruments (producte, preu, distribució i comunicació) que l'empresa combina per assolir els seus objectius comercials.",
+    fragments_definicio: [
+      "Conjunt de quatre variables o",
+      "instruments (producte, preu, distribució i",
+      "comunicació) que l'empresa combina per",
+      "assolir els seus objectius comercials."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Variable comercial estratègica",
+    termes_alternatius: [
+      "Variable estratègica"
+    ],
+    definicio_correcta: "Element del màrqueting mix (com el producte o la distribució) les decisions del qual tenen efectes a llarg termini i són difícils de modificar.",
+    fragments_definicio: [
+      "Element del màrqueting mix (com el",
+      "producte o la distribució) les decisions",
+      "del qual tenen efectes a llarg",
+      "termini i són difícils de modificar."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Variable comercial tàctica",
+    termes_alternatius: [
+      "Variable tàctica"
+    ],
+    definicio_correcta: "Element del màrqueting mix (com el preu o la comunicació) que es pot modificar a curt termini per adaptar-se ràpidament als canvis del mercat.",
+    fragments_definicio: [
+      "Element del màrqueting mix (com el",
+      "preu o la comunicació) que es",
+      "pot modificar a curt termini per",
+      "adaptar-se ràpidament als canvis del mercat."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Bé",
+    termes_alternatius: [
+      "Producte",
+      "Producte tangible"
+    ],
+    definicio_correcta: "Objecte físic i tangible que es pot tocar, emmagatzemar i consumir per satisfer una necessitat específica.",
+    fragments_definicio: [
+      "Objecte físic i tangible",
+      "que es pot tocar,",
+      "emmagatzemar i consumir per",
+      "satisfer una necessitat específica."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Servei",
+    termes_alternatius: [
+      "Producte intangible"
+    ],
+    definicio_correcta: "Activitat intangible i no material que una persona o empresa ofereix a una altra per satisfer una necessitat.",
+    fragments_definicio: [
+      "Activitat intangible i no material",
+      "que una persona o empresa",
+      "ofereix a una altra per",
+      "satisfer una necessitat."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Gamma",
+    termes_alternatius: [
+      "Gamma de productes"
+    ],
+    definicio_correcta: "Conjunt de totes les línies de productes diferents que una empresa ofereix als seus clients en el mercat.",
+    fragments_definicio: [
+      "Conjunt de totes les línies",
+      "de productes diferents que una",
+      "empresa ofereix als seus clients",
+      "en el mercat."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Línia",
+    termes_alternatius: [
+      "Línia de productes"
+    ],
+    definicio_correcta: "Grup de productes estretament relacionats entre ells perquè funcionen de manera similar o s'adrecen al mateix grup de consumidors.",
+    fragments_definicio: [
+      "Grup de productes estretament relacionats",
+      "entre ells perquè funcionen de",
+      "manera similar o s'adrecen al",
+      "mateix grup de consumidors."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Cartera",
+    termes_alternatius: [
+      "Cartera de productes",
+      "Assortiment"
+    ],
+    definicio_correcta: "Conjunt total de tots els productes individuals i referències específiques que una empresa ofereix per a la seva venda.",
+    fragments_definicio: [
+      "Conjunt total de tots els",
+      "productes individuals i referències específiques",
+      "que una empresa ofereix per",
+      "a la seva venda."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Marca",
+    termes_alternatius: [
+      "Marca de producte"
+    ],
+    definicio_correcta: "Nom, terme, símbol o disseny que identifica els productes d'una empresa i els diferencia clarament dels de la competència.",
+    fragments_definicio: [
+      "Nom, terme, símbol o disseny",
+      "que identifica els productes d'una",
+      "empresa i els diferencia clarament",
+      "dels de la competència."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Marca única",
+    termes_alternatius: [
+      "Marca paraigua"
+    ],
+    definicio_correcta: "Estratègia que consisteix a utilitzar exactament el mateix nom de marca per a tots els productes diferents que comercialitza l'empresa.",
+    fragments_definicio: [
+      "Estratègia que consisteix a utilitzar",
+      "exactament el mateix nom de",
+      "marca per a tots els",
+      "productes diferents que comercialitza l'empresa."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Marques múltiples",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia on l'empresa utilitza un nom de marca diferent per a cada línia de productes o segment de mercat al qual s'adreça.",
+    fragments_definicio: [
+      "Estratègia on l'empresa utilitza un nom",
+      "de marca diferent per a cada",
+      "línia de productes o segment de",
+      "mercat al qual s'adreça."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Marca de distribuidor",
+    termes_alternatius: [
+      "Marca blanca"
+    ],
+    definicio_correcta: "Marca propietat de l'establiment comercial o cadena de supermercats que ven els productes en lloc del fabricant original.",
+    fragments_definicio: [
+      "Marca propietat de l'establiment comercial",
+      "o cadena de supermercats que",
+      "ven els productes en lloc",
+      "del fabricant original."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Cicle de vida",
+    termes_alternatius: [
+      "Cicle de vida del producte"
+    ],
+    definicio_correcta: "Evolució temporal de les vendes i els beneficis d'un producte des que es llança al mercat fins que acaba desapareixent.",
+    fragments_definicio: [
+      "Evolució temporal de les vendes",
+      "i els beneficis d'un producte",
+      "des que es llança al",
+      "mercat fins que acaba desapareixent."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Introducció",
+    termes_alternatius: [
+      "Fase d'introducció"
+    ],
+    definicio_correcta: "Primera fase del cicle de vida d'un producte caracteritzada per vendes baixes, alts costos de promoció i beneficis negatius o nuls.",
+    fragments_definicio: [
+      "Primera fase del cicle de vida",
+      "d'un producte caracteritzada per vendes baixes,",
+      "alts costos de promoció i beneficis",
+      "negatius o nuls."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Creixement",
+    termes_alternatius: [
+      "Fase de creixement"
+    ],
+    definicio_correcta: "Segona fase del cicle de vida on les vendes i els beneficis del producte augmenten ràpidament i comencen a aparèixer nous competidors.",
+    fragments_definicio: [
+      "Segona fase del cicle de vida",
+      "on les vendes i els beneficis",
+      "del producte augmenten ràpidament i comencen",
+      "a aparèixer nous competidors."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Maduresa",
+    termes_alternatius: [
+      "Fase de maduresa"
+    ],
+    definicio_correcta: "Tercera fase del cicle de vida on les vendes s'estabilitzen en el seu punt màxim i la competència en preus es torna molt intensa.",
+    fragments_definicio: [
+      "Tercera fase del cicle de vida",
+      "on les vendes s'estabilitzen en el",
+      "seu punt màxim i la competència",
+      "en preus es torna molt intensa."
+    ]
+  },
+  {
+    tema: "18 - Estratègies de màrqueting: el producte",
+    terme: "Declivi",
+    termes_alternatius: [
+      "Fase de declivi"
+    ],
+    definicio_correcta: "Última fase del cicle de vida on les vendes i els beneficis cauen dràsticament fins que l'empresa decideix retirar el producte del mercat.",
+    fragments_definicio: [
+      "Última fase del cicle de vida",
+      "on les vendes i els beneficis",
+      "cauen dràsticament fins que l'empresa decideix",
+      "retirar el producte del mercat."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Màrqueting",
+    termes_alternatius: [
+      "Marketing"
+    ],
+    definicio_correcta: "Conjunt de tècniques i estudis que tenen com a objectiu millorar la comercialització d'un producte i satisfer les necessitats del consumidor.",
+    fragments_definicio: [
+      "Conjunt de tècniques i estudis que",
+      "tenen com a objectiu millorar la",
+      "comercialització d'un producte i satisfer les",
+      "necessitats del consumidor."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Màrqueting mix",
+    termes_alternatius: [
+      "Marketing mix",
+      "4P"
+    ],
+    definicio_correcta: "Conjunt de quatre variables o instruments (producte, preu, distribució i comunicació) que l'empresa combina per assolir els seus objectius comercials.",
+    fragments_definicio: [
+      "Conjunt de quatre variables o",
+      "instruments (producte, preu, distribució i",
+      "comunicació) que l'empresa combina per",
+      "assolir els seus objectius comercials."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Variable comercial estratègica",
+    termes_alternatius: [
+      "Variable estratègica"
+    ],
+    definicio_correcta: "Element del màrqueting mix (com el producte o la distribució) les decisions del qual tenen efectes a llarg termini i són difícils de modificar.",
+    fragments_definicio: [
+      "Element del màrqueting mix (com el",
+      "producte o la distribució) les decisions",
+      "del qual tenen efectes a llarg",
+      "termini i són difícils de modificar."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Variable comercial tàctica",
+    termes_alternatius: [
+      "Variable tàctica"
+    ],
+    definicio_correcta: "Element del màrqueting mix (com el preu o la comunicació) que es pot modificar a curt termini per adaptar-se ràpidament als canvis del mercat.",
+    fragments_definicio: [
+      "Element del màrqueting mix (com el",
+      "preu o la comunicació) que es",
+      "pot modificar a curt termini per",
+      "adaptar-se ràpidament als canvis del mercat."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Preu",
+    termes_alternatius: [],
+    definicio_correcta: "Quantitat de diners que el comprador lliura al venedor a canvi d'adquirir un bé o gaudir d'un servei concret.",
+    fragments_definicio: [
+      "Quantitat de diners que el",
+      "comprador lliura al venedor a",
+      "canvi d'adquirir un bé o",
+      "gaudir d'un servei concret."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Política de preus",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt de normes, criteris i decisions estratègiques que pren l'empresa per fixar i modificar els preus dels seus productes.",
+    fragments_definicio: [
+      "Conjunt de normes, criteris i",
+      "decisions estratègiques que pren l'empresa",
+      "per fixar i modificar els",
+      "preus dels seus productes."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Supervivència",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia de fixació de preus molt baixos que aplica una empresa amb dificultats, només per mantenir-se al mercat i cobrir les despeses bàsiques.",
+    fragments_definicio: [
+      "Estratègia de fixació de preus molt",
+      "baixos que aplica una empresa amb",
+      "dificultats, només per mantenir-se al mercat",
+      "i cobrir les despeses bàsiques."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Penetració al mercat",
+    termes_alternatius: [
+      "Preus de penetració"
+    ],
+    definicio_correcta: "Estratègia d'introducció d'un nou producte amb un preu inicial baix per atreure ràpidament molts compradors i guanyar quota de mercat.",
+    fragments_definicio: [
+      "Estratègia d'introducció d'un nou producte",
+      "amb un preu inicial baix",
+      "per atreure ràpidament molts compradors",
+      "i guanyar quota de mercat."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Seguiment del líder",
+    termes_alternatius: [
+      "Alineació de preus"
+    ],
+    definicio_correcta: "Estratègia on l'empresa imita o s'adapta directament als preus que marca l'empresa més forta i dominant del seu sector.",
+    fragments_definicio: [
+      "Estratègia on l'empresa imita o",
+      "s'adapta directament als preus que",
+      "marca l'empresa més forta i",
+      "dominant del seu sector."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Equilibri de mercat",
+    termes_alternatius: [
+      "Preu d'equilibri"
+    ],
+    definicio_correcta: "Situació on la quantitat de producte que els consumidors volen comprar a un preu determinat coincideix exactament amb la que les empreses volen vendre.",
+    fragments_definicio: [
+      "Situació on la quantitat de producte",
+      "que els consumidors volen comprar a",
+      "un preu determinat coincideix exactament amb",
+      "la que les empreses volen vendre."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Preus psicològics",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia que juga amb la percepció mental del consumidor fixant xifres acabades en 9 o 99 perquè el producte sembli més barat.",
+    fragments_definicio: [
+      "Estratègia que juga amb la percepció",
+      "mental del consumidor fixant xifres acabades",
+      "en 9 o 99 perquè el",
+      "producte sembli més barat."
+    ]
+  },
+  {
+    tema: "19 - Estratègies de màrqueting: el preu",
+    terme: "Preus redons",
+    termes_alternatius: [
+      "Preus rodons"
+    ],
+    definicio_correcta: "Estratègia que fixa preus sense decimals per transmetre una sensació de més qualitat, prestigi exclusiu o simplement per facilitar una compra ràpida.",
+    fragments_definicio: [
+      "Estratègia que fixa preus sense decimals",
+      "per transmetre una sensació de més",
+      "qualitat, prestigi exclusiu o simplement per",
+      "facilitar una compra ràpida."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Màrqueting",
+    termes_alternatius: [
+      "Marketing"
+    ],
+    definicio_correcta: "Conjunt de tècniques i estudis que tenen com a objectiu millorar la comercialització d'un producte i satisfer les necessitats del consumidor.",
+    fragments_definicio: [
+      "Conjunt de tècniques i estudis que",
+      "tenen com a objectiu millorar la",
+      "comercialització d'un producte i satisfer les",
+      "necessitats del consumidor."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Màrqueting mix",
+    termes_alternatius: [
+      "Marketing mix",
+      "4P"
+    ],
+    definicio_correcta: "Conjunt de quatre variables o instruments (producte, preu, distribució i comunicació) que l'empresa combina per assolir els seus objectius comercials.",
+    fragments_definicio: [
+      "Conjunt de quatre variables o",
+      "instruments (producte, preu, distribució i",
+      "comunicació) que l'empresa combina per",
+      "assolir els seus objectius comercials."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Variable comercial estratègica",
+    termes_alternatius: [
+      "Variable estratègica"
+    ],
+    definicio_correcta: "Element del màrqueting mix (com el producte o la distribució) les decisions del qual tenen efectes a llarg termini i són difícils de modificar.",
+    fragments_definicio: [
+      "Element del màrqueting mix (com el",
+      "producte o la distribució) les decisions",
+      "del qual tenen efectes a llarg",
+      "termini i són difícils de modificar."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Variable comercial tàctica",
+    termes_alternatius: [
+      "Variable tàctica"
+    ],
+    definicio_correcta: "Element del màrqueting mix (com el preu o la comunicació) que es pot modificar a curt termini per adaptar-se ràpidament als canvis del mercat.",
+    fragments_definicio: [
+      "Element del màrqueting mix (com el",
+      "preu o la comunicació) que es",
+      "pot modificar a curt termini per",
+      "adaptar-se ràpidament als canvis del mercat."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Distribució",
+    termes_alternatius: [],
+    definicio_correcta: "Conjunt d'activitats i processos que permeten traslladar un producte des del fabricant fins al consumidor final en el moment i lloc adequats.",
+    fragments_definicio: [
+      "Conjunt d'activitats i processos que permeten",
+      "traslladar un producte des del fabricant",
+      "fins al consumidor final en el",
+      "moment i lloc adequats."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Canal de distribució",
+    termes_alternatius: [
+      "Canal"
+    ],
+    definicio_correcta: "Ruta o circuit pel qual circula un producte i se'n transfereix la propietat des de la fase de producció fins al seu consum.",
+    fragments_definicio: [
+      "Ruta o circuit pel qual circula",
+      "un producte i se'n transfereix la",
+      "propietat des de la fase de",
+      "producció fins al seu consum."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Canal directe",
+    termes_alternatius: [],
+    definicio_correcta: "Circuit de comercialització on no hi ha cap intermediari i el mateix fabricant ven directament el producte al consumidor.",
+    fragments_definicio: [
+      "Circuit de comercialització on no",
+      "hi ha cap intermediari i",
+      "el mateix fabricant ven directament",
+      "el producte al consumidor."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Canal indirecte",
+    termes_alternatius: [],
+    definicio_correcta: "Circuit de comercialització que compta amb la presència d'un o més intermediaris entre l'empresa fabricant i el consumidor final.",
+    fragments_definicio: [
+      "Circuit de comercialització que compta",
+      "amb la presència d'un o",
+      "més intermediaris entre l'empresa fabricant",
+      "i el consumidor final."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Canal curt",
+    termes_alternatius: [],
+    definicio_correcta: "Tipus de canal indirecte que només té un únic intermediari (normalment un detallista) entre l'empresa productora i el client.",
+    fragments_definicio: [
+      "Tipus de canal indirecte que",
+      "només té un únic intermediari",
+      "(normalment un detallista) entre l'empresa",
+      "productora i el client."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Canal llarg",
+    termes_alternatius: [],
+    definicio_correcta: "Tipus de canal indirecte que inclou almenys dos intermediaris (generalment un majorista i un detallista) abans d'arribar al consumidor.",
+    fragments_definicio: [
+      "Tipus de canal indirecte que",
+      "inclou almenys dos intermediaris (generalment",
+      "un majorista i un detallista)",
+      "abans d'arribar al consumidor."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Intermediari",
+    termes_alternatius: [
+      "Distribuïdor"
+    ],
+    definicio_correcta: "Persona o empresa que facilita la distribució i la venda dels productes enllaçant el fabricant amb el consumidor final.",
+    fragments_definicio: [
+      "Persona o empresa que facilita",
+      "la distribució i la venda",
+      "dels productes enllaçant el fabricant",
+      "amb el consumidor final."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Majorista",
+    termes_alternatius: [],
+    definicio_correcta: "Intermediari que compra grans quantitats de producte al fabricant per vendre-les a altres intermediaris, però mai al consumidor final.",
+    fragments_definicio: [
+      "Intermediari que compra grans quantitats",
+      "de producte al fabricant per",
+      "vendre-les a altres intermediaris, però",
+      "mai al consumidor final."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Detallista",
+    termes_alternatius: [
+      "Minorista"
+    ],
+    definicio_correcta: "Intermediari que compra els productes als fabricants o als majoristes per vendre'ls directament al consumidor final.",
+    fragments_definicio: [
+      "Intermediari que compra els",
+      "productes als fabricants o",
+      "als majoristes per vendre'ls",
+      "directament al consumidor final."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Venda a l'engròs",
+    termes_alternatius: [],
+    definicio_correcta: "Activitat comercial de compravenda de grans quantitats de mercaderies destinades a ser revenudes o utilitzades per altres empreses.",
+    fragments_definicio: [
+      "Activitat comercial de compravenda de",
+      "grans quantitats de mercaderies destinades",
+      "a ser revenudes o utilitzades",
+      "per altres empreses."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Venda al detall",
+    termes_alternatius: [],
+    definicio_correcta: "Activitat comercial que consisteix a vendre petites quantitats de productes de manera directa a l'usuari o consumidor final.",
+    fragments_definicio: [
+      "Activitat comercial que consisteix a",
+      "vendre petites quantitats de productes",
+      "de manera directa a l'usuari",
+      "o consumidor final."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Distribució exclusiva",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia on el fabricant concedeix a un únic intermediari el dret exclusiu de vendre el seu producte en una zona geogràfica concreta.",
+    fragments_definicio: [
+      "Estratègia on el fabricant concedeix a",
+      "un únic intermediari el dret exclusiu",
+      "de vendre el seu producte en",
+      "una zona geogràfica concreta."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Distribució selectiva",
+    termes_alternatius: [],
+    definicio_correcta: "Estratègia on el fabricant escull un nombre limitat i reduït d'intermediaris que compleixin certs requisits per vendre el seu producte.",
+    fragments_definicio: [
+      "Estratègia on el fabricant escull",
+      "un nombre limitat i reduït",
+      "d'intermediaris que compleixin certs requisits",
+      "per vendre el seu producte."
+    ]
+  },
+  {
+    tema: "20 - Estratègies de màrqueting: la distribució",
+    terme: "Distribució intensiva",
+    termes_alternatius: [
+      "Distribució massiva"
+    ],
+    definicio_correcta: "Estratègia on el fabricant intenta col·locar el seu producte en el màxim nombre de punts de venda possible perquè sigui molt accessible.",
+    fragments_definicio: [
+      "Estratègia on el fabricant intenta col·locar",
+      "el seu producte en el màxim",
+      "nombre de punts de venda possible",
+      "perquè sigui molt accessible."
+    ]
+  }
+];
+    // =====================================================================
+
+    // Variables Generals
+    let gameMode = 'rapid'; 
+    let activeDb = []; // S'emprarà aquesta llista filtrada durant la partida
+    const defaultTotalQuestions = 15;
+    let totalQuestions = 15;
+    let currentQuestionCount = 0;
+    let lives = 3;
+    let currentCorrectAnswer = null;
+    let currentMode = '';
+    let selectedButton = null;
+    let questionState = 'answering';
+    let currentConcept = null;
+    let gameHistory = []; 
+    let startTime = 0;
+    
+    // Variables Mode Infinit
+    let timerInterval = null;
+    let maxTimeMs = 50000; 
+    let currentTimeMs = 50000;
+
+    // Elements DOM
+    const menuScreen = document.getElementById('menu-screen');
+    const customScreen = document.getElementById('custom-screen');
+    const customOptionsContainer = document.getElementById('custom-options-container');
+    const gameWrapper = document.getElementById('game-wrapper');
+    const timerBarWrapper = document.getElementById('timer-bar-wrapper');
+    const timerBarFill = document.getElementById('timer-bar');
+    const mainProgressContainer = document.getElementById('main-progress-container');
+    const scoreCounterWrapper = document.getElementById('score-counter-wrapper');
+    const scoreCount = document.getElementById('score-count');
+
+    const questionInstruction = document.getElementById('question-instruction');
+    const questionContent = document.getElementById('question-content');
+    const optionsContainer = document.getElementById('options-container');
+    const actionBtn = document.getElementById('action-btn');
+    const livesCount = document.getElementById('lives-count');
+    const progressBar = document.getElementById('progress-bar');
+    const resultArea = document.getElementById('result-area');
+    const questionArea = document.getElementById('question-area');
+    const gameHeader = document.getElementById('game-header');
+    const gameFooter = document.getElementById('game-footer');
+    const feedbackMsg = document.getElementById('feedback-msg');
+    const historyList = document.getElementById('history-list');
+
+    // NAVEGACIÓ DEL MENÚ I GENERACIÓ DINÀMICA
+    function goMainMenu() {
+      stopTimer();
+      gameWrapper.classList.add('hidden');
+      customScreen.classList.add('hidden');
+      menuScreen.classList.remove('hidden');
+    }
+
+    function openCustomMenu() {
+      menuScreen.classList.add('hidden');
+      customScreen.classList.remove('hidden');
+      
+      // Buidem i generem els temes automàticament a partir de la bd
+      customOptionsContainer.innerHTML = '';
+      
+      if (!db || db.length === 0) {
+         customOptionsContainer.innerHTML = '<p>No hi ha conceptes a la base de dades.</p>';
+         return;
+      }
+      
+      const allThemes = [...new Set(db.map(item => item.tema))];
+      
+      allThemes.forEach(tema => {
+        const label = document.createElement('label');
+        label.className = 'checkbox-label';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = tema;
+        input.checked = true; // Tot marcat per defecte
+        input.className = 'theme-checkbox';
+        
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(' ' + tema));
+        customOptionsContainer.appendChild(label);
+      });
+    }
+
+    function setMode(mode) {
+      if (mode === 'custom') {
+        const selectedThemes = Array.from(document.querySelectorAll('.theme-checkbox:checked')).map(cb => cb.value);
+        if (selectedThemes.length === 0) {
+          alert("Has de seleccionar com a mínim un tema per poder jugar.");
+          return;
+        }
+        activeDb = db.filter(item => selectedThemes.includes(item.tema));
+        totalQuestions = Math.min(defaultTotalQuestions, activeDb.length); // Ajustar si hi ha menys preguntes que el total
+      } else {
+        activeDb = [...db];
+      }
+
+      gameMode = mode;
+      menuScreen.classList.add('hidden');
+      customScreen.classList.add('hidden');
+      gameWrapper.classList.remove('hidden');
+      
+      if (mode === 'infinite') {
+        totalQuestions = 99999; 
+        timerBarWrapper.style.display = 'block';
+        mainProgressContainer.style.display = 'none';
+        scoreCounterWrapper.style.display = 'flex';
+      } else {
+        if (mode !== 'custom') totalQuestions = defaultTotalQuestions;
+        timerBarWrapper.style.display = 'none';
+        mainProgressContainer.style.display = 'block';
+        scoreCounterWrapper.style.display = 'none';
+      }
+      resetGame();
+    }
+
+    // SISTEMA DE SO
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      
+      if (type === 'correct') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); 
+        gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.setValueAtTime(100, now + 0.15);
+        gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+      } else if (type === 'win') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(261.63, now); osc.frequency.setValueAtTime(329.63, now + 0.15);
+        osc.frequency.setValueAtTime(392.00, now + 0.3); osc.frequency.setValueAtTime(523.25, now + 0.45);
+        gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.8);
+        osc.start(now); osc.stop(now + 0.8);
+      } else if (type === 'lose') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(329.63, now); osc.frequency.setValueAtTime(293.66, now + 0.2);
+        osc.frequency.setValueAtTime(261.63, now + 0.4); osc.frequency.setValueAtTime(246.94, now + 0.6);
+        gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.linearRampToValueAtTime(0, now + 1);
+        osc.start(now); osc.stop(now + 1);
+      }
+    }
+
+    function animateCounter(elementId, targetValue, duration) {
+      const element = document.getElementById(elementId);
+      element.classList.remove('pop-anim');
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        element.textContent = Math.floor(progress * targetValue);
+        if (progress < 1) window.requestAnimationFrame(step);
+        else element.classList.add('pop-anim');
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    function animateTime(elementId, targetSeconds, duration) {
+      const element = document.getElementById(elementId);
+      element.classList.remove('pop-anim');
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const currentSecs = Math.floor(progress * targetSeconds);
+        const m = Math.floor(currentSecs / 60);
+        const s = currentSecs % 60;
+        element.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+        if (progress < 1) window.requestAnimationFrame(step);
+        else element.classList.add('pop-anim');
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    function checkStreak() {
+      const lastWinDate = localStorage.getItem('ecolingo_last_win');
+      const today = new Date().toDateString();
+      let streak = parseInt(localStorage.getItem('ecolingo_streak')) || 0;
+      if (lastWinDate) {
+        const diffDays = Math.ceil(Math.abs(new Date(today) - new Date(lastWinDate)) / (1000 * 60 * 60 * 24));
+        if (diffDays > 1) { streak = 0; localStorage.setItem('ecolingo_streak', streak); }
+      }
+      return streak;
+    }
+
+    function updateStreakOnWin() {
+      const lastWinDate = localStorage.getItem('ecolingo_last_win');
+      const today = new Date().toDateString();
+      let streak = parseInt(localStorage.getItem('ecolingo_streak')) || 0;
+      if (lastWinDate !== today) {
+        streak++; 
+        localStorage.setItem('ecolingo_streak', streak); 
+        localStorage.setItem('ecolingo_last_win', today);
+      }
+      return streak;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function updateProgress() {
+      if (gameMode !== 'infinite') {
+        progressBar.style.width = `${(currentQuestionCount / totalQuestions) * 100}%`;
+      } else {
+        scoreCount.textContent = currentQuestionCount;
+        scoreCount.classList.remove('pop-anim');
+        void scoreCount.offsetWidth;
+        scoreCount.classList.add('pop-anim');
+      }
+    }
+
+    function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+    // LÒGICA DEL TEMPORITZADOR (MODE INFINIT)
+    function startTimer() {
+      if (gameMode !== 'infinite') return;
+      stopTimer();
+      timerBarFill.style.width = '100%';
+      timerBarFill.style.backgroundColor = '#ff9600';
+      
+      let lastTime = Date.now();
+      timerInterval = setInterval(() => {
+        let now = Date.now();
+        let delta = now - lastTime;
+        lastTime = now;
+        currentTimeMs -= delta;
+        
+        let percent = (currentTimeMs / maxTimeMs) * 100;
+        timerBarFill.style.width = `${Math.max(0, percent)}%`;
+        
+        if (percent < 25) timerBarFill.style.backgroundColor = '#ea2b2b';
+        else timerBarFill.style.backgroundColor = '#ff9600';
+
+        if (currentTimeMs <= 0) {
+          stopTimer();
+          handleTimeout();
+        }
+      }, 50);
+    }
+
+    function stopTimer() {
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+
+    function handleTimeout() {
+      questionState = 'checking';
+      playSound('wrong'); 
+      gameWrapper.classList.add('shake'); 
+      lives--; 
+      livesCount.textContent = lives;
+      
+      if (currentMode === 'multiple-choice' || currentMode === 'true-false' || currentMode === 'fill-blank') {
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => {
+          b.onclick = null; 
+          if (b.textContent === currentCorrectAnswer) b.classList.add('correct');
+        });
+      } else {
+        feedbackMsg.style.display = 'block'; feedbackMsg.style.color = '#ea2b2b';
+        feedbackMsg.textContent = `Temps esgotat! La resposta era: ${currentMode==='write'?currentConcept.terme:currentConcept.definicio_correcta}`;
+      }
+
+      gameHistory.push({ terme: currentConcept.terme, correct: false });
+      
+      actionBtn.disabled = true;
+      actionBtn.classList.add('wrong-state');
+      actionBtn.textContent = 'Temps Esgotat!';
+      setTimeout(nextStep, 1500); 
+    }
+
+    // GENERACIÓ DE PREGUNTES (Ara utilitzant activeDb per escollir preguntes)
+    function generateQuestion() {
+      if (!activeDb || activeDb.length === 0) return;
+
+      optionsContainer.innerHTML = '';
+      feedbackMsg.style.display = 'none';
+      questionState = 'answering';
+      selectedButton = null;
+      gameWrapper.classList.remove('shake');
+      
+      actionBtn.disabled = true;
+      actionBtn.textContent = 'Comprova';
+      actionBtn.className = '';
+      actionBtn.onclick = checkAnswer;
+
+      currentConcept = activeDb[Math.floor(Math.random() * activeDb.length)];
+      const modes = ['multiple-choice', 'true-false', 'write', 'order', 'fill-blank'];
+      currentMode = modes[Math.floor(Math.random() * modes.length)];
+
+      if (currentMode === 'multiple-choice') {
+        questionInstruction.textContent = "A quin concepte correspon aquesta definició?";
+        questionContent.textContent = `"${currentConcept.definicio_correcta}"`;
+        currentCorrectAnswer = currentConcept.terme;
+        
+        // Cerca de distractors dins del mateix tema si n'hi ha prou, sinó a tota la base general
+        let falsos = activeDb.filter(c => c.terme !== currentConcept.terme);
+        if (falsos.length < 2) falsos = db.filter(c => c.terme !== currentConcept.terme);
+        falsos = falsos.sort(() => 0.5 - Math.random()).slice(0, 2);
+        
+        renderOptions(shuffle([currentConcept.terme, falsos[0].terme, falsos[1].terme]));
+      } 
+      else if (currentMode === 'true-false') {
+        const isTrue = Math.random() > 0.5;
+        let defToShow = currentConcept.definicio_correcta;
+        if (!isTrue) {
+          let fakeConceptList = activeDb.filter(c => c.terme !== currentConcept.terme);
+          if (fakeConceptList.length === 0) fakeConceptList = db.filter(c => c.terme !== currentConcept.terme);
+          const fakeConcept = fakeConceptList[Math.floor(Math.random() * fakeConceptList.length)];
+          defToShow = fakeConcept.definicio_correcta;
+        }
+        questionInstruction.textContent = "Vertader o Fals?";
+        questionContent.textContent = `La definició de "${currentConcept.terme}" és: "${defToShow}"`;
+        currentCorrectAnswer = isTrue ? 'Vertader' : 'Fals';
+        renderOptions(['Vertader', 'Fals']);
+      }
+      else if (currentMode === 'write') {
+        questionInstruction.textContent = "Escriu el concepte que correspon a aquesta definició:";
+        questionContent.textContent = `"${currentConcept.definicio_correcta}"`;
+        currentCorrectAnswer = currentConcept.terme.toLowerCase(); // Pel feedback
+        const input = document.createElement('input');
+        input.type = 'text'; input.id = 'write-input'; input.className = 'text-input';
+        input.placeholder = 'Escriu el terme aquí...'; input.autocomplete = 'off';
+        input.addEventListener('input', (e) => {
+          if(e.target.value.trim().length > 0) { actionBtn.disabled = false; actionBtn.classList.add('active'); } 
+          else { actionBtn.disabled = true; actionBtn.classList.remove('active'); }
+        });
+        optionsContainer.appendChild(input);
+        setTimeout(() => input.focus(), 100);
+      }
+      else if (currentMode === 'order') {
+        questionInstruction.textContent = "Ordena els fragments per formar la definició de:";
+        questionContent.textContent = `"${currentConcept.terme}"`;
+        currentCorrectAnswer = currentConcept.fragments_definicio.join(' ');
+        
+        const targetArea = document.createElement('div'); targetArea.className = 'order-area target'; targetArea.id = 'target-area';
+        const sourceArea = document.createElement('div'); sourceArea.className = 'order-area source'; sourceArea.id = 'source-area';
+        
+        optionsContainer.appendChild(targetArea);
+        optionsContainer.appendChild(sourceArea);
+
+        let fragments = [...currentConcept.fragments_definicio];
+        
+        let fakeConceptList = activeDb.filter(c => c.terme !== currentConcept.terme);
+        if (fakeConceptList.length === 0) fakeConceptList = db.filter(c => c.terme !== currentConcept.terme);
+        
+        let fakeConcept = fakeConceptList[Math.floor(Math.random() * fakeConceptList.length)];
+        if (fakeConcept && fakeConcept.fragments_definicio.length > 0) {
+            let validFakesForOrder = fakeConcept.fragments_definicio.filter(f => !currentConcept.fragments_definicio.includes(f));
+            if(validFakesForOrder.length > 0) {
+                let fakeFragment = validFakesForOrder[Math.floor(Math.random() * validFakesForOrder.length)];
+                fragments.push(fakeFragment);
+            }
+        }
+
+        fragments = shuffle(fragments);
+
+        fragments.forEach(frag => {
+          const btn = document.createElement('div');
+          btn.className = 'fragment-btn'; btn.textContent = frag;
+          btn.onclick = () => {
+            if (questionState !== 'answering') return;
+            if (btn.parentElement.id === 'source-area') { targetArea.appendChild(btn); } else { sourceArea.appendChild(btn); }
+            
+            if (targetArea.children.length > 0) { actionBtn.disabled = false; actionBtn.classList.add('active'); } 
+            else { actionBtn.disabled = true; actionBtn.classList.remove('active'); }
+          };
+          sourceArea.appendChild(btn);
+        });
+      }
+      else if (currentMode === 'fill-blank') {
+        const fragmentIndex = Math.floor(Math.random() * currentConcept.fragments_definicio.length);
+        const hideWord = currentConcept.fragments_definicio[fragmentIndex];
+        
+        let modifiedDef = currentConcept.definicio_correcta.replace(hideWord, "________");
+        if (modifiedDef === currentConcept.definicio_correcta) {
+             let parts = [...currentConcept.fragments_definicio];
+             parts[fragmentIndex] = "________";
+             modifiedDef = parts.join(" ");
+        }
+        
+        questionInstruction.textContent = `Completa la definició de "${currentConcept.terme}":`;
+        questionContent.textContent = `"${modifiedDef}"`;
+        currentCorrectAnswer = hideWord;
+        
+        let allOtherFragments = [];
+        activeDb.forEach(c => {
+            if (c.terme !== currentConcept.terme) {
+                let frag = c.fragments_definicio[fragmentIndex] || c.fragments_definicio[0];
+                allOtherFragments.push(frag);
+            }
+        });
+        
+        let uniqueFakes = [...new Set(allOtherFragments)].filter(f => f !== hideWord);
+        // Si no hi ha prou fakes al tema, tirem de tota la bd
+        if (uniqueFakes.length < 2) {
+           db.forEach(c => {
+               if (c.terme !== currentConcept.terme) {
+                   let frag = c.fragments_definicio[fragmentIndex] || c.fragments_definicio[0];
+                   uniqueFakes.push(frag);
+               }
+           });
+           uniqueFakes = [...new Set(uniqueFakes)].filter(f => f !== hideWord);
+        }
+        
+        uniqueFakes = shuffle(uniqueFakes);
+        const fake1 = uniqueFakes[0] || "un impost indirecte";
+        const fake2 = uniqueFakes[1] || "dels mercats financers";
+        
+        renderOptions(shuffle([hideWord, fake1, fake2]));
+      }
+
+      if (gameMode === 'infinite') {
+        currentTimeMs = maxTimeMs;
+        startTimer();
+      }
+    }
+
+    function renderOptions(opts) {
+      opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn'; btn.textContent = opt;
+        btn.onclick = () => selectOption(btn);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function selectOption(btn) {
+      if (questionState !== 'answering') return;
+      const allBtns = document.querySelectorAll('.option-btn');
+      allBtns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedButton = btn;
+      actionBtn.disabled = false;
+      actionBtn.classList.add('active');
+    }
+
+    function checkAnswer() {
+      stopTimer(); 
+      questionState = 'checking';
+      let isCorrect = false;
+
+      if (currentMode === 'multiple-choice' || currentMode === 'true-false' || currentMode === 'fill-blank') {
+        isCorrect = (selectedButton.textContent === currentCorrectAnswer);
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => {
+          b.onclick = null; 
+          if (b.textContent === currentCorrectAnswer) b.classList.add('correct');
+        });
+        if (!isCorrect) selectedButton.classList.add('wrong');
+      } 
+      else if (currentMode === 'write') {
+        const input = document.getElementById('write-input');
+        input.disabled = true;
+        const userInput = input.value.trim().toLowerCase();
+        
+        const mainAns = currentConcept.terme.toLowerCase();
+        let altAnsList = currentConcept.termes_alternatius || [];
+        
+        // Comprovació incloent tots els possibles termes alternatius afegits
+        isCorrect = (userInput === mainAns || altAnsList.some(alt => alt.trim().toLowerCase() === userInput));
+
+        if (isCorrect) input.classList.add('correct');
+        else {
+          input.classList.add('wrong');
+          feedbackMsg.style.display = 'block'; feedbackMsg.style.color = '#ea2b2b';
+          let correctText = currentConcept.terme;
+          if (altAnsList.length > 0) {
+             correctText += ` (o ${altAnsList.join(' / ')})`;
+          }
+          feedbackMsg.textContent = `La resposta correcta era: ${correctText}`;
+        }
+      }
+      else if (currentMode === 'order') {
+        const targetArea = document.getElementById('target-area');
+        const userOrder = Array.from(targetArea.children).map(b => b.textContent).join(' ');
+        isCorrect = (userOrder === currentCorrectAnswer);
+        Array.from(targetArea.children).forEach(b => {
+          b.style.borderColor = isCorrect ? '#58cc02' : '#ea2b2b';
+          b.style.background = isCorrect ? '#d7ffb8' : '#ffdfe0';
+        });
+        if (!isCorrect) {
+          feedbackMsg.style.display = 'block'; feedbackMsg.style.color = '#ea2b2b';
+          feedbackMsg.textContent = `La resposta correcta era: ${currentConcept.definicio_correcta}`;
+        }
+      }
+
+      gameHistory.push({ terme: currentConcept.terme, correct: isCorrect });
+
+      if (isCorrect) {
+        playSound('correct'); 
+        currentQuestionCount++; 
+        updateProgress(); 
+        
+        if (gameMode === 'infinite') {
+           maxTimeMs = Math.max(30000, maxTimeMs * 0.99);
+           actionBtn.disabled = true; 
+           actionBtn.textContent = 'Correcte!';
+           setTimeout(nextStep, 400); 
+        } else {
+           actionBtn.textContent = 'Continua';
+           actionBtn.onclick = nextStep;
+        }
+      } else {
+        playSound('wrong'); gameWrapper.classList.add('shake'); lives--; livesCount.textContent = lives;
+        
+        if (gameMode === 'infinite') {
+           actionBtn.disabled = true;
+           actionBtn.classList.add('wrong-state');
+           actionBtn.textContent = 'Incorrecte!';
+           setTimeout(nextStep, 1500); 
+        } else {
+           actionBtn.textContent = 'Continua'; actionBtn.classList.add('wrong-state');
+           actionBtn.onclick = nextStep;
+        }
+      }
+    }
+
+    function nextStep() {
+      if (lives <= 0) endGame(false);
+      else if (currentQuestionCount >= totalQuestions) endGame(true);
+      else generateQuestion();
+    }
+
+    function endGame(win) {
+      stopTimer();
+      questionArea.classList.add('hidden'); gameHeader.classList.add('hidden'); gameFooter.classList.add('hidden');
+      timerBarWrapper.style.display = 'none';
+      resultArea.classList.remove('hidden');
+      
+      const statsContainer = document.getElementById('stats-container');
+
+      if (win || gameMode === 'infinite') {
+        if (win) {
+            playSound('win'); 
+            document.getElementById('result-title').textContent = '🎉 Lliçó Superada!';
+            document.getElementById('result-title').style.color = '#58cc02';
+        } else {
+            playSound('lose');
+            document.getElementById('result-title').textContent = '🏁 Partida Finalitzada';
+            document.getElementById('result-title').style.color = '#ff9600';
+        }
+        
+        let finalStreak = win ? updateStreakOnWin() : checkStreak();
+        document.getElementById('result-msg').textContent = gameMode === 'infinite' ? `Has arribat a ${currentQuestionCount} preguntes correctes.` : `Molt bona feina completant la lliçó.`;
+        
+        statsContainer.style.display = 'block';
+
+        let endTime = Date.now();
+        let diffSecs = Math.floor((endTime - startTime) / 1000);
+        animateTime('lesson-time', diffSecs, 1500);
+
+        let mistakes = (gameMode === 'infinite' && lives <= 0) ? 3 : 3 - lives;
+        let totalAttempts = currentQuestionCount + mistakes; 
+        let accuracyPercentage = totalAttempts > 0 ? Math.round((currentQuestionCount / totalAttempts) * 100) : 0;
+        
+        const lessonScoreDiv = document.getElementById('lesson-score-div');
+        if (accuracyPercentage >= 80) lessonScoreDiv.style.color = '#58cc02';
+        else if (accuracyPercentage >= 50) lessonScoreDiv.style.color = '#ff9600';
+        else lessonScoreDiv.style.color = '#ea2b2b';
+
+        animateCounter('lesson-accuracy', accuracyPercentage, 1500);
+        document.getElementById('final-streak-count').textContent = finalStreak;
+
+      } else {
+        playSound('lose');
+        document.getElementById('result-title').textContent = '💔 Sense Vides';
+        document.getElementById('result-title').style.color = '#ea2b2b';
+        document.getElementById('result-msg').textContent = 'T\'has quedat sense vides. Anima\'t a repetir la lliçó!';
+        statsContainer.style.display = 'none';
+      }
+
+      historyList.innerHTML = '';
+      gameHistory.forEach(item => {
+        const details = document.createElement('details');
+        details.className = 'history-item';
+        
+        const conceptData = db.find(c => c.terme === item.terme);
+        const definitionText = conceptData ? conceptData.definicio_correcta : "Definició no disponible.";
+        
+        let statusHtml = item.correct 
+          ? "<span style='color: #58cc02; font-weight: bold;'>Encertat</span>" 
+          : "<span style='color: #ea2b2b; font-weight: bold;'>Fallat</span>";
+        
+        details.innerHTML = `
+          <summary class="history-summary">
+            <span><strong>${item.terme}</strong> ▾</span>
+            <span>${statusHtml}</span>
+          </summary>
+          <div class="history-definition">${definitionText}</div>
+        `;
+        historyList.appendChild(details);
+      });
+    }
+
+    function resetGame() {
+      if (!activeDb || activeDb.length === 0) return;
+      currentQuestionCount = 0;
+      lives = 3;
+      livesCount.textContent = lives;
+      gameHistory = [];
+      maxTimeMs = 50000; 
+      updateProgress();
+      
+      resultArea.classList.add('hidden');
+      questionArea.classList.remove('hidden');
+      gameHeader.classList.remove('hidden');
+      gameFooter.classList.remove('hidden');
+      if(gameMode === 'infinite') timerBarWrapper.style.display = 'block';
+      
+      startTime = Date.now(); 
+      generateQuestion();
+    }
+
+    window.onload = () => {
+      checkStreak();
+    };
+  </script>
+</body>
+</html>
