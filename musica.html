@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mestre de Tonalitats</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #6f42c1;
+            --success: #28a745;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --bg: #f0f2f5;
+        }
+        body { 
+            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+        }
+        .container { width: 100%; max-width: 480px; }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .hidden { display: none !important; }
+        button {
+            width: 100%;
+            padding: 16px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-modes { background: var(--info); color: white; }
+        .btn-quiz { background: var(--secondary); color: white; }
+        .btn-back { background: #e9ecef; color: #495057; }
+        .btn-play { background: #ffc107; color: #333; padding: 10px; margin-top: 10px; }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .info-grid {
+            text-align: left;
+            max-height: 500px;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding-right: 5px;
+        }
+        .info-box {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            background: #fff;
+            border: 1px solid #e1e4e8;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .mode-box { border-left-color: var(--info); }
+        .staff-container {
+            width: 100%;
+            height: 80px;
+            margin-top: 10px;
+            background: #fafafa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .feedback { margin: 15px 0; font-weight: bold; font-size: 1.1rem; }
+        .graus { font-family: monospace; font-size: 1.1rem; color: #d63384; font-weight: bold; margin: 5px 0; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div id="menu">
+            <h1>🎼 Aprenent Música</h1>
+            <button class="btn-main" onclick="showSection('learn')">📖 Estudiar Cercle de Quintes</button>
+            <button class="btn-modes" onclick="showSection('modes')">🎹 Estudiar Modes Grecs</button>
+            <button class="btn-quiz" onclick="startQuiz('armadura')">🎯 Test d'Armadures</button>
+            <button class="btn-quiz" onclick="startQuiz('relatiu')">🔄 Test de Relatius</button>
+        </div>
+
+        <div id="learn" class="hidden">
+            <h3>Cercle de Quintes</h3>
+            <div id="learn-content" class="info-grid"></div>
+            <button class="btn-back" onclick="showSection('menu')">Tornar al Menú</button>
+        </div>
+
+        <div id="modes" class="hidden">
+            <h3>Els Modes Musicals</h3>
+            <p style="font-size: 0.9rem; color: #666; margin-top: -10px;">Presos sobre una mateixa nota base per notar-ne el color.</p>
+            <div id="modes-content" class="info-grid"></div>
+            <button class="btn-back" onclick="showSection('menu')">Tornar al Menú</button>
+        </div>
+
+        <div id="quiz" class="hidden">
+            <h3 id="quiz-title">Test</h3>
+            <p id="quiz-question" style="min-height: 3em; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold;"></p>
+            
+            <div id="inputs-armadura" class="hidden">
+                <input type="number" id="ans-num" placeholder="Quantes alteracions?">
+                <select id="ans-type">
+                    <option value="sostinguts">Sostinguts (#)</option>
+                    <option value="bemolls">Bemolls (b)</option>
+                    <option value="cap">Cap</option>
+                </select>
+            </div>
+
+            <div id="inputs-relatiu" class="hidden">
+                <input type="text" id="ans-relatiu" placeholder="Nom o xifrat (ex: Am)">
+            </div>
+
+            <div id="feedback" class="feedback"></div>
+            
+            <div id="quiz-staff-container" class="staff-container hidden" style="margin-bottom: 15px;"></div>
+            
+            <button class="btn-main" id="btn-check" onclick="checkAnswer()">Comprova</button>
+            <button class="btn-back" id="btn-next" style="display:none; background: var(--success); color:white;" onclick="nextQuestion()">Següent</button>
+            <button class="btn-back" onclick="showSection('menu')">Sortir</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dades Tonalitats
+    const dades = [
+        { major: "Do Major", mc: "C", menor: "La menor", nc: "Am", n: 0, t: "cap", f: 261.63 },
+        { major: "Sol Major", mc: "G", menor: "Mi menor", nc: "Em", n: 1, t: "sostinguts", f: 392.00 },
+        { major: "Re Major", mc: "D", menor: "Si menor", nc: "Bm", n: 2, t: "sostinguts", f: 293.66 },
+        { major: "La Major", mc: "A", menor: "Fa# menor", nc: "F#m", n: 3, t: "sostinguts", f: 440.00 },
+        { major: "Mi Major", mc: "E", menor: "Do# menor", nc: "C#m", n: 4, t: "sostinguts", f: 329.63 },
+        { major: "Si Major", mc: "B", menor: "Sol# menor", nc: "G#m", n: 5, t: "sostinguts", f: 493.88 },
+        { major: "Fa# Major", mc: "F#", menor: "Re# menor", nc: "D#m", n: 6, t: "sostinguts", f: 369.99 },
+        { major: "Do# Major", mc: "C#", menor: "La# menor", nc: "A#m", n: 7, t: "sostinguts", f: 277.18 },
+        { major: "Fa Major", mc: "F", menor: "Re menor", nc: "Dm", n: 1, t: "bemolls", f: 349.23 },
+        { major: "Si b Major", mc: "Bb", menor: "Sol menor", nc: "Gm", n: 2, t: "bemolls", f: 466.16 },
+        { major: "Mi b Major", mc: "Eb", menor: "Do menor", nc: "Cm", n: 3, t: "bemolls", f: 311.13 },
+        { major: "La b Major", mc: "Ab", menor: "Fa menor", nc: "Fm", n: 4, t: "bemolls", f: 415.30 },
+        { major: "Re b Major", mc: "Db", menor: "Si b menor", nc: "Bbm", n: 5, t: "bemolls", f: 277.18 },
+        { major: "Sol b Major", mc: "Gb", menor: "Mi b menor", nc: "Ebm", n: 6, t: "bemolls", f: 369.99 },
+        { major: "Do b Major", mc: "Cb", menor: "La b menor", nc: "Abm", n: 7, t: "bemolls", f: 246.94 }
+    ];
+
+    // Dades Modes
+    const modesData = [
+        { nom: "Jònic", desc: "La típica escala major. Sona lluminós i alegre.", graus: "I - II - III - IV - V - VI - VII", intervals: [0, 2, 4, 5, 7, 9, 11, 12] },
+        { nom: "Dòric", desc: "Escala menor amb una 6a major. Dóna un toc brillant, molt usat en Jazz i Funk.", graus: "I - II - ♭III - IV - V - VI - ♭VII", intervals: [0, 2, 3, 5, 7, 9, 10, 12] },
+        { nom: "Frigi", desc: "So fosc i exòtic, característic del flamenc i el metal.", graus: "I - ♭II - ♭III - IV - V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 7, 8, 10, 12] },
+        { nom: "Lidi", desc: "Escala major amb la 4a augmentada. Sona flotant i màgic (de pel·lícula).", graus: "I - II - III - ♯IV - V - VI - VII", intervals: [0, 2, 4, 6, 7, 9, 11, 12] },
+        { nom: "Mixolídic", desc: "Escala major amb la 7a menor. Sona a Blues i Rock clàssic.", graus: "I - II - III - IV - V - VI - ♭VII", intervals: [0, 2, 4, 5, 7, 9, 10, 12] },
+        { nom: "Eòlic", desc: "L'escala menor natural clàssica. Malenconiós i èpic.", graus: "I - II - ♭III - IV - V - ♭VI - ♭VII", intervals: [0, 2, 3, 5, 7, 8, 10, 12] },
+        { nom: "Locri", desc: "Té la 5a disminuïda. Molt inestable, fosc i dissonant.", graus: "I - ♭II - ♭III - IV - ♭V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 6, 8, 10, 12] }
+    ];
+
+    let currentMode = ""; 
+    let currentItem = {};
+    let audioCtx = null;
+
+    function drawStaff(num, tipus) {
+        let svg = `<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">`;
+        for(let i = 0; i < 5; i++) {
+            svg += `<line x1="0" y1="${20 + i*10}" x2="200" y2="${20 + i*10}" stroke="black" stroke-width="1"/>`;
+        }
+        svg += `<text x="5" y="60" font-size="55" font-family="serif" fill="black">&#119070;</text>`;
+        
+        const ySostinguts = [20, 35, 15, 30, 45, 25, 40]; 
+        const yBemolls = [40, 25, 45, 30, 50, 35, 55];
+
+        let startX = 50;
+        for(let i = 0; i < num; i++) {
+            let y = tipus === 'sostinguts' ? ySostinguts[i] : yBemolls[i];
+            let symbol = tipus === 'sostinguts' ? '&#9839;' : '&#9837;';
+            svg += `<text x="${startX + i*15}" y="${y + 5}" font-size="24" dominant-baseline="middle" font-family="sans-serif">${symbol}</text>`;
+        }
+        svg += `</svg>`;
+        return svg;
+    }
+
+    // Nou motor d'àudio: so tipus Piano (atac ràpid, ressonància i overlapping)
+    function playAudio(freq, intervals) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        intervals.forEach((semitones, index) => {
+            const f = freq * Math.pow(2, semitones / 12);
+            
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc1.type = 'triangle';
+            osc2.type = 'sine';
+            
+            osc1.frequency.value = f;
+            osc2.frequency.value = f;
+            
+            osc1.connect(gainNode);
+            osc2.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            // Les notes entren cada 0.35s però es queden sonant
+            const time = audioCtx.currentTime + (index * 0.35);
+            
+            gainNode.gain.setValueAtTime(0, time);
+            gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02); // Atac ràpid
+            gainNode.gain.exponentialRampToValueAtTime(0.04, time + 0.8); // Decaïment com un piano
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + 3.0); // Ressonància llarga
+            
+            osc1.start(time);
+            osc2.start(time);
+            osc1.stop(time + 3.0);
+            osc2.stop(time + 3.0);
+        });
+    }
+
+    function textAlteracions(num, tipus) {
+        if (num === 0) return "Cap";
+        if (num === 1) return tipus === "sostinguts" ? "1 sostingut" : "1 bemoll";
+        return num + " " + tipus;
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('.card > div').forEach(d => d.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        if(id === 'learn') renderLearn();
+        if(id === 'modes') renderModes();
+    }
+
+    function renderLearn() {
+        const majorInt = [0, 2, 4, 5, 7, 9, 11, 12];
+        const minorInt = [0, 2, 3, 5, 7, 8, 10, 12];
+        
+        const div = document.getElementById('learn-content');
+        div.innerHTML = dades.map(i => `
+            <div class="info-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong>${i.major} (${i.mc})</strong><br>
+                        Relatiu: ${i.menor} (${i.nc})<br>
+                        <small style="color:#666;">Armadura: ${textAlteracions(i.n, i.t)}</small>
+                    </div>
+                    <div style="display:flex; gap:5px; flex-direction:column;">
+                        <button class="btn-play" onclick="playAudio(${i.f}, [${majorInt}])" style="margin:0; padding:5px 10px; font-size:0.8rem;">▶ Escala Major</button>
+                        <button class="btn-play" onclick="playAudio(${i.f}, [${minorInt}])" style="margin:0; padding:5px 10px; font-size:0.8rem; background:#6c757d; color:white;">▶ Escala Menor</button>
+                    </div>
+                </div>
+                <div class="staff-container">
+                    ${drawStaff(i.n, i.t)}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderModes() {
+        // Base: Do4 (C4) a 261.63 Hz per poder comparar-los tots des de la mateixa tònica
+        const div = document.getElementById('modes-content');
+        div.innerHTML = modesData.map(m => `
+            <div class="info-box mode-box">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div style="padding-right: 10px;">
+                        <strong>Mode ${m.nom}</strong><br>
+                        <span class="graus">${m.graus}</span>
+                        <small style="color:#555;">${m.desc}</small>
+                    </div>
+                    <div>
+                        <button class="btn-play" onclick="playAudio(261.63, [${m.intervals}])" style="margin:0; padding:10px 15px; border-radius: 50%; width: 50px; height: 50px;">▶</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function startQuiz(mode) {
+        currentMode = mode;
+        showSection('quiz');
+        document.getElementById('quiz-title').innerText = mode === 'armadura' ? "Quantes en té?" : "Quin és el relatiu?";
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        currentItem = dades[Math.floor(Math.random() * dades.length)];
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('btn-next').style.display = "none";
+        document.getElementById('btn-check').style.display = "block";
+        
+        const staffContainer = document.getElementById('quiz-staff-container');
+        staffContainer.classList.add('hidden');
+        staffContainer.innerHTML = '';
+
+        if(currentMode === 'armadura') {
+            document.getElementById('quiz-question').innerText = `Armadura de ${currentItem.major} (${currentItem.mc})`;
+            document.getElementById('inputs-armadura').classList.remove('hidden');
+            document.getElementById('inputs-relatiu').classList.add('hidden');
+        } else {
+            const askMajor = Math.random() > 0.5;
+            currentItem.askMajor = askMajor;
+            document.getElementById('quiz-question').innerText = askMajor ? 
+                `Escriu el relatiu menor de ${currentItem.major} (${currentItem.mc})` : 
+                `Escriu el relatiu major de ${currentItem.menor} (${currentItem.nc})`;
+            document.getElementById('inputs-armadura').classList.add('hidden');
+            document.getElementById('inputs-relatiu').classList.remove('hidden');
+        }
+        document.getElementById('ans-num').value = "";
+        document.getElementById('ans-relatiu').value = "";
+    }
+
+    function checkAnswer() {
+        const f = document.getElementById('feedback');
+        let correct = false;
+
+        if(currentMode === 'armadura') {
+            const n = parseInt(document.getElementById('ans-num').value);
+            const t = document.getElementById('ans-type').value;
+            if(n === currentItem.n && (n === 0 || t === currentItem.t)) correct = true;
+            f.innerText = correct ? "✅ Molt bé!" : `❌ Té ${textAlteracions(currentItem.n, currentItem.t)}`;
+        } else {
+            const val = document.getElementById('ans-relatiu').value.toLowerCase().trim();
+            const targetNom = currentItem.askMajor ? currentItem.menor : currentItem.major;
+            const targetXifrat = currentItem.askMajor ? currentItem.nc : currentItem.mc;
+            
+            if(val === targetNom.toLowerCase() || val === targetXifrat.toLowerCase() || val === targetNom.replace(' major', '').toLowerCase() || val === targetNom.replace(' Major', '').toLowerCase()) {
+                correct = true;
+            }
+            
+            f.innerText = correct ? `✅ Correcte! És ${targetNom} (${targetXifrat})` : `❌ No, és ${targetNom} (${targetXifrat})`;
+        }
+        
+        f.style.color = correct ? "var(--success)" : "var(--danger)";
+        
+        const staffContainer = document.getElementById('quiz-staff-container');
+        staffContainer.innerHTML = drawStaff(currentItem.n, currentItem.t);
+        staffContainer.classList.remove('hidden');
+
+        document.getElementById('btn-check').style.display = "none";
+        document.getElementById('btn-next').style.display = "block";
+    }
+</script>
+</body>
+</html>
