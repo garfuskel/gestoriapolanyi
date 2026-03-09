@@ -48,7 +48,7 @@
         .btn-back { background: #e9ecef; color: #495057; }
         .btn-play { background: #ffc107; color: #333; padding: 10px; margin-top: 10px; }
         
-        input, select {
+        input {
             width: 100%;
             padding: 14px;
             margin: 8px 0;
@@ -56,6 +56,7 @@
             border: 2px solid #ddd;
             font-size: 1rem;
             box-sizing: border-box;
+            text-align: center;
         }
 
         .info-grid {
@@ -86,6 +87,39 @@
             justify-content: center;
         }
         
+        /* Estils del nou controlador d'alteracions */
+        .stepper-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #ddd;
+            margin: 15px 0;
+        }
+        .btn-step {
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            border-radius: 12px;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .btn-step.flat { background: var(--info); }
+        .btn-step.sharp { background: var(--danger); }
+        .alt-display {
+            font-size: 1.6rem;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: center;
+            color: #333;
+        }
+
         .feedback { margin: 15px 0; font-weight: bold; font-size: 1.1rem; }
         .graus { font-family: monospace; font-size: 1.1rem; color: #d63384; font-weight: bold; margin: 5px 0; display: block; }
     </style>
@@ -120,12 +154,11 @@
             <p id="quiz-question" style="min-height: 3em; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold;"></p>
             
             <div id="inputs-armadura" class="hidden">
-                <input type="number" id="ans-num" placeholder="Quantes alteracions?">
-                <select id="ans-type">
-                    <option value="sostinguts">Sostinguts (#)</option>
-                    <option value="bemolls">Bemolls (b)</option>
-                    <option value="cap">Cap</option>
-                </select>
+                <div class="stepper-container">
+                    <button class="btn-step flat" onclick="changeAlt(-1)">- ♭</button>
+                    <div id="alt-display" class="alt-display">0 Cap</div>
+                    <button class="btn-step sharp" onclick="changeAlt(1)">+ ♯</button>
+                </div>
             </div>
 
             <div id="inputs-relatiu" class="hidden">
@@ -171,12 +204,13 @@
         { nom: "Lidi", desc: "Escala major amb la 4a augmentada. Sona flotant i màgic (de pel·lícula).", graus: "I - II - III - ♯IV - V - VI - VII", intervals: [0, 2, 4, 6, 7, 9, 11, 12] },
         { nom: "Mixolídic", desc: "Escala major amb la 7a menor. Sona a Blues i Rock clàssic.", graus: "I - II - III - IV - V - VI - ♭VII", intervals: [0, 2, 4, 5, 7, 9, 10, 12] },
         { nom: "Eòlic", desc: "L'escala menor natural clàssica. Malenconiós i èpic.", graus: "I - II - ♭III - IV - V - ♭VI - ♭VII", intervals: [0, 2, 3, 5, 7, 8, 10, 12] },
-        { nom: "Locri", desc: "Té la 5a disminuïda. Molt inestable, fosc i dissonant.", graus: "I - ♭II - ♭III - IV - ♭V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 6, 8, 10, 12] }
+        { nom: "Lòcri", desc: "Té la 5a disminuïda. Molt inestable, fosc i dissonant.", graus: "I - ♭II - ♭III - IV - ♭V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 6, 8, 10, 12] }
     ];
 
     let currentMode = ""; 
     let currentItem = {};
     let audioCtx = null;
+    let currentAlt = 0; // Estat de l'stepper (-7 a +7)
 
     function drawStaff(num, tipus) {
         let svg = `<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">`;
@@ -198,7 +232,6 @@
         return svg;
     }
 
-    // Nou motor d'àudio: so tipus Piano (atac ràpid, ressonància i overlapping)
     function playAudio(freq, intervals) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
@@ -219,13 +252,12 @@
             osc2.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             
-            // Les notes entren cada 0.35s però es queden sonant
             const time = audioCtx.currentTime + (index * 0.35);
             
             gainNode.gain.setValueAtTime(0, time);
-            gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02); // Atac ràpid
-            gainNode.gain.exponentialRampToValueAtTime(0.04, time + 0.8); // Decaïment com un piano
-            gainNode.gain.exponentialRampToValueAtTime(0.001, time + 3.0); // Ressonància llarga
+            gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02); 
+            gainNode.gain.exponentialRampToValueAtTime(0.04, time + 0.8); 
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + 3.0); 
             
             osc1.start(time);
             osc2.start(time);
@@ -273,7 +305,6 @@
     }
 
     function renderModes() {
-        // Base: Do4 (C4) a 261.63 Hz per poder comparar-los tots des de la mateixa tònica
         const div = document.getElementById('modes-content');
         div.innerHTML = modesData.map(m => `
             <div class="info-box mode-box">
@@ -289,6 +320,22 @@
                 </div>
             </div>
         `).join('');
+    }
+
+    // Funcions de l'stepper
+    function changeAlt(delta) {
+        currentAlt += delta;
+        if(currentAlt > 7) currentAlt = 7;
+        if(currentAlt < -7) currentAlt = -7;
+        
+        const display = document.getElementById('alt-display');
+        if(currentAlt === 0) {
+            display.innerText = "0 Cap";
+        } else if(currentAlt > 0) {
+            display.innerText = `${currentAlt} ♯`;
+        } else {
+            display.innerText = `${Math.abs(currentAlt)} ♭`;
+        }
     }
 
     function startQuiz(mode) {
@@ -312,6 +359,10 @@
             document.getElementById('quiz-question').innerText = `Armadura de ${currentItem.major} (${currentItem.mc})`;
             document.getElementById('inputs-armadura').classList.remove('hidden');
             document.getElementById('inputs-relatiu').classList.add('hidden');
+            
+            // Reiniciem l'stepper a zero
+            currentAlt = 0;
+            changeAlt(0);
         } else {
             const askMajor = Math.random() > 0.5;
             currentItem.askMajor = askMajor;
@@ -321,7 +372,6 @@
             document.getElementById('inputs-armadura').classList.add('hidden');
             document.getElementById('inputs-relatiu').classList.remove('hidden');
         }
-        document.getElementById('ans-num').value = "";
         document.getElementById('ans-relatiu').value = "";
     }
 
@@ -330,9 +380,11 @@
         let correct = false;
 
         if(currentMode === 'armadura') {
-            const n = parseInt(document.getElementById('ans-num').value);
-            const t = document.getElementById('ans-type').value;
-            if(n === currentItem.n && (n === 0 || t === currentItem.t)) correct = true;
+            // Obtenim la resposta de l'stepper
+            const n = Math.abs(currentAlt);
+            const t = currentAlt === 0 ? "cap" : (currentAlt > 0 ? "sostinguts" : "bemolls");
+            
+            if(n === currentItem.n && t === currentItem.t) correct = true;
             f.innerText = correct ? "✅ Molt bé!" : `❌ Té ${textAlteracions(currentItem.n, currentItem.t)}`;
         } else {
             const val = document.getElementById('ans-relatiu').value.toLowerCase().trim();
