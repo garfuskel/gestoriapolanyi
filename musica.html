@@ -240,17 +240,17 @@
     // Dades Modes
     const modesData = [
         { nom: "Jònic", desc: "La típica escala major. Sona lluminós i alegre.", graus: "I - II - III - IV - V - VI - VII", intervals: [0, 2, 4, 5, 7, 9, 11, 12] },
-        { nom: "Dòric", desc: "Escala menor amb una 6a major. Dóna un toc brillant, molt usat en Jazz i Funk.", graus: "I - II - ♭III - IV - V - VI - ♭VII", intervals: [0, 2, 3, 5, 7, 9, 10, 12] },
+        { nom: "Doric", desc: "Escala menor amb una 6a major. Dóna un toc brillant, molt usat en Jazz i Funk.", graus: "I - II - ♭III - IV - V - VI - ♭VII", intervals: [0, 2, 3, 5, 7, 9, 10, 12] },
         { nom: "Frigi", desc: "So fosc i exòtic, característic del flamenc i el metal.", graus: "I - ♭II - ♭III - IV - V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 7, 8, 10, 12] },
         { nom: "Lidi", desc: "Escala major amb la 4a augmentada. Sona flotant i màgic (de pel·lícula).", graus: "I - II - III - ♯IV - V - VI - VII", intervals: [0, 2, 4, 6, 7, 9, 11, 12] },
         { nom: "Mixolídic", desc: "Escala major amb la 7a menor. Sona a Blues i Rock clàssic.", graus: "I - II - III - IV - V - VI - ♭VII", intervals: [0, 2, 4, 5, 7, 9, 10, 12] },
         { nom: "Eòlic", desc: "L'escala menor natural clàssica. Malenconiós i èpic.", graus: "I - II - ♭III - IV - V - ♭VI - ♭VII", intervals: [0, 2, 3, 5, 7, 8, 10, 12] },
-        { nom: "Locri", desc: "Té la 5a disminuïda. Molt inestable, fosc i dissonant.", graus: "I - ♭II - ♭III - IV - ♭V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 6, 8, 10, 12] }
+        { nom: "Lòcri", desc: "Té la 5a disminuïda. Molt inestable, fosc i dissonant.", graus: "I - ♭II - ♭III - IV - ♭V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 6, 8, 10, 12] }
     ];
 
     let currentMode = ""; 
     let currentItem = {};
-    let currentDades = []; // Nova variable per emmagatzemar la llista filtrada
+    let currentDades = []; 
     let audioCtx = null;
     let currentAlt = 0; 
 
@@ -379,13 +379,11 @@
         }
     }
 
-    // PAS 1: Mostrar la configuració
     function startQuizSetup(mode) {
         currentMode = mode;
         showSection('quiz-setup');
     }
 
-    // PAS 2: Executar el test amb el filtre aplicat
     function launchQuiz() {
         const maxAlt = parseInt(document.getElementById('max-alt-slider').value);
         currentDades = dades.filter(item => item.n <= maxAlt);
@@ -396,7 +394,6 @@
     }
 
     function nextQuestion() {
-        // Ara agafem una dada a l'atzar de la llista filtrada
         currentItem = currentDades[Math.floor(Math.random() * currentDades.length)];
         
         document.getElementById('feedback').innerText = "";
@@ -408,7 +405,11 @@
         staffContainer.innerHTML = '';
 
         if(currentMode === 'armadura') {
-            document.getElementById('quiz-question').innerText = `Armadura de ${currentItem.major} (${currentItem.mc})`;
+            const askMajor = Math.random() > 0.5;
+            document.getElementById('quiz-question').innerText = askMajor ? 
+                `Armadura de ${currentItem.major} (${currentItem.mc})` : 
+                `Armadura de ${currentItem.menor} (${currentItem.nc})`;
+            
             document.getElementById('inputs-armadura').classList.remove('hidden');
             document.getElementById('inputs-relatiu').classList.add('hidden');
             
