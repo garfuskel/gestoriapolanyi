@@ -48,7 +48,7 @@
         .btn-back { background: #e9ecef; color: #495057; }
         .btn-play { background: #ffc107; color: #333; padding: 10px; margin-top: 10px; }
         
-        input {
+        input[type="text"] {
             width: 100%;
             padding: 14px;
             margin: 8px 0;
@@ -87,7 +87,6 @@
             justify-content: center;
         }
         
-        /* Estils del nou controlador d'alteracions */
         .stepper-container {
             display: flex;
             justify-content: space-between;
@@ -120,6 +119,35 @@
             color: #333;
         }
 
+        /* Estils pel lliscant de configuració */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        input[type="range"] {
+            width: 70%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
         .feedback { margin: 15px 0; font-weight: bold; font-size: 1.1rem; }
         .graus { font-family: monospace; font-size: 1.1rem; color: #d63384; font-weight: bold; margin: 5px 0; display: block; }
     </style>
@@ -132,8 +160,8 @@
             <h1>🎼 Aprenent Música</h1>
             <button class="btn-main" onclick="showSection('learn')">📖 Estudiar Cercle de Quintes</button>
             <button class="btn-modes" onclick="showSection('modes')">🎹 Estudiar Modes Grecs</button>
-            <button class="btn-quiz" onclick="startQuiz('armadura')">🎯 Test d'Armadures</button>
-            <button class="btn-quiz" onclick="startQuiz('relatiu')">🔄 Test de Relatius</button>
+            <button class="btn-quiz" onclick="startQuizSetup('armadura')">🎯 Test d'Armadures</button>
+            <button class="btn-quiz" onclick="startQuizSetup('relatiu')">🔄 Test de Relatius</button>
         </div>
 
         <div id="learn" class="hidden">
@@ -147,6 +175,19 @@
             <p style="font-size: 0.9rem; color: #666; margin-top: -10px;">Presos sobre una mateixa nota base per notar-ne el color.</p>
             <div id="modes-content" class="info-grid"></div>
             <button class="btn-back" onclick="showSection('menu')">Tornar al Menú</button>
+        </div>
+
+        <div id="quiz-setup" class="hidden">
+            <h3>Nivell de Dificultat</h3>
+            <p style="color: #555;">Fins a quantes alteracions (♭/♯) vols que apareguin al test?</p>
+            
+            <div class="slider-container">
+                <input type="range" id="max-alt-slider" min="1" max="7" value="7" oninput="document.getElementById('max-alt-display').innerText = this.value">
+                <span id="max-alt-display" style="font-size: 2rem; font-weight: bold; color: var(--primary); width: 40px;">7</span>
+            </div>
+
+            <button class="btn-main" onclick="launchQuiz()">Som-hi!</button>
+            <button class="btn-back" onclick="showSection('menu')">Cancel·lar</button>
         </div>
 
         <div id="quiz" class="hidden">
@@ -209,8 +250,9 @@
 
     let currentMode = ""; 
     let currentItem = {};
+    let currentDades = []; // Nova variable per emmagatzemar la llista filtrada
     let audioCtx = null;
-    let currentAlt = 0; // Estat de l'stepper (-7 a +7)
+    let currentAlt = 0; 
 
     function drawStaff(num, tipus) {
         let svg = `<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">`;
@@ -322,7 +364,6 @@
         `).join('');
     }
 
-    // Funcions de l'stepper
     function changeAlt(delta) {
         currentAlt += delta;
         if(currentAlt > 7) currentAlt = 7;
@@ -338,15 +379,26 @@
         }
     }
 
-    function startQuiz(mode) {
+    // PAS 1: Mostrar la configuració
+    function startQuizSetup(mode) {
         currentMode = mode;
+        showSection('quiz-setup');
+    }
+
+    // PAS 2: Executar el test amb el filtre aplicat
+    function launchQuiz() {
+        const maxAlt = parseInt(document.getElementById('max-alt-slider').value);
+        currentDades = dades.filter(item => item.n <= maxAlt);
+        
         showSection('quiz');
-        document.getElementById('quiz-title').innerText = mode === 'armadura' ? "Quantes en té?" : "Quin és el relatiu?";
+        document.getElementById('quiz-title').innerText = currentMode === 'armadura' ? "Quantes en té?" : "Quin és el relatiu?";
         nextQuestion();
     }
 
     function nextQuestion() {
-        currentItem = dades[Math.floor(Math.random() * dades.length)];
+        // Ara agafem una dada a l'atzar de la llista filtrada
+        currentItem = currentDades[Math.floor(Math.random() * currentDades.length)];
+        
         document.getElementById('feedback').innerText = "";
         document.getElementById('btn-next').style.display = "none";
         document.getElementById('btn-check').style.display = "block";
@@ -360,7 +412,6 @@
             document.getElementById('inputs-armadura').classList.remove('hidden');
             document.getElementById('inputs-relatiu').classList.add('hidden');
             
-            // Reiniciem l'stepper a zero
             currentAlt = 0;
             changeAlt(0);
         } else {
@@ -380,7 +431,6 @@
         let correct = false;
 
         if(currentMode === 'armadura') {
-            // Obtenim la resposta de l'stepper
             const n = Math.abs(currentAlt);
             const t = currentAlt === 0 ? "cap" : (currentAlt > 0 ? "sostinguts" : "bemolls");
             
