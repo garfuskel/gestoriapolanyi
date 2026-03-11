@@ -11,6 +11,7 @@
             --success: #28a745;
             --danger: #dc3545;
             --info: #17a2b8;
+            --dark: #343a40;
             --bg: #f0f2f5;
         }
         body { 
@@ -45,10 +46,11 @@
         .btn-main { background: var(--primary); color: white; }
         .btn-modes { background: var(--info); color: white; }
         .btn-quiz { background: var(--secondary); color: white; }
+        .btn-iiv1 { background: var(--dark); color: white; }
         .btn-back { background: #e9ecef; color: #495057; }
         .btn-play { background: #ffc107; color: #333; padding: 10px; margin-top: 10px; }
         
-        input[type="text"] {
+        select, input[type="text"] {
             width: 100%;
             padding: 14px;
             margin: 8px 0;
@@ -87,7 +89,7 @@
             justify-content: center;
         }
         
-        .stepper-container {
+        .stepper-container, .settings-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -97,41 +99,19 @@
             border: 2px solid #ddd;
             margin: 15px 0;
         }
-        .btn-step {
-            width: 60px;
-            height: 60px;
-            font-size: 1.8rem;
-            border-radius: 12px;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        .btn-step.flat { background: var(--info); }
-        .btn-step.sharp { background: var(--danger); }
-        .alt-display {
-            font-size: 1.6rem;
-            font-weight: bold;
-            min-width: 100px;
-            text-align: center;
-            color: #333;
-        }
-
-        /* Estils pel lliscant de configuració */
+        
         .slider-container {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin: 25px 0;
+            gap: 10px;
+            margin: 15px 0;
             background: #f8f9fa;
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
         }
         input[type="range"] {
-            width: 70%;
+            width: 100%;
             height: 8px;
             border-radius: 5px;
             background: #ddd;
@@ -148,8 +128,30 @@
             cursor: pointer;
         }
 
+        .btn-step {
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            border-radius: 12px;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .btn-step.flat { background: var(--info); }
+        .btn-step.sharp { background: var(--danger); }
+        .alt-display { font-size: 1.6rem; font-weight: bold; min-width: 100px; text-align: center; color: #333; }
+
         .feedback { margin: 15px 0; font-weight: bold; font-size: 1.1rem; }
-        .graus { font-family: monospace; font-size: 1.1rem; color: #d63384; font-weight: bold; margin: 5px 0; display: block; }
+        
+        /* Estils específics del II-V-I */
+        .chord-display { font-size: 4rem; font-weight: bold; color: var(--dark); margin: 20px 0 5px 0; }
+        .scale-display { font-size: 1.5rem; color: var(--secondary); font-weight: bold; margin-bottom: 20px; }
+        .beat-display { font-size: 2rem; letter-spacing: 10px; margin-bottom: 20px; }
+        .next-progression { margin-top: 15px; padding-top: 15px; border-top: 2px dashed #ddd; font-size: 1rem; color: #555; }
+        
     </style>
 </head>
 <body>
@@ -158,10 +160,11 @@
     <div class="card">
         <div id="menu">
             <h1>🎼 Aprenent Música</h1>
-            <button class="btn-main" onclick="showSection('learn')">📖 Estudiar Cercle de Quintes</button>
-            <button class="btn-modes" onclick="showSection('modes')">🎹 Estudiar Modes Grecs</button>
+            <button class="btn-main" onclick="showSection('learn')">📖 Estudiar Cercle</button>
+            <button class="btn-modes" onclick="showSection('modes')">🎹 Estudiar Modes</button>
             <button class="btn-quiz" onclick="startQuizSetup('armadura')">🎯 Test d'Armadures</button>
             <button class="btn-quiz" onclick="startQuizSetup('relatiu')">🔄 Test de Relatius</button>
+            <button class="btn-iiv1" onclick="showSection('iiv1')">🎷 Mode II-V-I</button>
         </div>
 
         <div id="learn" class="hidden">
@@ -172,20 +175,17 @@
 
         <div id="modes" class="hidden">
             <h3>Els Modes Musicals</h3>
-            <p style="font-size: 0.9rem; color: #666; margin-top: -10px;">Presos sobre una mateixa nota base per notar-ne el color.</p>
             <div id="modes-content" class="info-grid"></div>
             <button class="btn-back" onclick="showSection('menu')">Tornar al Menú</button>
         </div>
 
         <div id="quiz-setup" class="hidden">
             <h3>Nivell de Dificultat</h3>
-            <p style="color: #555;">Fins a quantes alteracions (♭/♯) vols que apareguin al test?</p>
-            
-            <div class="slider-container">
+            <p style="color: #555;">Fins a quantes alteracions (♭/♯) vols al test?</p>
+            <div class="stepper-container" style="flex-direction: column;">
+                <span id="max-alt-display" style="font-size: 2.5rem; font-weight: bold; color: var(--primary);">7</span>
                 <input type="range" id="max-alt-slider" min="1" max="7" value="7" oninput="document.getElementById('max-alt-display').innerText = this.value">
-                <span id="max-alt-display" style="font-size: 2rem; font-weight: bold; color: var(--primary); width: 40px;">7</span>
             </div>
-
             <button class="btn-main" onclick="launchQuiz()">Som-hi!</button>
             <button class="btn-back" onclick="showSection('menu')">Cancel·lar</button>
         </div>
@@ -203,22 +203,67 @@
             </div>
 
             <div id="inputs-relatiu" class="hidden">
-                <input type="text" id="ans-relatiu" placeholder="Nom o xifrat (ex: Am)">
+                <input type="text" id="ans-relatiu" placeholder="Nom o xifrat (ex: A-7)">
             </div>
 
             <div id="feedback" class="feedback"></div>
-            
             <div id="quiz-staff-container" class="staff-container hidden" style="margin-bottom: 15px;"></div>
             
             <button class="btn-main" id="btn-check" onclick="checkAnswer()">Comprova</button>
             <button class="btn-back" id="btn-next" style="display:none; background: var(--success); color:white;" onclick="nextQuestion()">Següent</button>
             <button class="btn-back" onclick="showSection('menu')">Sortir</button>
         </div>
+
+        <div id="iiv1" class="hidden">
+            <h3>Pràctica II-V-I</h3>
+            
+            <select id="iiv1-key-select" style="margin-bottom: 15px; font-weight: bold;" onchange="handleKeySelectChange()">
+                <option value="random">🎲 Tonalitat Aleatòria (Infinit)</option>
+                </select>
+
+            <div id="iiv1-random-settings" class="slider-container" style="display:flex;">
+                <div style="display:flex; justify-content:space-between; width:100%;">
+                    <span>Límit d'alteracions (Aleatori):</span>
+                    <strong style="color:var(--primary);"><span id="iiv1-max-alt-display">7</span></strong>
+                </div>
+                <input type="range" id="iiv1-max-alt-slider" min="0" max="7" value="7" oninput="document.getElementById('iiv1-max-alt-display').innerText = this.value; updateNextProgFromSelect()">
+            </div>
+
+            <div class="slider-container">
+                <div style="display:flex; justify-content:space-between; width:100%;">
+                    <span>Tempo:</span>
+                    <strong style="color:var(--primary);"><span id="bpm-display">100</span> BPM</strong>
+                </div>
+                <input type="range" id="bpm-slider" min="60" max="200" value="100" oninput="updateBPM()">
+            </div>
+
+            <div style="background: #fafafa; border: 2px solid #ddd; border-radius: 15px; padding: 20px 10px;">
+                <div class="beat-display" id="beat-indicator">⭕⭕⭕⭕</div>
+                <div class="chord-display" id="chord-display">--</div>
+                <div class="scale-display" id="scale-display">Mode --</div>
+                
+                <div style="font-size: 1.1rem; color: #333; font-weight: bold;" id="key-display">Tonalitat: --</div>
+                
+                <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 5px;">
+                    <span id="alt-text-display" style="color: #666; font-size: 0.95rem;">Armadura: --</span>
+                    <button id="btn-toggle-alt" onclick="toggleAlterations()" style="width: auto; padding: 5px 12px; margin: 0; font-size: 0.85rem; border-radius: 8px; background: #e9ecef; color: #333;">👁️ Oculta</button>
+                </div>
+
+                <div class="next-progression">
+                    Següent: <br>
+                    <strong id="next-prog-display" style="font-size: 1.2rem; color: var(--primary);">--</strong>
+                </div>
+            </div>
+
+            <button class="btn-main" id="btn-iiv1-toggle" onclick="toggleIIV1()" style="margin-top:20px;">▶ Inicia</button>
+            <button class="btn-back" onclick="stopIIV1(); showSection('menu')">Tornar al Menú</button>
+        </div>
+
     </div>
 </div>
 
 <script>
-    // Dades Tonalitats
+    // --- DADES BÀSIQUES ---
     const dades = [
         { major: "Do Major", mc: "C", menor: "La menor", nc: "Am", n: 0, t: "cap", f: 261.63 },
         { major: "Sol Major", mc: "G", menor: "Mi menor", nc: "Em", n: 1, t: "sostinguts", f: 392.00 },
@@ -237,157 +282,256 @@
         { major: "Do b Major", mc: "Cb", menor: "La b menor", nc: "Abm", n: 7, t: "bemolls", f: 246.94 }
     ];
 
-    // Dades Modes
-    const modesData = [
-        { nom: "Jònic", desc: "La típica escala major. Sona lluminós i alegre.", graus: "I - II - III - IV - V - VI - VII", intervals: [0, 2, 4, 5, 7, 9, 11, 12] },
-        { nom: "Doric", desc: "Escala menor amb una 6a major. Dóna un toc brillant, molt usat en Jazz i Funk.", graus: "I - II - ♭III - IV - V - VI - ♭VII", intervals: [0, 2, 3, 5, 7, 9, 10, 12] },
-        { nom: "Frigi", desc: "So fosc i exòtic, característic del flamenc i el metal.", graus: "I - ♭II - ♭III - IV - V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 7, 8, 10, 12] },
-        { nom: "Lidi", desc: "Escala major amb la 4a augmentada. Sona flotant i màgic (de pel·lícula).", graus: "I - II - III - ♯IV - V - VI - VII", intervals: [0, 2, 4, 6, 7, 9, 11, 12] },
-        { nom: "Mixolídic", desc: "Escala major amb la 7a menor. Sona a Blues i Rock clàssic.", graus: "I - II - III - IV - V - VI - ♭VII", intervals: [0, 2, 4, 5, 7, 9, 10, 12] },
-        { nom: "Eòlic", desc: "L'escala menor natural clàssica. Malenconiós i èpic.", graus: "I - II - ♭III - IV - V - ♭VI - ♭VII", intervals: [0, 2, 3, 5, 7, 8, 10, 12] },
-        { nom: "Lòcri", desc: "Té la 5a disminuïda. Molt inestable, fosc i dissonant.", graus: "I - ♭II - ♭III - IV - ♭V - ♭VI - ♭VII", intervals: [0, 1, 3, 5, 6, 8, 10, 12] }
+    const iiv1Dades = [
+        { key: "C", ii: "D-7", v: "G7", i: "C∆7" },
+        { key: "F", ii: "G-7", v: "C7", i: "F∆7" },
+        { key: "Bb", ii: "C-7", v: "F7", i: "Bb∆7" },
+        { key: "Eb", ii: "F-7", v: "Bb7", i: "Eb∆7" },
+        { key: "Ab", ii: "Bb-7", v: "Eb7", i: "Ab∆7" },
+        { key: "Db", ii: "Eb-7", v: "Ab7", i: "Db∆7" },
+        { key: "Gb", ii: "Ab-7", v: "Db7", i: "Gb∆7" },
+        { key: "B", ii: "C#-7", v: "F#7", i: "B∆7" },
+        { key: "E", ii: "F#-7", v: "B7", i: "E∆7" },
+        { key: "A", ii: "B-7", v: "E7", i: "A∆7" },
+        { key: "D", ii: "E-7", v: "A7", i: "D∆7" },
+        { key: "G", ii: "A-7", v: "D7", i: "G∆7" }
     ];
 
-    let currentMode = ""; 
-    let currentItem = {};
-    let currentDades = []; 
-    let audioCtx = null;
-    let currentAlt = 0; 
+    const modesData = [
+        { nom: "Jònic (I)", tipus: "Major", notes: "1 2 3 4 5 6 7", desc: "Escala major natural. Alegre i estable." },
+        { nom: "Dòric (II)", tipus: "Menor", notes: "1 2 ♭3 4 5 6 ♭7", desc: "Menor amb 6a major. Molt usat en jazz." },
+        { nom: "Frigi (III)", tipus: "Menor", notes: "1 ♭2 ♭3 4 5 ♭6 ♭7", desc: "Sona fosc, caràcter espanyol o flamenc." },
+        { nom: "Lidi (IV)", tipus: "Major", notes: "1 2 3 ♯4 5 6 7", desc: "Major amb 4a augmentada. Somiador i obert." },
+        { nom: "Mixolídi (V)", tipus: "Major", notes: "1 2 3 4 5 6 ♭7", desc: "Major amb 7a menor. Molt usat en blues i rock." },
+        { nom: "Eoli (VI)", tipus: "Menor", notes: "1 2 ♭3 4 5 ♭6 ♭7", desc: "Escala menor natural. Trist o èpic." },
+        { nom: "Locri (VII)", tipus: "Dism.", notes: "1 ♭2 ♭3 4 ♭5 ♭6 ♭7", desc: "Tensa i inestable. Per a acords semidisminuïts." }
+    ];
 
-    function drawStaff(num, tipus) {
-        let svg = `<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">`;
-        for(let i = 0; i < 5; i++) {
-            svg += `<line x1="0" y1="${20 + i*10}" x2="200" y2="${20 + i*10}" stroke="black" stroke-width="1"/>`;
-        }
-        svg += `<text x="5" y="60" font-size="55" font-family="serif" fill="black">&#119070;</text>`;
+    window.onload = () => {
+        const select = document.getElementById('iiv1-key-select');
+        iiv1Dades.forEach(k => {
+            select.innerHTML += `<option value="${k.key}">Tonalitat de ${k.key} (${k.ii} - ${k.v} - ${k.i})</option>`;
+        });
         
-        const ySostinguts = [20, 35, 15, 30, 45, 25, 40]; 
-        const yBemolls = [40, 25, 45, 30, 50, 35, 55];
+        initLearn();
+        initModes();
+    };
 
-        let startX = 50;
-        for(let i = 0; i < num; i++) {
-            let y = tipus === 'sostinguts' ? ySostinguts[i] : yBemolls[i];
-            let symbol = tipus === 'sostinguts' ? '&#9839;' : '&#9837;';
-            svg += `<text x="${startX + i*15}" y="${y + 5}" font-size="24" dominant-baseline="middle" font-family="sans-serif">${symbol}</text>`;
-        }
-        svg += `</svg>`;
-        return svg;
-    }
-
-    function playAudio(freq, intervals) {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        intervals.forEach((semitones, index) => {
-            const f = freq * Math.pow(2, semitones / 12);
-            
-            const osc1 = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            osc1.type = 'triangle';
-            osc2.type = 'sine';
-            
-            osc1.frequency.value = f;
-            osc2.frequency.value = f;
-            
-            osc1.connect(gainNode);
-            osc2.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            const time = audioCtx.currentTime + (index * 0.35);
-            
-            gainNode.gain.setValueAtTime(0, time);
-            gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02); 
-            gainNode.gain.exponentialRampToValueAtTime(0.04, time + 0.8); 
-            gainNode.gain.exponentialRampToValueAtTime(0.001, time + 3.0); 
-            
-            osc1.start(time);
-            osc2.start(time);
-            osc1.stop(time + 3.0);
-            osc2.stop(time + 3.0);
+    function initLearn() {
+        const container = document.getElementById('learn-content');
+        dades.forEach(d => {
+            container.innerHTML += `
+                <div class="info-box">
+                    <strong style="font-size:1.2rem; color:var(--primary)">${d.major} (${d.mc})</strong><br>
+                    Relatiu menor: ${d.menor} (${d.nc})<br>
+                    Armadura: ${textAlteracions(d.n, d.t)}
+                </div>
+            `;
         });
     }
 
-    function textAlteracions(num, tipus) {
-        if (num === 0) return "Cap";
-        if (num === 1) return tipus === "sostinguts" ? "1 sostingut" : "1 bemoll";
-        return num + " " + tipus;
+    function initModes() {
+        const container = document.getElementById('modes-content');
+        modesData.forEach(m => {
+            container.innerHTML += `
+                <div class="info-box mode-box">
+                    <strong style="font-size:1.2rem; color:var(--info)">${m.nom}</strong> - ${m.tipus}<br>
+                    Fórmula: <span style="font-family:monospace; background:#eee; padding:2px 4px; border-radius:4px;">${m.notes}</span><br>
+                    <small style="color:#555">${m.desc}</small>
+                </div>
+            `;
+        });
     }
 
+    let audioCtx = null;
+    let currentMode = ""; 
+    
+    // --- LÒGICA NAVEGACIÓ ---
     function showSection(id) {
         document.querySelectorAll('.card > div').forEach(d => d.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
-        if(id === 'learn') renderLearn();
-        if(id === 'modes') renderModes();
     }
 
-    function renderLearn() {
-        const majorInt = [0, 2, 4, 5, 7, 9, 11, 12];
-        const minorInt = [0, 2, 3, 5, 7, 8, 10, 12];
-        
-        const div = document.getElementById('learn-content');
-        div.innerHTML = dades.map(i => `
-            <div class="info-box">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <strong>${i.major} (${i.mc})</strong><br>
-                        Relatiu: ${i.menor} (${i.nc})<br>
-                        <small style="color:#666;">Armadura: ${textAlteracions(i.n, i.t)}</small>
-                    </div>
-                    <div style="display:flex; gap:5px; flex-direction:column;">
-                        <button class="btn-play" onclick="playAudio(${i.f}, [${majorInt}])" style="margin:0; padding:5px 10px; font-size:0.8rem;">▶ Escala Major</button>
-                        <button class="btn-play" onclick="playAudio(${i.f}, [${minorInt}])" style="margin:0; padding:5px 10px; font-size:0.8rem; background:#6c757d; color:white;">▶ Escala Menor</button>
-                    </div>
-                </div>
-                <div class="staff-container">
-                    ${drawStaff(i.n, i.t)}
-                </div>
-            </div>
-        `).join('');
+    // --- LÒGICA II-V-I ---
+    let iiv1Interval = null;
+    let isIIV1Playing = false;
+    let currentIIV1Prog = null;
+    let nextIIV1Prog = null;
+    let beatInProg = 0; 
+    let currentBPM = 100;
+    let isAltVisible = true;
+
+    function handleKeySelectChange() {
+        const val = document.getElementById('iiv1-key-select').value;
+        document.getElementById('iiv1-random-settings').style.display = (val === 'random') ? 'flex' : 'none';
+        updateNextProgFromSelect();
     }
 
-    function renderModes() {
-        const div = document.getElementById('modes-content');
-        div.innerHTML = modesData.map(m => `
-            <div class="info-box mode-box">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div style="padding-right: 10px;">
-                        <strong>Mode ${m.nom}</strong><br>
-                        <span class="graus">${m.graus}</span>
-                        <small style="color:#555;">${m.desc}</small>
-                    </div>
-                    <div>
-                        <button class="btn-play" onclick="playAudio(261.63, [${m.intervals}])" style="margin:0; padding:10px 15px; border-radius: 50%; width: 50px; height: 50px;">▶</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+    function toggleAlterations() {
+        isAltVisible = !isAltVisible;
+        const btn = document.getElementById('btn-toggle-alt');
+        btn.innerText = isAltVisible ? "👁️ Oculta" : "👁️ Mostra";
+        if(isIIV1Playing) updateIIV1Visuals();
     }
 
-    function changeAlt(delta) {
-        currentAlt += delta;
-        if(currentAlt > 7) currentAlt = 7;
-        if(currentAlt < -7) currentAlt = -7;
-        
-        const display = document.getElementById('alt-display');
-        if(currentAlt === 0) {
-            display.innerText = "0 Cap";
-        } else if(currentAlt > 0) {
-            display.innerText = `${currentAlt} ♯`;
-        } else {
-            display.innerText = `${Math.abs(currentAlt)} ♭`;
+    function updateBPM() {
+        currentBPM = document.getElementById('bpm-slider').value;
+        document.getElementById('bpm-display').innerText = currentBPM;
+        if(isIIV1Playing) {
+            clearInterval(iiv1Interval);
+            iiv1Interval = setInterval(playMetronomeBeat, 60000 / currentBPM);
         }
     }
 
-    function startQuizSetup(mode) {
-        currentMode = mode;
-        showSection('quiz-setup');
+    function updateNextProgFromSelect() {
+        if (isIIV1Playing) {
+            nextIIV1Prog = generateProgression();
+            updateIIV1Visuals();
+        }
     }
+
+    function toggleIIV1() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        if (isIIV1Playing) {
+            stopIIV1();
+        } else {
+            startIIV1();
+        }
+    }
+
+    function startIIV1() {
+        isIIV1Playing = true;
+        document.getElementById('btn-iiv1-toggle').innerText = "⏹ Atura";
+        document.getElementById('btn-iiv1-toggle').style.background = "var(--danger)";
+        
+        currentIIV1Prog = generateProgression();
+        nextIIV1Prog = generateProgression();
+        beatInProg = 0;
+        
+        updateIIV1Visuals(); 
+        playClick(true); 
+
+        iiv1Interval = setInterval(playMetronomeBeat, 60000 / currentBPM);
+    }
+
+    function stopIIV1() {
+        isIIV1Playing = false;
+        clearInterval(iiv1Interval);
+        document.getElementById('btn-iiv1-toggle').innerText = "▶ Inicia";
+        document.getElementById('btn-iiv1-toggle').style.background = "var(--dark)";
+        document.getElementById('chord-display').innerText = "--";
+        document.getElementById('scale-display').innerText = "Mode --";
+        document.getElementById('key-display').innerText = "Tonalitat: --";
+        document.getElementById('alt-text-display').innerText = "Armadura: --";
+        document.getElementById('next-prog-display').innerText = "--";
+        document.getElementById('beat-indicator').innerText = "⭕⭕⭕⭕";
+    }
+
+    function generateProgression() {
+        const selectorValue = document.getElementById('iiv1-key-select').value;
+        if(selectorValue === 'random') {
+            const maxAlt = parseInt(document.getElementById('iiv1-max-alt-slider').value);
+            const validKeys = dades.filter(d => d.n <= maxAlt).map(d => d.mc);
+            const validProgs = iiv1Dades.filter(p => validKeys.includes(p.key));
+            
+            if(validProgs.length === 0) return iiv1Dades[0]; 
+            
+            return validProgs[Math.floor(Math.random() * validProgs.length)];
+        } else {
+            return iiv1Dades.find(p => p.key === selectorValue);
+        }
+    }
+
+    function playClick(isDownbeat) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.type = "sine";
+        osc.frequency.value = isDownbeat ? 1000 : 700; 
+        
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playMetronomeBeat() {
+        beatInProg++;
+        if (beatInProg >= 16) {
+            beatInProg = 0;
+            currentIIV1Prog = nextIIV1Prog;
+            nextIIV1Prog = generateProgression(); 
+        }
+
+        const isDownbeat = (beatInProg % 4 === 0);
+        playClick(isDownbeat);
+        updateIIV1Visuals();
+    }
+
+    function updateIIV1Visuals() {
+        const compasTime = beatInProg % 4;
+        let dots = "";
+        for(let i=0; i<4; i++) dots += (i === compasTime) ? "🔴" : "⭕";
+        document.getElementById('beat-indicator').innerText = dots;
+
+        const chordDisplay = document.getElementById('chord-display');
+        const scaleDisplay = document.getElementById('scale-display');
+        document.getElementById('key-display').innerText = `Tonalitat: ${currentIIV1Prog.key} Major`;
+
+        const keyInfo = dades.find(d => d.mc === currentIIV1Prog.key);
+        const altText = textAlteracions(keyInfo.n, keyInfo.t);
+        document.getElementById('alt-text-display').innerText = isAltVisible ? `Armadura: ${altText}` : `Armadura: ???`;
+
+        document.getElementById('next-prog-display').innerText = `${nextIIV1Prog.ii} - ${nextIIV1Prog.v} - ${nextIIV1Prog.i} (en ${nextIIV1Prog.key})`;
+
+        if (beatInProg < 4) {
+            chordDisplay.innerText = currentIIV1Prog.ii;
+            scaleDisplay.innerText = "Mode Dòric (II)";
+        } else if (beatInProg < 8) {
+            chordDisplay.innerText = currentIIV1Prog.v;
+            scaleDisplay.innerText = "Mode Mixolídi (V)";
+        } else {
+            chordDisplay.innerText = currentIIV1Prog.i;
+            scaleDisplay.innerText = "Mode Jònic (I)";
+        }
+    }
+
+    // --- (Funcions de Tests) ---
+    let currentItem={}, currentDades=[], currentAlt=0;
+
+    function drawStaff(num, tipus) {
+        let svg = `<svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">`;
+        for(let i = 0; i < 5; i++) svg += `<line x1="0" y1="${20 + i*10}" x2="200" y2="${20 + i*10}" stroke="black" stroke-width="1"/>`;
+        svg += `<text x="5" y="60" font-size="55" font-family="serif" fill="black">&#119070;</text>`;
+        const ySos=[20, 35, 15, 30, 45, 25, 40], yBem=[40, 25, 45, 30, 50, 35, 55];
+        for(let i = 0; i < num; i++) {
+            let y = tipus === 'sostinguts' ? ySos[i] : yBem[i];
+            let symbol = tipus === 'sostinguts' ? '&#9839;' : '&#9837;';
+            svg += `<text x="${50 + i*15}" y="${y + 5}" font-size="24" dominant-baseline="middle" font-family="sans-serif">${symbol}</text>`;
+        }
+        svg += `</svg>`; return svg;
+    }
+
+    function textAlteracions(n, t) { return n === 0 ? "Cap" : n === 1 ? (t==="sostinguts"?"1 sostingut":"1 bemoll") : n+" "+t; }
+
+    function changeAlt(d) {
+        currentAlt += d;
+        if(currentAlt>7) currentAlt=7; if(currentAlt<-7) currentAlt=-7;
+        document.getElementById('alt-display').innerText = currentAlt === 0 ? "0 Cap" : currentAlt > 0 ? `${currentAlt} ♯` : `${Math.abs(currentAlt)} ♭`;
+    }
+
+    function startQuizSetup(mode) { currentMode = mode; showSection('quiz-setup'); }
 
     function launchQuiz() {
         const maxAlt = parseInt(document.getElementById('max-alt-slider').value);
         currentDades = dades.filter(item => item.n <= maxAlt);
-        
         showSection('quiz');
         document.getElementById('quiz-title').innerText = currentMode === 'armadura' ? "Quantes en té?" : "Quin és el relatiu?";
         nextQuestion();
@@ -395,32 +539,21 @@
 
     function nextQuestion() {
         currentItem = currentDades[Math.floor(Math.random() * currentDades.length)];
-        
         document.getElementById('feedback').innerText = "";
         document.getElementById('btn-next').style.display = "none";
         document.getElementById('btn-check').style.display = "block";
-        
-        const staffContainer = document.getElementById('quiz-staff-container');
-        staffContainer.classList.add('hidden');
-        staffContainer.innerHTML = '';
+        document.getElementById('quiz-staff-container').classList.add('hidden');
 
         if(currentMode === 'armadura') {
             const askMajor = Math.random() > 0.5;
-            document.getElementById('quiz-question').innerText = askMajor ? 
-                `Armadura de ${currentItem.major} (${currentItem.mc})` : 
-                `Armadura de ${currentItem.menor} (${currentItem.nc})`;
-            
+            document.getElementById('quiz-question').innerText = `Armadura de ${askMajor ? currentItem.major + ' (' + currentItem.mc + ')' : currentItem.menor + ' (' + currentItem.nc + ')'}`;
             document.getElementById('inputs-armadura').classList.remove('hidden');
             document.getElementById('inputs-relatiu').classList.add('hidden');
-            
-            currentAlt = 0;
-            changeAlt(0);
+            currentAlt = 0; changeAlt(0);
         } else {
             const askMajor = Math.random() > 0.5;
             currentItem.askMajor = askMajor;
-            document.getElementById('quiz-question').innerText = askMajor ? 
-                `Escriu el relatiu menor de ${currentItem.major} (${currentItem.mc})` : 
-                `Escriu el relatiu major de ${currentItem.menor} (${currentItem.nc})`;
+            document.getElementById('quiz-question').innerText = askMajor ? `Escriu el relatiu menor de ${currentItem.major} (${currentItem.mc})` : `Escriu el relatiu major de ${currentItem.menor} (${currentItem.nc})`;
             document.getElementById('inputs-armadura').classList.add('hidden');
             document.getElementById('inputs-relatiu').classList.remove('hidden');
         }
@@ -428,33 +561,23 @@
     }
 
     function checkAnswer() {
-        const f = document.getElementById('feedback');
         let correct = false;
-
+        const f = document.getElementById('feedback');
         if(currentMode === 'armadura') {
             const n = Math.abs(currentAlt);
             const t = currentAlt === 0 ? "cap" : (currentAlt > 0 ? "sostinguts" : "bemolls");
-            
-            if(n === currentItem.n && t === currentItem.t) correct = true;
+            correct = (n === currentItem.n && t === currentItem.t);
             f.innerText = correct ? "✅ Molt bé!" : `❌ Té ${textAlteracions(currentItem.n, currentItem.t)}`;
         } else {
             const val = document.getElementById('ans-relatiu').value.toLowerCase().trim();
             const targetNom = currentItem.askMajor ? currentItem.menor : currentItem.major;
             const targetXifrat = currentItem.askMajor ? currentItem.nc : currentItem.mc;
-            
-            if(val === targetNom.toLowerCase() || val === targetXifrat.toLowerCase() || val === targetNom.replace(' major', '').toLowerCase() || val === targetNom.replace(' Major', '').toLowerCase()) {
-                correct = true;
-            }
-            
+            if(val === targetNom.toLowerCase() || val === targetXifrat.toLowerCase() || val === targetNom.replace(' major', '').toLowerCase() || val === targetNom.replace(' Major', '').toLowerCase()) correct = true;
             f.innerText = correct ? `✅ Correcte! És ${targetNom} (${targetXifrat})` : `❌ No, és ${targetNom} (${targetXifrat})`;
         }
-        
         f.style.color = correct ? "var(--success)" : "var(--danger)";
-        
-        const staffContainer = document.getElementById('quiz-staff-container');
-        staffContainer.innerHTML = drawStaff(currentItem.n, currentItem.t);
-        staffContainer.classList.remove('hidden');
-
+        document.getElementById('quiz-staff-container').innerHTML = drawStaff(currentItem.n, currentItem.t);
+        document.getElementById('quiz-staff-container').classList.remove('hidden');
         document.getElementById('btn-check').style.display = "none";
         document.getElementById('btn-next').style.display = "block";
     }
