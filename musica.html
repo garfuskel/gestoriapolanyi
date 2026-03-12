@@ -230,11 +230,30 @@
             </div>
 
             <div class="slider-container">
+                <div style="display:flex; justify-content:center; width:100%; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #ddd;">
+                    <label style="cursor:pointer; font-weight:bold; color:var(--dark); display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" id="iiv1-play-chords" checked style="width:20px; height:20px;"> 
+                        🎹 Activar Acompanyament (Bb)
+                    </label>
+                </div>
+                
                 <div style="display:flex; justify-content:space-between; width:100%;">
                     <span>Tempo:</span>
                     <strong style="color:var(--primary);"><span id="bpm-display">100</span> BPM</strong>
                 </div>
                 <input type="range" id="bpm-slider" min="60" max="200" value="100" oninput="updateBPM()">
+                
+                <hr style="width:100%; border:0; border-top:1px dashed #ccc; margin: 10px 0;">
+                
+                <div style="display:flex; justify-content:space-between; width:100%; font-size: 0.9rem;">
+                    <span>🎹 Volum Acords:</span>
+                </div>
+                <input type="range" id="chord-vol-slider" min="0" max="100" value="50" oninput="updateVolumes()">
+
+                <div style="display:flex; justify-content:space-between; width:100%; font-size: 0.9rem; margin-top: 5px;">
+                    <span>🥁 Volum Metrònom:</span>
+                </div>
+                <input type="range" id="click-vol-slider" min="0" max="100" value="50" oninput="updateVolumes()">
             </div>
 
             <div style="background: #fafafa; border: 2px solid #ddd; border-radius: 15px; padding: 20px 10px;">
@@ -315,6 +334,8 @@
         
         initLearn();
         initModes();
+        updateNextProgFromSelect();
+        updateVolumes(); // Inicialitzar volums
     };
 
     function initLearn() {
@@ -345,6 +366,15 @@
 
     let audioCtx = null;
     let currentMode = ""; 
+    
+    // Variables de Volum
+    let chordVolFactor = 0.5;
+    let clickVolFactor = 0.5;
+
+    function updateVolumes() {
+        chordVolFactor = document.getElementById('chord-vol-slider').value / 100;
+        clickVolFactor = document.getElementById('click-vol-slider').value / 100;
+    }
     
     // --- LÒGICA NAVEGACIÓ ---
     function showSection(id) {
@@ -384,9 +414,11 @@
     }
 
     function updateNextProgFromSelect() {
+        nextIIV1Prog = generateProgression();
         if (isIIV1Playing) {
-            nextIIV1Prog = generateProgression();
             updateIIV1Visuals();
+        } else {
+            document.getElementById('next-prog-display').innerText = `${nextIIV1Prog.ii} - ${nextIIV1Prog.v} - ${nextIIV1Prog.i} (en ${nextIIV1Prog.key})`;
         }
     }
 
@@ -406,12 +438,17 @@
         document.getElementById('btn-iiv1-toggle').innerText = "⏹ Atura";
         document.getElementById('btn-iiv1-toggle').style.background = "var(--danger)";
         
-        currentIIV1Prog = generateProgression();
+        if (!nextIIV1Prog) nextIIV1Prog = generateProgression();
+        currentIIV1Prog = nextIIV1Prog;
         nextIIV1Prog = generateProgression();
         beatInProg = 0;
         
         updateIIV1Visuals(); 
         playClick(true); 
+        
+        if (document.getElementById('iiv1-play-chords').checked) {
+            playIIV1Chord(currentIIV1Prog.ii, 4); // El II dura 4 temps
+        }
 
         iiv1Interval = setInterval(playMetronomeBeat, 60000 / currentBPM);
     }
@@ -425,8 +462,8 @@
         document.getElementById('scale-display').innerText = "Mode --";
         document.getElementById('key-display').innerText = "Tonalitat: --";
         document.getElementById('alt-text-display').innerText = "Armadura: --";
-        document.getElementById('next-prog-display').innerText = "--";
         document.getElementById('beat-indicator').innerText = "⭕⭕⭕⭕";
+        updateNextProgFromSelect(); 
     }
 
     function generateProgression() {
@@ -445,7 +482,8 @@
     }
 
     function playClick(isDownbeat) {
-        if (!audioCtx) return;
+        if (!audioCtx || clickVolFactor === 0) return;
+        const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
@@ -454,12 +492,80 @@
         osc.type = "sine";
         osc.frequency.value = isDownbeat ? 1000 : 700; 
         
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.005);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        const finalVol = 1.0 * clickVolFactor; // Calcula el volum segons el control lliscant
         
-        osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(finalVol, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        
+        osc.start(now);
+        osc.stop(now + 0.1);
+    }
+    
+    // Motor d'Acompanyament harmònic per al II-V-I (Afinat en Bb)
+    function playIIV1Chord(chordName, beats) {
+        if (!audioCtx || chordVolFactor === 0) return;
+        
+        const match = chordName.match(/^([A-G][#b]?)(.*)$/);
+        if (!match) return;
+        const rootStr = match[1];
+        const qualStr = match[2].trim();
+
+        const noteMap = { 'C':0, 'C#':1, 'Db':1, 'D':2, 'D#':3, 'Eb':3, 'E':4, 'F':5, 'F#':6, 'Gb':6, 'G':7, 'G#':8, 'Ab':8, 'A':9, 'A#':10, 'Bb':10, 'B':11 };
+        const rootOffset = noteMap[rootStr];
+        if (rootOffset === undefined) return;
+
+        let startNote = rootOffset + 10;
+
+        let intervals = [];
+        if (qualStr === '-7') intervals = [0, 3, 7, 10];
+        else if (qualStr === '7') intervals = [0, 4, 7, 10];
+        else if (qualStr === '∆7') intervals = [0, 4, 7, 11];
+        else intervals = [0, 4, 7];
+
+        const now = audioCtx.currentTime;
+        const durationSeconds = beats * (60 / currentBPM);
+
+        // Volums base ajustats pel factor del control lliscant
+        const bassVol = 0.8 * chordVolFactor;
+        const noteVol = 0.3 * chordVolFactor;
+
+        // Baix (ona triangular)
+        const bassOsc = audioCtx.createOscillator();
+        const bassGain = audioCtx.createGain();
+        bassOsc.type = 'triangle';
+        bassOsc.connect(bassGain);
+        bassGain.connect(audioCtx.destination);
+        
+        bassGain.gain.setValueAtTime(0, now);
+        bassGain.gain.linearRampToValueAtTime(bassVol, now + 0.05);
+        bassGain.gain.setValueAtTime(bassVol, now + durationSeconds - 0.05); 
+        bassGain.gain.linearRampToValueAtTime(0.001, now + durationSeconds);
+        
+        bassOsc.frequency.value = 130.81 * Math.pow(2, (startNote - 12) / 12);
+        bassOsc.start(now);
+        bassOsc.stop(now + durationSeconds);
+
+        // Acords (ona sine)
+        intervals.forEach(interval => {
+            const f = 130.81 * Math.pow(2, (startNote + interval) / 12);
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(noteVol, now + 0.05);
+            gain.gain.setValueAtTime(noteVol, now + durationSeconds - 0.05);
+            gain.gain.linearRampToValueAtTime(0.001, now + durationSeconds);
+            
+            osc.frequency.value = f;
+            osc.start(now);
+            osc.stop(now + durationSeconds);
+        });
     }
 
     function playMetronomeBeat() {
@@ -473,6 +579,13 @@
         const isDownbeat = (beatInProg % 4 === 0);
         playClick(isDownbeat);
         updateIIV1Visuals();
+        
+        // Tocar acompanyament
+        if (document.getElementById('iiv1-play-chords').checked) {
+            if (beatInProg === 0) playIIV1Chord(currentIIV1Prog.ii, 4); 
+            else if (beatInProg === 4) playIIV1Chord(currentIIV1Prog.v, 4); 
+            else if (beatInProg === 8) playIIV1Chord(currentIIV1Prog.i, 8); 
+        }
     }
 
     function updateIIV1Visuals() {
