@@ -147,7 +147,10 @@
         .feedback { margin: 15px 0; font-weight: bold; font-size: 1.1rem; }
         
         /* Estils específics del II-V-I */
-        .chord-display { font-size: 4rem; font-weight: bold; color: var(--dark); margin: 20px 0 5px 0; }
+        .chord-display { display: flex; justify-content: center; align-items: center; gap: 12px; margin: 20px 0 5px 0; min-height: 5rem; }
+        .chord-active { font-size: 4rem; font-weight: bold; color: var(--dark); transition: all 0.2s ease-in-out; }
+        .chord-inactive { font-size: 1.8rem; color: var(--dark); opacity: 0.3; transition: all 0.2s ease-in-out; }
+        
         .scale-display { font-size: 1.5rem; color: var(--secondary); font-weight: bold; margin-bottom: 20px; }
         .beat-display { font-size: 2rem; letter-spacing: 10px; margin-bottom: 20px; }
         .next-progression { margin-top: 15px; padding-top: 15px; border-top: 2px dashed #ddd; font-size: 1rem; color: #555; }
@@ -258,7 +261,9 @@
 
             <div style="background: #fafafa; border: 2px solid #ddd; border-radius: 15px; padding: 20px 10px;">
                 <div class="beat-display" id="beat-indicator">⭕⭕⭕⭕</div>
-                <div class="chord-display" id="chord-display">--</div>
+                
+                <div class="chord-display" id="chord-display"><span class="chord-inactive">--</span></div>
+                
                 <div class="scale-display" id="scale-display">Mode --</div>
                 
                 <div style="font-size: 1.1rem; color: #333; font-weight: bold;" id="key-display">Tonalitat: --</div>
@@ -335,7 +340,7 @@
         initLearn();
         initModes();
         updateNextProgFromSelect();
-        updateVolumes(); // Inicialitzar volums
+        updateVolumes(); 
     };
 
     function initLearn() {
@@ -447,7 +452,7 @@
         playClick(true); 
         
         if (document.getElementById('iiv1-play-chords').checked) {
-            playIIV1Chord(currentIIV1Prog.ii, 4); // El II dura 4 temps
+            playIIV1Chord(currentIIV1Prog.ii, 4); 
         }
 
         iiv1Interval = setInterval(playMetronomeBeat, 60000 / currentBPM);
@@ -458,7 +463,7 @@
         clearInterval(iiv1Interval);
         document.getElementById('btn-iiv1-toggle').innerText = "▶ Inicia";
         document.getElementById('btn-iiv1-toggle').style.background = "var(--dark)";
-        document.getElementById('chord-display').innerText = "--";
+        document.getElementById('chord-display').innerHTML = '<span class="chord-inactive">--</span>';
         document.getElementById('scale-display').innerText = "Mode --";
         document.getElementById('key-display').innerText = "Tonalitat: --";
         document.getElementById('alt-text-display').innerText = "Armadura: --";
@@ -492,7 +497,7 @@
         osc.type = "sine";
         osc.frequency.value = isDownbeat ? 1000 : 700; 
         
-        const finalVol = 1.0 * clickVolFactor; // Calcula el volum segons el control lliscant
+        const finalVol = 1.0 * clickVolFactor; 
         
         gain.gain.setValueAtTime(0, now);
         gain.gain.linearRampToValueAtTime(finalVol, now + 0.005);
@@ -502,7 +507,6 @@
         osc.stop(now + 0.1);
     }
     
-    // Motor d'Acompanyament harmònic per al II-V-I (Afinat en Bb)
     function playIIV1Chord(chordName, beats) {
         if (!audioCtx || chordVolFactor === 0) return;
         
@@ -526,11 +530,9 @@
         const now = audioCtx.currentTime;
         const durationSeconds = beats * (60 / currentBPM);
 
-        // Volums base ajustats pel factor del control lliscant
         const bassVol = 0.8 * chordVolFactor;
         const noteVol = 0.3 * chordVolFactor;
 
-        // Baix (ona triangular)
         const bassOsc = audioCtx.createOscillator();
         const bassGain = audioCtx.createGain();
         bassOsc.type = 'triangle';
@@ -546,7 +548,6 @@
         bassOsc.start(now);
         bassOsc.stop(now + durationSeconds);
 
-        // Acords (ona sine)
         intervals.forEach(interval => {
             const f = 130.81 * Math.pow(2, (startNote + interval) / 12);
             
@@ -580,7 +581,6 @@
         playClick(isDownbeat);
         updateIIV1Visuals();
         
-        // Tocar acompanyament
         if (document.getElementById('iiv1-play-chords').checked) {
             if (beatInProg === 0) playIIV1Chord(currentIIV1Prog.ii, 4); 
             else if (beatInProg === 4) playIIV1Chord(currentIIV1Prog.v, 4); 
@@ -596,6 +596,23 @@
 
         const chordDisplay = document.getElementById('chord-display');
         const scaleDisplay = document.getElementById('scale-display');
+        
+        const cII = currentIIV1Prog.ii;
+        const cV = currentIIV1Prog.v;
+        const cI = currentIIV1Prog.i;
+
+        // Mostrar tota la progressió destacant l'acord actual
+        if (beatInProg < 4) {
+            chordDisplay.innerHTML = `<span class="chord-active">${cII}</span><span class="chord-inactive">${cV}</span><span class="chord-inactive">${cI}</span>`;
+            scaleDisplay.innerText = "Mode Dòric (II)";
+        } else if (beatInProg < 8) {
+            chordDisplay.innerHTML = `<span class="chord-inactive">${cII}</span><span class="chord-active">${cV}</span><span class="chord-inactive">${cI}</span>`;
+            scaleDisplay.innerText = "Mode Mixolidi (V)";
+        } else {
+            chordDisplay.innerHTML = `<span class="chord-inactive">${cII}</span><span class="chord-inactive">${cV}</span><span class="chord-active">${cI}</span>`;
+            scaleDisplay.innerText = "Mode Jònic (I)";
+        }
+
         document.getElementById('key-display').innerText = `Tonalitat: ${currentIIV1Prog.key} Major`;
 
         const keyInfo = dades.find(d => d.mc === currentIIV1Prog.key);
@@ -603,17 +620,6 @@
         document.getElementById('alt-text-display').innerText = isAltVisible ? `Armadura: ${altText}` : `Armadura: ???`;
 
         document.getElementById('next-prog-display').innerText = `${nextIIV1Prog.ii} - ${nextIIV1Prog.v} - ${nextIIV1Prog.i} (en ${nextIIV1Prog.key})`;
-
-        if (beatInProg < 4) {
-            chordDisplay.innerText = currentIIV1Prog.ii;
-            scaleDisplay.innerText = "Mode Dòric (II)";
-        } else if (beatInProg < 8) {
-            chordDisplay.innerText = currentIIV1Prog.v;
-            scaleDisplay.innerText = "Mode Mixolidi (V)";
-        } else {
-            chordDisplay.innerText = currentIIV1Prog.i;
-            scaleDisplay.innerText = "Mode Jònic (I)";
-        }
     }
 
     // --- (Funcions de Tests) ---
