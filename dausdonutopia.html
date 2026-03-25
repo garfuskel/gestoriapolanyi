@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daus Donutopia</title>
+    <style>
+        * { box-sizing: border-box; } /* Evita que res sobresurti de la pantalla */
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f0f4f8; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0;
+            padding: 10px; 
+            height: 100vh; /* Ocupa exactament el 100% de la pantalla */
+            overflow: hidden; /* Prohibeix l'scroll general */
+            color: #2c3e50; 
+        }
+
+        h1 { margin: 5px 0 10px 0; font-size: 1.5rem; text-align: center; }
+
+        .game-container { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Ocupa l'espai restant sota el títol */
+            max-height: calc(100vh - 60px); 
+        }
+
+        .resources { 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            color: #27ae60; 
+            border: 2px solid #27ae60; 
+            padding: 8px; 
+            border-radius: 10px; 
+            text-align: center;
+        }
+
+        .dice-area { 
+            display: flex; 
+            justify-content: center; 
+            gap: 8px; 
+            min-height: 55px; 
+            margin-bottom: 10px; 
+            flex-wrap: wrap; 
+        }
+        
+        .die { 
+            width: 45px; 
+            height: 45px; 
+            line-height: 45px; 
+            background: #3498db; 
+            color: white; 
+            border-radius: 8px; 
+            font-size: 20px; 
+            font-weight: bold; 
+            display: inline-block; 
+            text-align: center;
+        }
+        .die.d10 { background: #8e44ad; width: 55px; }
+        .die.crisis { background: #e74c3c; animation: shake 0.5s; }
+        .die.rolling { animation: spin 0.4s ease-out; }
+        
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        button { 
+            padding: 12px 15px; 
+            font-size: 15px; 
+            font-weight: bold;
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            background: #2ecc71; 
+            color: white; 
+            width: 100%; /* Botons amples per a polzes */
+            max-width: 280px;
+            transition: 0.2s; 
+        }
+        button:active { transform: scale(0.95); }
+        button:disabled { background: #bdc3c7; cursor: not-allowed; transform: none; }
+        
+        #btn-d10 { background: #e67e22; display: none; }
+        #btn-reset { background: #95a5a6; }
+
+        .log { 
+            font-size: 13px; 
+            text-align: left; 
+            flex-grow: 1; /* S'estira per omplir el buit de sota */
+            overflow-y: auto; /* Només fa scroll l'historial */
+            border-top: 1px solid #eee; 
+            padding-top: 10px; 
+            padding-right: 5px;
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg) scale(0.5); } 
+            100% { transform: rotate(360deg) scale(1); } 
+        }
+        @keyframes shake { 
+            0%, 100% { transform: translateX(0); } 
+            25% { transform: translateX(-4px); } 
+            75% { transform: translateX(4px); } 
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍩 DONUTOPIA 🍩</h1>
+    
+    <div class="game-container">
+        <div class="resources">Recursos al torn: <span id="credit-count">0</span></div>
+        
+        <div class="dice-area" id="dice-container"></div>
+
+        <div id="controls">
+            <button id="btn-d6" onclick="rollD6()">🎲 Tirar D6 (Extracció)</button>
+            <button id="btn-d10" onclick="rollD10()">⚠️ Tirar D10 (Penalització)</button>
+            <button id="btn-reset" onclick="resetTurn()">🔄 Nou Torn / Netejar</button>
+        </div>
+
+        <div class="log" id="game-log">
+            <strong>Benvingut a Donutopia</strong><br>
+            Llança els daus d'un en un amb precaució...
+        </div>
+    </div>
+
+    <script>
+        let credits = 0;
+        let currentD6s = [];
+        let isCrisis = false;
+
+        const limitsPlanetaris = {
+            1: "Canvi climàtic",
+            2: "Acidificació dels oceans",
+            3: "Contaminació química",
+            4: "Sobrecàrrega de nitrogen i fòsfor",
+            5: "Extracció d’aigua dolça",
+            6: "Canvi d’ús del sòl",
+            7: "Pèrdua de biodiversitat",
+            8: "Contaminació atmosfèrica per aerosols",
+            9: "Esgotament de la capa d’ozó",
+            10: "Tria on col·locar la fitxa!"
+        };
+
+        function log(message) {
+            const logDiv = document.getElementById('game-log');
+            logDiv.innerHTML += `<br>${message}`;
+            logDiv.scrollTop = logDiv.scrollHeight; // Autoscroll cap a l'últim missatge
+        }
+
+        function rollD6() {
+            if (isCrisis) return;
+            document.getElementById('btn-d6').disabled = true;
+
+            const container = document.getElementById('dice-container');
+            const die = document.createElement('div');
+            die.className = 'die d6 rolling';
+            container.appendChild(die);
+
+            let rolls = 0;
+            const interval = setInterval(() => {
+                die.innerText = Math.floor(Math.random() * 6) + 1;
+                rolls++;
+                
+                if (rolls >= 10) {
+                    clearInterval(interval);
+                    const finalRoll = Math.floor(Math.random() * 6) + 1;
+                    die.innerText = finalRoll;
+                    die.classList.remove('rolling');
+                    
+                    processD6Result(finalRoll, die);
+                }
+            }, 40);
+        }
+
+        function processD6Result(roll, dieElement) {
+            if (currentD6s.includes(roll)) {
+                triggerCrisis(roll, dieElement);
+            } else {
+                currentD6s.push(roll);
+                credits += roll; 
+                updateUI();
+                document.getElementById('btn-d6').disabled = false;
+                log(`Has tret un ${roll}. Tens ${credits} recursos acumulats.`);
+            }
+        }
+
+        function triggerCrisis(val, dieElement) {
+            isCrisis = true;
+            dieElement.className = 'die crisis'; 
+            credits = 0; 
+            updateUI();
+            
+            document.getElementById('btn-d6').style.display = 'none'; // Amagam el botó de D6
+            document.getElementById('btn-d10').style.display = 'block'; // Mostram el botó de D10
+            log(`🔴 <strong>FALLIDA ECOLÒGICA!</strong> Repeteixes el ${val}. Perds els recursos i has de tirar el dau D10.`);
+        }
+
+        function rollD10() {
+            document.getElementById('btn-d10').disabled = true;
+            
+            const container = document.getElementById('dice-container');
+            const die = document.createElement('div');
+            die.className = 'die d10 rolling';
+            container.appendChild(die);
+
+            let rolls = 0;
+            const interval = setInterval(() => {
+                die.innerText = Math.floor(Math.random() * 10) + 1;
+                rolls++;
+                
+                if (rolls >= 12) {
+                    clearInterval(interval);
+                    const finalRoll = Math.floor(Math.random() * 10) + 1;
+                    die.innerText = finalRoll;
+                    die.classList.remove('rolling');
+                    
+                    const areaName = limitsPlanetaris[finalRoll];
+                    log(`❌ <strong>PENALITZACIÓ:</strong> Posa 1 fitxa a:<br><strong>${finalRoll} - ${areaName}</strong>`);
+                }
+            }, 40);
+        }
+
+        function updateUI() {
+            document.getElementById('credit-count').innerText = credits;
+        }
+
+        function resetTurn() {
+            credits = 0;
+            updateUI();
+            currentD6s = [];
+            isCrisis = false;
+            
+            document.getElementById('dice-container').innerHTML = '';
+            
+            // Restablim els botons al seu estat original
+            document.getElementById('btn-d6').style.display = 'block';
+            document.getElementById('btn-d6').disabled = false;
+            document.getElementById('btn-d10').style.display = 'none';
+            document.getElementById('btn-d10').disabled = false;
+            
+            const logDiv = document.getElementById('game-log');
+            logDiv.innerHTML = `<strong>--- Nou Torn ---</strong>`;
+        }
+    </script>
+</body>
+</html>
