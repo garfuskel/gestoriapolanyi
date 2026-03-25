@@ -4,19 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Daus Donutopia</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
-        * { box-sizing: border-box; } /* Evita que res sobresurti de la pantalla */
+        * { box-sizing: border-box; } 
         
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            /* APLICACIÓ DE LA TIPOGRAFIA LEXEND A TOTA L'APP */
+            font-family: 'Lexend', sans-serif; 
             background: #f0f4f8; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             margin: 0;
             padding: 10px; 
-            height: 100vh; /* Ocupa exactament el 100% de la pantalla */
-            overflow: hidden; /* Prohibeix l'scroll general */
+            height: 100vh; 
+            overflow: hidden; 
             color: #2c3e50; 
         }
 
@@ -31,7 +37,7 @@
             max-width: 400px; 
             display: flex;
             flex-direction: column;
-            flex-grow: 1; /* Ocupa l'espai restant sota el títol */
+            flex-grow: 1; 
             max-height: calc(100vh - 60px); 
         }
 
@@ -71,6 +77,43 @@
         .die.crisis { background: #e74c3c; animation: shake 0.5s; }
         .die.rolling { animation: spin 0.4s ease-out; }
         
+        /* CONTENIDOR DE FALLIDA */
+        #failure-display-container {
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            min-height: 140px; 
+            gap: 5px; 
+        }
+
+        .failure-img {
+            max-width: 150px;
+            max-height: 100px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            display: none;
+        }
+
+        /* ESTIL DEL TEXT DEL NOM DE LA FALLIDA */
+        #failure-text {
+            font-size: 14px;
+            font-weight: bold;
+            color: #e74c3c; 
+            text-align: center;
+            margin: 0;
+            opacity: 0;
+            display: none;
+        }
+
+        /* CLASSE D'ANIMACIÓ */
+        .show-failure {
+            display: block !important;
+            animation: rotateInScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
         #controls {
             display: flex;
             flex-direction: column;
@@ -80,6 +123,7 @@
         }
 
         button { 
+            font-family: inherit; /* SOLUCIÓ PER APLICAR LEXEND ALS BOTONS */
             padding: 12px 15px; 
             font-size: 15px; 
             font-weight: bold;
@@ -88,7 +132,7 @@
             border-radius: 8px; 
             background: #2ecc71; 
             color: white; 
-            width: 100%; /* Botons amples per a polzes */
+            width: 100%; 
             max-width: 280px;
             transition: 0.2s; 
         }
@@ -101,8 +145,8 @@
         .log { 
             font-size: 13px; 
             text-align: left; 
-            flex-grow: 1; /* S'estira per omplir el buit de sota */
-            overflow-y: auto; /* Només fa scroll l'historial */
+            flex-grow: 1; 
+            overflow-y: auto; 
             border-top: 1px solid #eee; 
             padding-top: 10px; 
             padding-right: 5px;
@@ -117,6 +161,11 @@
             25% { transform: translateX(-4px); } 
             75% { transform: translateX(4px); } 
         }
+        
+        @keyframes rotateInScale {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -124,9 +173,14 @@
     <h1>🍩 DONUTOPIA 🍩</h1>
     
     <div class="game-container">
-        <div class="resources">Recursos al torn: <span id="credit-count">0</span></div>
+        <div class="resources">Recursos obtinguts: <span id="credit-count">0</span></div>
         
         <div class="dice-area" id="dice-container"></div>
+
+        <div id="failure-display-container">
+            <img id="failure-image" class="failure-img" src="" alt="Fallida Ecològica">
+            <p id="failure-text"></p>
+        </div>
 
         <div id="controls">
             <button id="btn-d6" onclick="rollD6()">🎲 Tirar D6 (Extracció)</button>
@@ -144,6 +198,7 @@
         let credits = 0;
         let currentD6s = [];
         let isCrisis = false;
+        let imageDisplayed = false;
 
         const limitsPlanetaris = {
             1: "Canvi climàtic",
@@ -155,13 +210,13 @@
             7: "Pèrdua de biodiversitat",
             8: "Contaminació atmosfèrica per aerosols",
             9: "Esgotament de la capa d’ozó",
-            10: "Tria on col·locar la fitxa!"
+            10: "Tria on posar la fitxa!"
         };
 
         function log(message) {
             const logDiv = document.getElementById('game-log');
             logDiv.innerHTML += `<br>${message}`;
-            logDiv.scrollTop = logDiv.scrollHeight; // Autoscroll cap a l'últim missatge
+            logDiv.scrollTop = logDiv.scrollHeight; 
         }
 
         function rollD6() {
@@ -207,12 +262,13 @@
             credits = 0; 
             updateUI();
             
-            document.getElementById('btn-d6').style.display = 'none'; // Amagam el botó de D6
-            document.getElementById('btn-d10').style.display = 'block'; // Mostram el botó de D10
+            document.getElementById('btn-d6').style.display = 'none'; 
+            document.getElementById('btn-d10').style.display = 'block'; 
             log(`🔴 <strong>FALLIDA ECOLÒGICA!</strong> Repeteixes el ${val}. Perds els recursos i has de tirar el dau D10.`);
         }
 
         function rollD10() {
+            if (imageDisplayed) return; 
             document.getElementById('btn-d10').disabled = true;
             
             const container = document.getElementById('dice-container');
@@ -233,8 +289,42 @@
                     
                     const areaName = limitsPlanetaris[finalRoll];
                     log(`❌ <strong>PENALITZACIÓ:</strong> Posa 1 fitxa a:<br><strong>${finalRoll} - ${areaName}</strong>`);
+                    
+                    showFailureDisplay(finalRoll);
                 }
             }, 40);
+        }
+
+        function showFailureDisplay(failureId) {
+            if (failureId >= 1 && failureId <= 10) {
+                const imgElement = document.getElementById('failure-image');
+                const textElement = document.getElementById('failure-text');
+                
+                const imagePath = `fallidesecologiques/f${failureId}.png`;
+                
+                imgElement.src = imagePath;
+                imgElement.alt = `Fallida: ${limitsPlanetaris[failureId]}`;
+                
+                // ARA AFEGEIX EL NÚMERO DAVANT DEL TEXT
+                textElement.innerText = `${failureId} - ${limitsPlanetaris[failureId]}`;
+                
+                imgElement.classList.add('show-failure'); 
+                textElement.classList.add('show-failure'); 
+                
+                imageDisplayed = true;
+            }
+        }
+
+        function clearFailureDisplay() {
+            const imgElement = document.getElementById('failure-image');
+            const textElement = document.getElementById('failure-text');
+            
+            imgElement.classList.remove('show-failure');
+            textElement.classList.remove('show-failure');
+            
+            imgElement.src = "";
+            textElement.innerText = "";
+            imageDisplayed = false;
         }
 
         function updateUI() {
@@ -247,9 +337,10 @@
             currentD6s = [];
             isCrisis = false;
             
+            clearFailureDisplay();
+
             document.getElementById('dice-container').innerHTML = '';
             
-            // Restablim els botons al seu estat original
             document.getElementById('btn-d6').style.display = 'block';
             document.getElementById('btn-d6').disabled = false;
             document.getElementById('btn-d10').style.display = 'none';
