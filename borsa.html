@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* --- ESTILS DE DIARI ECONÒMIC --- */
+        :root {
+            --color-paper-salmon: #fff1e0; 
+            --color-text-diari: #1a1a1a;
+            --color-accent-blue: #0a2f7c; 
+            --font-header: 'Times New Roman', Times, serif;
+            --font-body: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-paper-salmon);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23e6d5c3' fill-opacity='0.2' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+            color: var(--color-text-diari);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .diari-header {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            padding: 30px 20px 10px 20px;
+            border-bottom: 3px solid #333;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .diari-header h1 {
+            font-family: var(--font-header);
+            font-size: 3.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            color: #000;
+        }
+
+        .diari-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-header);
+            font-style: italic;
+            border-top: 1px solid #999;
+            padding-top: 5px;
+            margin-top: 5px;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .main-article {
+            background-color: #ffffff; 
+            width: 90%;
+            max-width: 850px;
+            padding: 30px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1); 
+            border: 1px solid #ccc;
+            margin-bottom: 40px;
+            box-sizing: border-box;
+        }
+
+        h2.article-title {
+            font-family: var(--font-header);
+            font-size: 2.2rem;
+            color: var(--color-accent-blue);
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .section-tag {
+            font-family: var(--font-body);
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #cc0000; 
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        p.lead {
+            font-size: 1.1rem;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .chart-section {
+            margin-bottom: 30px;
+            padding: 10px;
+            background-color: #fdfdfd;
+            border: 1px solid #eee;
+            position: relative;
+        }
+
+        .exercise-sidebar {
+            background-color: #f4f7f6; 
+            padding: 20px;
+            border: 2px solid var(--color-accent-blue);
+            border-radius: 0; 
+        }
+
+        .exercise-sidebar h3 {
+            font-family: var(--font-header);
+            margin-top: 0;
+            color: var(--color-accent-blue);
+            text-transform: uppercase;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .question { margin-bottom: 18px; }
+        
+        label {
+            display: block;
+            font-family: var(--font-body);
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            color: #222;
+        }
+        
+        input[type="text"] {
+            padding: 10px;
+            border: 2px solid #999; 
+            border-radius: 0; 
+            width: 120px;
+            outline: none;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            box-sizing: border-box;
+        }
+
+        input[type="text"]::placeholder {
+            color: #999;
+        }
+
+        .inline-fb {
+            margin-left: 10px;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; }
+
+        button {
+            padding: 12px 24px;
+            border: 1px solid #333;
+            border-radius: 0;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+        .btn-check {
+            background-color: var(--color-accent-blue);
+            color: white;
+            border-color: var(--color-accent-blue);
+        }
+        .btn-check:hover { background-color: #000; border-color: #000; }
+
+        .btn-reset {
+            background-color: #fff;
+            color: #333;
+            border-color: #333;
+        }
+        .btn-reset:hover { background-color: #eee; }
+
+        .solutions {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #eff6ff;
+            border: 1px solid var(--color-accent-blue);
+            color: #1e40af;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            font-family: var(--font-header); 
+            word-wrap: break-word;
+        }
+
+        /* --- POST-IT DEL MENTOR SOBRE SURO --- */
+        .mentor-postit {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%) rotate(2deg);
+            width: 220px;
+            background-color: #fff68f; 
+            padding: 15px; 
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2); 
+            font-family: 'Comic Sans MS', cursive, sans-serif; 
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .mentor-postit img {
+            display: block;       
+            margin-left: auto;    
+            margin-right: auto;   
+            width: 90%;           
+            height: auto;
+            background-color: white;
+            padding: 15px 15px 50px 15px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .mentor-postit::before {
+            content: "";
+            position: absolute;
+            top: -10px; right: -10px; bottom: -10px; left: -10px;
+            z-index: -1;
+            background-color: #e6ccb2; 
+            background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.1); 
+        }
+
+        .mentor-postit::after {
+            content: "";
+            position: absolute;
+            top: 5px; left: 50%;
+            transform: translateX(-50%);
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff5252 40%, #c62828 100%);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            z-index: 10; 
+        }
+
+        .mentor-postit img {
+            display: block;            
+            margin: 0 auto 15px auto;  
+            width: 100%; 
+            height: auto;
+            object-fit: cover;
+            position: relative;
+            z-index: 1;
+            background-color: #e9ecef; 
+            padding: 10px 10px 30px 10px; 
+            box-sizing: border-box;
+            border: 0px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .mentor-postit img.exit {
+            background-color: #22c55e; 
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); 
+        }
+
+        .mentor-postit img.error {
+            background-color: #ef4444; 
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); 
+        }
+
+        .mentor-postit img.ocult {
+            opacity: 0;
+            transform: scale(0.8) rotate(-5deg);
+        }
+
+        .mentor-postit #mentor-name {
+            font-size: 0.95rem;
+            color: #1a1a1a;
+            margin: 0 0 2px 0;
+            line-height: 1.2;
+            font-weight: bold;
+            display: block;
+        }
+
+        .mentor-postit #mentor-title {
+            font-size: 0.8rem;
+            color: #555555;
+            margin: 0 0 8px 0;
+            font-style: italic;
+            display: block;
+        }
+
+        .mentor-postit #mentor-text {
+            font-size: 0.9rem;
+            color: #451a03;
+            margin: 0;
+            line-height: 1.3;
+            font-weight: bold;
+            display: block;
+        }
+        
+        @media (max-width: 1300px) {
+            .mentor-postit {
+                position: static;
+                transform: none;
+                width: 90%;
+                max-width: 850px;
+                margin: 0 auto 40px auto;
+                display: flex;
+                flex-direction: row; 
+                align-items: center;
+                gap: 20px;
+                text-align: left;
+                padding: 15px;
+            }
+            .mentor-postit img {
+                width: 100px;
+                min-height: auto;
+                margin-bottom: 0;
+            }
+            .mentor-postit .mentor-info {
+                display: flex;
+                flex-direction: column;
+            }
+            .mentor-postit #mentor-name { margin: 0; }
+            .mentor-postit #mentor-title { margin: 0 0 5px 0; }
+            .mentor-postit::before, .mentor-postit::after { display: none !important; }
+        }
+
+        /* --- ADAPTACIÓ A MÒBILS (PANTALLES PETITES) --- */
+        @media (max-width: 600px) {
+            .diari-header h1 {
+                font-size: 2.2rem;
+            }
+            .diari-meta {
+                flex-direction: column;
+                gap: 5px;
+                align-items: center;
+            }
+            .main-article {
+                width: 95%;
+                padding: 15px;
+            }
+            h2.article-title {
+                font-size: 1.6rem;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+            .mentor-postit {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px 10px;
+            }
+            .mentor-postit img {
+                margin-bottom: 10px;
+            }
+            .mentor-postit .mentor-info {
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="diari-header">
+        <h1>LA BORSA O LA VIDA</h1>
+        <div class="diari-meta">
+            <span>Secció: MERCATS I COTITZACIONS</span>
+            <span id="diari-data"></span> 
+            <span>Preu: 1,67€</span>
+        </div>
+    </header>
+
+    <main class="main-article">
+        <span class="section-tag">ANÀLISI TÈCNICA</span>
+        <h2 class="article-title">Càlcul de rendibilitats amb taxes de variació</h2>
+        
+        <p class="lead">Analitza el següent gràfic d'evolució del preu d'un actiu durant el darrer mes. Utilitza el punter per obtenir els valors exactes i calcula les rendibilitats sol·licitades.</p>
+        
+        <div class="chart-section">
+            <canvas id="stockChart"></canvas>
+        </div>
+
+        <aside class="exercise-sidebar">
+            <h3>📝 CÀLCULS</h3>
+            
+            <div class="question">
+                <label>1. Rendibilitat MÀXIMA del mes (%):</label>
+                <input type="text" id="ans-max" placeholder="Ex: 25,50"> %
+                <span id="fb-max" class="inline-fb"></span>
+            </div>
+
+            <div class="question">
+                <label>2. Rendibilitat MÍNIMA del mes (%):</label>
+                <input type="text" id="ans-min" placeholder="Ex: -15,08"> %
+                <span id="fb-min" class="inline-fb"></span>
+            </div>
+
+            <div class="question">
+                <label id="label-random">3. Rendibilitat entre el dia X i el dia Y (%):</label>
+                <input type="text" id="ans-random" placeholder="Ex: 12,30"> %
+                <span id="fb-random" class="inline-fb"></span>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-check" onclick="comprovar()">Comprovar respostes</button>
+                <button class="btn-reset" onclick="generarNouExercici()">Nou exercici</button>
+            </div>
+            
+            <div id="solutions-box" class="solutions">
+                <strong>Solucions i càlculs detallats:</strong><br>
+                <span id="sol-text"></span>
+            </div>
+        </aside>
+    </main>
+
+    <div class="mentor-postit">
+        <img id="mentor-imatge" src="" alt="Avatar del mentor">
+        <div class="mentor-info">
+            <p id="mentor-name"></p>
+            <p id="mentor-title"></p>
+            <p id="mentor-text">Revisa el gràfic i calcula les taxes sol·licitades.</p>
+        </div>
+    </div>
+
+    <script>
+        const ara = new Date();
+        const opcionsData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('diari-data').innerText = ara.toLocaleDateString('ca-ES', opcionsData).toUpperCase();
+
+        let stockChart;
+        let dadesCals = {};
+
+        const rutesAvatars = {
+            M: { intro: "broker_m_intro.png", exit: "broker_m_exit.png", error: "broker_m_error.png" },
+            F: { intro: "broker_f_intro.png", exit: "broker_f_exit.png", error: "broker_f_error.png" }
+        };
+
+        const dadesMentors = {
+            M: { nom: "Warren Bufa", carrec: "Llop del Raiguer" },
+            F: { nom: "Cristina Cash", carrec: "Alquimista financera" }
+        };
+
+        let sexeActual; 
+        let estatActual = 'intro';
+
+        function actualitzarMentor(estat, missatge) {
+            const imgElement = document.getElementById('mentor-imatge');
+            estatActual = estat;
+            imgElement.classList.add('ocult');
+            imgElement.classList.remove('exit', 'error');
+            
+            if (estat === 'exit') imgElement.classList.add('exit');
+            else if (estat === 'error') imgElement.classList.add('error');
+
+            setTimeout(() => {
+                imgElement.src = rutesAvatars[sexeActual][estat];
+                document.getElementById('mentor-name').innerText = dadesMentors[sexeActual].nom;
+                document.getElementById('mentor-title').innerText = dadesMentors[sexeActual].carrec;
+                if (missatge) document.getElementById('mentor-text').innerText = missatge;
+                imgElement.classList.remove('ocult');
+            }, 50);
+        }
+
+        function formatComa(numero) { return numero.toFixed(2).replace('.', ','); }
+
+        function generarDades() {
+            const labels = [];
+            const prices = [];
+            let currentPrice = Math.floor(Math.random() * 100) + 150; 
+            
+            for (let i = 1; i <= 30; i++) {
+                labels.push(`Dia ${i}`);
+                const change = Math.floor(Math.random() * 51) - 25; 
+                currentPrice = Math.max(10, currentPrice + change); 
+                prices.push(currentPrice);
+            }
+
+            let maxRend = -Infinity, minRend = Infinity;
+            let maxCompraDia, maxVendaDia, maxCompraPreu, maxVendaPreu;
+            let minCompraDia, minVendaDia, minCompraPreu, minVendaPreu;
+
+            for (let i = 0; i < prices.length - 1; i++) {
+                for (let j = i + 1; j < prices.length; j++) {
+                    const rend = ((prices[j] - prices[i]) / prices[i]) * 100;
+                    if (rend > maxRend) {
+                        maxRend = rend; maxCompraDia = i + 1; maxVendaDia = j + 1;
+                        maxCompraPreu = prices[i]; maxVendaPreu = prices[j];
+                    }
+                    if (rend < minRend) {
+                        minRend = rend; minCompraDia = i + 1; minVendaDia = j + 1;
+                        minCompraPreu = prices[i]; minVendaPreu = prices[j];
+                    }
+                }
+            }
+            
+            let d1 = Math.floor(Math.random() * 20) + 1;
+            let d2 = d1 + Math.floor(Math.random() * 9) + 1;
+
+            dadesCals = {
+                labels, prices,
+                maxCompraDia, maxVendaDia, maxCompraPreu, maxVendaPreu,
+                minCompraDia, minVendaDia, minCompraPreu, minVendaPreu,
+                rendMax: maxRend, rendMin: minRend,
+                diaInici: d1, diaFinal: d2, pInici: prices[d1-1], pFinal: prices[d2-1],
+                rendRandom: ((prices[d2-1] - prices[d1-1]) / prices[d1-1] * 100)
+            };
+        }
+
+        function dibuixarGrafic() {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            if (stockChart) stockChart.destroy();
+            stockChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dadesCals.labels,
+                    datasets: [{
+                        label: 'Preu',
+                        data: dadesCals.prices,
+                        borderColor: '#0a2f7c', 
+                        backgroundColor: 'rgba(10, 47, 124, 0.05)', 
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#0a2f7c',
+                        pointBorderColor: '#0a2f7c',
+                        tension: 0 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: function(value) { return value + ' €'; } } }
+                    }
+                }
+            });
+            // Donem una alçada fixa al canvas perquè en mòbils no quedi aixafat
+            document.getElementById('stockChart').style.height = "300px";
+        }
+
+        function evaluarResposta(inputId, feedbackId, valorCorrecte) {
+            const valorEscrit = document.getElementById(inputId).value.trim().replace(',', '.');
+            const val = parseFloat(valorEscrit);
+            const fb = document.getElementById(feedbackId);
+            if (isNaN(val)) { fb.innerHTML = "⚠️ Format no vàlid"; fb.style.color = "#b45309"; return false; }
+            else if (Math.abs(val - valorCorrecte) <= 0.2) { fb.innerHTML = "✅ Correcte"; fb.style.color = "#166534"; return true; }
+            else { fb.innerHTML = "❌ Incorrecte"; fb.style.color = "#991b1b"; return false; }
+        }
+
+        function comprovar() {
+            const vMax = document.getElementById('ans-max').value.trim();
+            const vMin = document.getElementById('ans-min').value.trim();
+            const vRan = document.getElementById('ans-random').value.trim();
+
+            if (vMax === "" || vMin === "" || vRan === "") {
+                alert("Omple totes les caselles amb els teus càlculs abans de comprovar les respostes.");
+                return;
+            }
+
+            document.querySelector('.btn-check').style.display = 'none';
+
+            const resMax = evaluarResposta('ans-max', 'fb-max', dadesCals.rendMax);
+            const resMin = evaluarResposta('ans-min', 'fb-min', dadesCals.rendMin);
+            const resRan = evaluarResposta('ans-random', 'fb-random', dadesCals.rendRandom);
+
+            if (resMax && resMin && resRan) actualitzarMentor('exit', "Brillant! Ho has calculat tot a la perfecció.");
+            else actualitzarMentor('error', "Oh-oh, algun número ha ballat... Revisa les solucions per veure què ha passat.");
+
+            const solBox = document.getElementById('solutions-box');
+            const solText = document.getElementById('sol-text');
+
+            solText.innerHTML = `
+                1. <strong>Rendibilitat Màxima (Compra Dia ${dadesCals.maxCompraDia} [${dadesCals.maxCompraPreu}€], Venda Dia ${dadesCals.maxVendaDia} [${dadesCals.maxVendaPreu}€]):</strong> (${dadesCals.maxVendaPreu}€ - ${dadesCals.maxCompraPreu}€) / ${dadesCals.maxCompraPreu}€ × 100 = <strong>${formatComa(dadesCals.rendMax)}%</strong><br><br>
+                2. <strong>Rendibilitat Mínima (Compra Dia ${dadesCals.minCompraDia} [${dadesCals.minCompraPreu}€], Venda Dia ${dadesCals.minVendaDia} [${dadesCals.minVendaPreu}€]):</strong> (${dadesCals.minVendaPreu}€ - ${dadesCals.minCompraPreu}€) / ${dadesCals.minCompraPreu}€ × 100 = <strong>${formatComa(dadesCals.rendMin)}%</strong><br><br>
+                3. <strong>Rendibilitat del dia ${dadesCals.diaInici} [${dadesCals.pInici}€] al dia ${dadesCals.diaFinal} [${dadesCals.pFinal}€]:</strong> (${dadesCals.pFinal}€ - ${dadesCals.pInici}€) / ${dadesCals.pInici}€ × 100 = <strong>${formatComa(dadesCals.rendRandom)}%</strong>
+            `;
+            solBox.style.display = "block";
+        }
+
+        function generarNouExercici() {
+            document.querySelector('.btn-check').style.display = 'inline-block';
+
+            document.getElementById('ans-max').value = "";
+            document.getElementById('ans-min').value = "";
+            document.getElementById('ans-random').value = "";
+            document.getElementById('fb-max').innerHTML = "";
+            document.getElementById('fb-min').innerHTML = "";
+            document.getElementById('fb-random').innerHTML = "";
+            document.getElementById('solutions-box').style.display = "none";
+
+            sexeActual = Math.random() < 0.5 ? 'M' : 'F';
+            generarDades();
+            document.getElementById('label-random').innerText = `3. Rendibilitat si compra el dia ${dadesCals.diaInici} i ven el dia ${dadesCals.diaFinal} (%):`;
+            dibuixarGrafic();
+            actualitzarMentor('intro', "Revisa el gràfic i calcula el que es demana.");
+        }
+
+        generarNouExercici();
+    </script>
+</body>
+</html>
