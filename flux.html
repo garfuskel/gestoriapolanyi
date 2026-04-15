@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+25&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4338ca;
+            --primary-hover: #3730a3;
+            --bg: #1e1b4b;
+            --card: #ffffff;
+            --border: #818cf8;
+            --text: #312e81;
+            --success: #16a34a;
+            --error: #dc2626;
+            --paper: #f4ecd8;
+        }
+
+        body {
+            font-family: 'Jersey 25', cursive;
+            font-size: 1.5rem;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            background-color: var(--card);
+            max-width: 800px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            border: 4px solid var(--border);
+            transition: transform 0.1s;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Botó de música */
+        .mute-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--card);
+            color: var(--text);
+            border: 2px solid var(--border);
+            font-family: 'Jersey 25', cursive;
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .mute-btn:hover {
+            border-color: var(--primary);
+            background-color: #e0e7ff;
+        }
+
+        /* ANIMACIÓ DE TREMOLOR (SHAKE) */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-2px, -3px) rotate(-1deg); }
+            20% { transform: translate(-4px, 0px) rotate(1deg); }
+            30% { transform: translate(4px, 3px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-2px, 3px) rotate(-1deg); }
+            60% { transform: translate(-4px, 1px) rotate(0deg); }
+            70% { transform: translate(4px, 1px) rotate(-1deg); }
+            80% { transform: translate(-2px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 3px) rotate(0deg); }
+            100% { transform: translate(0px, 0px) rotate(0deg); }
+        }
+
+        .shake-effect {
+            animation: shake 0.4s;
+            border-color: var(--error) !important;
+        }
+
+        /* ALERTES PERSONALITZADES INTEGRALES (MODAL) */
+        #custom-alert-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #custom-alert-overlay.active {
+            display: flex;
+        }
+
+        .custom-alert-box {
+            background-color: var(--card);
+            padding: 2rem;
+            border: 4px solid var(--error);
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.2s ease-out;
+        }
+
+        #custom-alert-overlay.active .custom-alert-box {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .custom-alert-box p {
+            font-size: 2rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: var(--error);
+        }
+
+        .custom-alert-btn {
+            background-color: var(--error);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            font-family: 'Jersey 25', cursive;
+            font-size: 1.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #991b1b;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .custom-alert-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #991b1b;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 3rem;
+            text-shadow: 2px 2px 0px #a5b4fc;
+        }
+
+        #screen-welcome, #screen-game, #screen-result { display: none; }
+        #screen-welcome.active, #screen-game.active, #screen-result.active { display: block; }
+
+        .welcome-box { text-align: center; padding: 2rem; }
+        .name-input {
+            width: 80%;
+            max-width: 300px;
+            padding: 1rem;
+            font-family: 'Jersey 25', cursive;
+            font-size: 1.8rem;
+            border: 4px solid var(--primary);
+            border-radius: 4px;
+            margin: 1.5rem 0;
+            text-align: center;
+            background-color: #e0e7ff;
+            box-sizing: border-box;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 4px solid var(--border);
+            padding-bottom: 1rem;
+            font-size: 1.6rem;
+            margin-top: 1rem;
+        }
+
+        .scenario-box {
+            background-color: var(--paper);
+            color: #2b2b2b;
+            padding: 2rem;
+            margin: 2.5rem auto;
+            border: 1px solid #d3c9b1;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.2), inset 0 0 20px rgba(0,0,0,0.05);
+            transform: rotate(-1deg);
+            position: relative;
+        }
+        
+        .newspaper-header {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #2b2b2b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .scenario-text {
+            font-size: 2rem;
+            line-height: 1.2;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            text-shadow: 1px 1px 0px #a5b4fc;
+        }
+
+        .grid-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            border: 4px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.1s;
+            user-select: none;
+            background: var(--card);
+        }
+
+        .option-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .option-card.selected {
+            border-color: var(--primary);
+            background-color: #e0e7ff;
+            box-shadow: 0 0 0 4px var(--primary) inset;
+        }
+
+        .option-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 0.5rem;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .option-card span {
+            display: block;
+            font-size: 1.6rem;
+        }
+
+        .btn-check {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-family: 'Jersey 25', cursive;
+            font-size: 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--primary-hover);
+            margin-bottom: 1rem;
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-sizing: border-box;
+        }
+
+        .btn-check:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--primary-hover);
+        }
+
+        .btn-next {
+            background-color: #0f172a;
+            box-shadow: 0 4px 0 #000;
+            display: none;
+        }
+
+        #feedback {
+            padding: 1.5rem;
+            border-radius: 4px;
+            font-size: 1.6rem;
+            display: none;
+            margin-bottom: 1.5rem;
+            border: 4px solid;
+        }
+
+        .feedback-success {
+            background-color: #dcfce7;
+            color: var(--success);
+            border-color: var(--success) !important;
+        }
+
+        .feedback-error {
+            background-color: #fee2e2;
+            color: var(--error);
+            border-color: var(--error) !important;
+        }
+
+        .result-box { text-align: center; padding: 3rem; }
+        .score-display {
+            font-size: 6rem;
+            color: var(--primary);
+            margin: 1rem 0;
+            text-shadow: 4px 4px 0px #a5b4fc;
+        }
+
+        /* --- ADAPTACIÓ PER A MÒBILS (MEDIA QUERIES) --- */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+                font-size: 1.3rem;
+            }
+
+            .container {
+                padding: 1.5rem 1rem;
+                border-width: 3px;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+                margin-top: 2rem; /* Espai extra pel botó de música al mòbil */
+            }
+
+            .game-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                font-size: 1.4rem;
+                text-align: center;
+            }
+
+            .scenario-box {
+                padding: 1.5rem;
+                margin: 1.5rem auto;
+            }
+
+            .scenario-text {
+                font-size: 1.6rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+                text-align: center;
+            }
+
+            /* Apilem les targetes en vertical */
+            .grid-options {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            /* Canviem l'estructura de la targeta a horitzontal */
+            .option-card {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                padding: 0.8rem;
+            }
+
+            .option-card img {
+                width: 50px;
+                height: 50px;
+                margin-bottom: 0;
+                margin-right: 1rem;
+            }
+
+            .option-card span {
+                font-size: 1.5rem;
+            }
+
+            .btn-check {
+                font-size: 1.8rem;
+                padding: 0.8rem;
+            }
+
+            .score-display {
+                font-size: 4rem;
+            }
+
+            .custom-alert-box p {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="custom-alert-overlay">
+    <div class="custom-alert-box">
+        <p id="custom-alert-text">Missatge d'error</p>
+        <button class="custom-alert-btn" onclick="closeAlert()">D'ACORD</button>
+    </div>
+</div>
+
+<audio id="bg-music" src="musica.mp3" loop></audio>
+
+<div class="container" id="game-container">
+    
+    <button id="mute-btn" class="mute-btn" onclick="toggleMute()">🔊 Música: ON</button>
+    
+    <h1>El Flux Circular de la Renda</h1>
+
+    <div id="screen-welcome" class="active">
+        <div class="welcome-box">
+            <h2 style="font-size: 2.5rem;">Benvingut/da al simulador</h2>
+            <p>Se't presentaran 30 retalls de premsa aleatoris. Identifica el mercat i els agents econòmics relacionats amb cadascun d'ells.</p>
+            <input type="text" id="player-name" class="name-input" placeholder="Escriu el teu nom..." autocomplete="off">
+            <br>
+            <button class="btn-check" onclick="startGame()">COMENÇA LA PARTIDA</button>
+        </div>
+    </div>
+
+    <div id="screen-game">
+        <div class="game-header">
+            <span id="display-name">Jugador: ---</span>
+            <span id="display-progress">Nivell: 1 / 30</span>
+            <span id="display-score">Punts: 0</span>
+        </div>
+
+        <div class="scenario-box">
+            <div class="newspaper-header">🗞️ Notícia d'última hora</div>
+            <div class="scenario-text" id="scenario-text"></div>
+        </div>
+
+        <div class="section-title">1. Selecciona quin mercat hi intervé (només un):</div>
+        <div class="grid-options" id="markets-grid">
+            <div class="option-card" data-type="market" data-value="bens">
+                <img src="mercat_bens.png" alt="Mercat de Béns">
+                <span>Mercat de béns i serveis</span>
+            </div>
+            <div class="option-card" data-type="market" data-value="factors">
+                <img src="mercat_factors.png" alt="Mercat de Factors">
+                <span>Mercat de factors de producció</span>
+            </div>
+            <div class="option-card" data-type="market" data-value="cap">
+                <img src="cap_mercat.png" alt="Cap Mercat">
+                <span>Cap Mercat (Sector públic)</span>
+            </div>
+        </div>
+
+        <div class="section-title">2. Selecciona els agents econòmics (poden ser un o dos):</div>
+        <div class="grid-options" id="agents-grid">
+            <div class="option-card" data-type="agent" data-value="families">
+                <img src="agent_families.png" alt="Famílies">
+                <span>Famílies</span>
+            </div>
+            <div class="option-card" data-type="agent" data-value="empreses">
+                <img src="agent_empreses.png" alt="Empreses">
+                <span>Empreses</span>
+            </div>
+            <div class="option-card" data-type="agent" data-value="estat">
+                <img src="agent_estat.png" alt="Sector Públic">
+                <span>Sector Públic</span>
+            </div>
+        </div>
+
+        <div id="feedback"></div>
+
+        <button class="btn-check" id="check-btn" onclick="checkAnswer()">Comprovar Resposta</button>
+        <button class="btn-check btn-next" id="next-btn" onclick="nextQuestion()">Següent Nivell ➔</button>
+    </div>
+
+    <div id="screen-result">
+        <div class="result-box">
+            <h2 id="final-message" style="font-size: 3rem;">GAME OVER, ---!</h2>
+            <p>Has completat la prova. Aquesta és la teva puntuació final:</p>
+            <div class="score-display" id="final-score">0 / 30</div>
+            <p id="final-feedback-text" style="font-size: 2rem;"></p>
+            <button class="btn-check" style="margin-top: 2rem;" onclick="location.reload()">Tornar a jugar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- LÒGICA DE LES ALERTES PERSONALITZADES ---
+    function showAlert(message) {
+        document.getElementById('custom-alert-text').innerText = message;
+        document.getElementById('custom-alert-overlay').classList.add('active');
+        playErrorSound(); 
+    }
+
+    function closeAlert() {
+        document.getElementById('custom-alert-overlay').classList.remove('active');
+    }
+
+    // --- LÒGICA DE LA MÚSICA DE FONS ---
+    const bgMusic = document.getElementById('bg-music');
+    let isMuted = false;
+    bgMusic.volume = 0.3; 
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        bgMusic.muted = isMuted;
+        document.getElementById('mute-btn').innerText = isMuted ? "🔇 Música: OFF" : "🔊 Música: ON";
+    }
+
+    // --- MOTOR DE SO 8-BITS ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playTone(freq, type, duration, startTime = 0) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+        
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime + startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + startTime + duration);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start(audioCtx.currentTime + startTime);
+        oscillator.stop(audioCtx.currentTime + startTime + duration);
+    }
+
+    function playSuccessSound() {
+        playTone(900, 'square', 0.1, 0);
+        playTone(1200, 'square', 0.15, 0.1);
+    }
+
+    function playErrorSound() {
+        playTone(250, 'sawtooth', 0.2, 0);
+        playTone(150, 'sawtooth', 0.3, 0.15);
+    }
+
+    function playGameOverSound() {
+        playTone(400, 'square', 0.1, 0);
+        playTone(500, 'square', 0.1, 0.1);
+        playTone(600, 'square', 0.1, 0.2);
+        playTone(800, 'square', 0.4, 0.3);
+    }
+
+    // BASE DE DADES MALLORQUINA
+    const allScenarios = [
+        { text: "En Tòfol compra un telèfon mòbil nou en una tenda d'electrònica de Palma.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren un producte a les EMPRESES. Això passa al MERCAT DE BÉNS I SERVEIS." },
+        { text: "Na Maria fa feina com a enginyera en una fàbrica d'automòbils.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES ofereixen el seu TREBALL a les EMPRESES a canvi d'un salari. És el MERCAT DE FACTORS." },
+        { text: "L'Ajuntament ingressa una beca de menjador a la família d'en Joan.", market: "cap", agents: ["estat", "families"], explanation: "És una transferència del SECTOR PÚBLIC a les FAMÍLIES. Com que no es dóna res a canvi, NO HI HA MERCAT." },
+        { text: "La perruqueria paga el lloguer del local a la propietària, na Maria Antònia.", market: "factors", agents: ["empreses", "families"], explanation: "Les EMPRESES paguen per l'ús de la TERRA (local) a les FAMÍLIES. És el MERCAT DE FACTORS." },
+        { text: "L'empresa 'Construccions S.A.' paga l'Impost de Societats a Hisenda.", market: "cap", agents: ["empreses", "estat"], explanation: "Són impostos pagats per les EMPRESES al SECTOR PÚBLIC. No s'intercanvia en CAP MERCAT." },
+        { text: "La Conselleria de Salut compra 500 ordinadors per a la xarxa d'hospitals públics.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra béns a les EMPRESES mitjançant el MERCAT DE BÉNS I SERVEIS." },
+        { text: "L'Aina demana un menú de migdia al bar de la cantonada.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren un servei a les EMPRESES dins del MERCAT DE BÉNS I SERVEIS." },
+        { text: "El Govern de les Illes Balears dóna una subvenció a fons perdut a una empresa de plaques solars.", market: "cap", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC dóna una ajuda a les EMPRESES sense rebre béns a canvi. NO HI HA MERCAT." },
+        { text: "La fàbrica de mobles paga els interessos a la família d'en Lluís pels doblers que hi van invertir.", market: "factors", agents: ["empreses", "families"], explanation: "Les EMPRESES paguen a les FAMÍLIES pel seu CAPITAL aportat. Això forma part del MERCAT DE FACTORS." },
+        { text: "En Pere paga l'IRPF a la seva declaració de la renda anual.", market: "cap", agents: ["families", "estat"], explanation: "Les FAMÍLIES paguen impostos al SECTOR PÚBLIC. Com que és un tribut sense contraprestació directa, NO HI HA MERCAT." },
+        { text: "L'Hospital de Son Espases contracta tres metges nous per al servei d'urgències.", market: "factors", agents: ["estat", "families"], explanation: "El SECTOR PÚBLIC demana TREBALL a les FAMÍLIES a través del MERCAT DE FACTORS." },
+        { text: "Un pagès ven les seves tomàtigues a una gran superfície comercial per ser distribuïdes.", market: "bens", agents: ["empreses"], explanation: "Transacció entre EMPRESES (el pagès com a negoci ven al supermercat). MERCAT DE BÉNS I SERVEIS." }, 
+        { text: "Na Laura contracta una assegurança de llar a l'empresa SegurPlus.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren un servei financer a les EMPRESES en el MERCAT DE BÉNS I SERVEIS." },
+        { text: "L'Estat paga la pensió de jubilació a l'avi de na Marta.", market: "cap", agents: ["estat", "families"], explanation: "És una transferència del SECTOR PÚBLIC a les FAMÍLIES. NO HI HA MERCAT." },
+        { text: "El forn de pa del poble contracta na Sílvia com a dependenta.", market: "factors", agents: ["empreses", "families"], explanation: "Les EMPRESES compren TREBALL a les FAMÍLIES en el MERCAT DE FACTORS." },
+        { text: "En Miquel compra uns bitllets de vaixell per anar de vacances a Menorca.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES adquireixen un servei de transport de les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+        { text: "El Consell de Mallorca contracta una empresa privada de neteja per als seus edificis administratius.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra un servei a les EMPRESES en el MERCAT DE BÉNS I SERVEIS." },
+        { text: "L'Impost sobre el Valor Afegit (IVA) d'una televisió es transfereix a l'Estat.", market: "cap", agents: ["families", "estat"], explanation: "L'IVA recau sobre les FAMÍLIES i el rep el SECTOR PÚBLIC. NO HI HA MERCAT per a l'impost en si." },
+        { text: "Una família lloga la seva finca rústica a un pagès que té una empresa agrícola.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES cedeixen la TERRA a les EMPRESES a canvi d'una renda. MERCAT DE FACTORS." },
+        { text: "El Govern ofereix un bo cultural als joves que fan divuit anys.", market: "cap", agents: ["estat", "families"], explanation: "Transferència del SECTOR PÚBLIC a les FAMÍLIES sense contrapartida. NO HI HA MERCAT." },
+        { text: "Na Paula inverteix 1000 euros en accions de la companyia elèctrica i en rep els dividends.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES aporten CAPITAL a les EMPRESES a canvi de rendibilitat al MERCAT DE FACTORS." },
+        { text: "La tenda de roba paga la taxa de fems a l'Ajuntament.", market: "cap", agents: ["empreses", "estat"], explanation: "Taxa pagada per les EMPRESES al SECTOR PÚBLIC per un servei municipal. NO HI HA MERCAT pròpiament dit." },
+        { text: "En Carles, professor de matemàtiques, rep la seva nòmina de l'institut públic.", market: "factors", agents: ["estat", "families"], explanation: "Les FAMÍLIES ofereixen TREBALL al SECTOR PÚBLIC. És el MERCAT DE FACTORS." },
+        { text: "Una empresa de construcció ven un bloc de pisos ja acabats a diverses famílies.", market: "bens", agents: ["empreses", "families"], explanation: "Les EMPRESES venen habitatges (béns finals) a les FAMÍLIES. MERCAT DE BÉNS I SERVEIS." },
+        { text: "L'Estat recapta els doblers de les cotitzacions socials dels treballadors autònoms.", market: "cap", agents: ["estat", "families"], explanation: "Pagament obligatori de les FAMÍLIES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+        { text: "El Govern proporciona fons estructurals a una indústria per modernitzar la seva maquinària.", market: "cap", agents: ["estat", "empreses"], explanation: "Subvenció del SECTOR PÚBLIC a les EMPRESES. NO HI HA MERCAT." },
+        { text: "En Jordi compra un llibre de text per a la seva filla a la llibreria del barri.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren un producte a les EMPRESES al MERCAT DE BÉNS I SERVEIS." },
+        { text: "El Ministeri d'Obres Públiques compra ciment a una empresa per fer una carretera nova.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC adquireix béns de les EMPRESES al MERCAT DE BÉNS I SERVEIS." },
+        { text: "Na Marta lloga el seu garatge privat a l'empresa de missatgeria perquè hi guardin les furgonetes.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES ofereixen TERRA (espai físic) a les EMPRESES. MERCAT DE FACTORS." },
+        { text: "L'Ajuntament rep els ingressos de l'Impost sobre Béns Immobles (IBI) de la llar de la família Pons.", market: "cap", agents: ["families", "estat"], explanation: "Pagament d'impostos de les FAMÍLIES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+
+// --- PACK EXPANSIÓ: 90 ESCENARIS NOUS ---
+
+    // MERCAT DE BÉNS (Famílies - Empreses)
+    { text: "Na Margalida compra una ensaïmada grossa per al diumenge a un forn de Valldemossa.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren un producte final a les EMPRESES. És el MERCAT DE BÉNS I SERVEIS." },
+    { text: "En Biel duu el seu cotxe a un taller mecànic del polígon de Son Castelló per passar la revisió.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES contracten un servei a les EMPRESES al MERCAT DE BÉNS I SERVEIS." },
+    { text: "Na Catalina sopa amb els amics en un restaurant a la plaça de Sa Bassa, a Manacor.", market: "bens", agents: ["families", "empreses"], explanation: "Consum d'un servei de restauració per part de les FAMÍLIES a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "En Xisco paga la quota mensual del gimnàs a Inca.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren un servei esportiu a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "L'Aina compra unes sabates de pell fetes a Mallorca a una tenda del centre de Palma.", market: "bens", agents: ["families", "empreses"], explanation: "Compra de béns finals de les FAMÍLIES a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "En Tomeu s'abona a una plataforma de streaming per veure sèries des de casa.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES adquireixen un servei digital d'entreteniment de les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "La família Servera paga l'assegurança a tot risc del seu cotxe nou.", market: "bens", agents: ["families", "empreses"], explanation: "Adquisició d'un servei financer/assegurança de les FAMÍLIES a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "En Jaume va al cinema de Festival Park a veure l'última estrena.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren oci a les EMPRESES. És el MERCAT DE BÉNS I SERVEIS." },
+    { text: "Na Llucia compra bitllets d'avió a una aerolínia per anar a passar el cap de setmana a Madrid.", market: "bens", agents: ["families", "empreses"], explanation: "Servei de transport comprat per les FAMÍLIES a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "Un grup d'amics lloga un vaixell a Portocristo per passar el dia a la mar.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES compren un servei d'oci a les EMPRESES al MERCAT DE BÉNS I SERVEIS." },
+    { text: "Na Neus compra mig quilo de sobrassada a la xarcuteria del Mercat de l'Olivar.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES adquireixen alimentació (béns) a les EMPRESES al MERCAT DE BÉNS I SERVEIS." },
+    { text: "En Miquel Àngel crida un lampista d'urgència perquè li arregli una canonada esbucada a Llucmajor.", market: "bens", agents: ["families", "empreses"], explanation: "Servei de reparació contractat per FAMÍLIES a EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "Na Cati va a la perruqueria de la seva barriada a fer-se unes metxes.", market: "bens", agents: ["families", "empreses"], explanation: "Servei personal consumit per FAMÍLIES i ofert per EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "En Joan compra pinso per al seu ca en una botiga d'animals a Campos.", market: "bens", agents: ["families", "empreses"], explanation: "Adquisició de béns de consum de les FAMÍLIES a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "Una parella reserva una habitació d'hotel per passar el cap de setmana a Sóller.", market: "bens", agents: ["families", "empreses"], explanation: "Les FAMÍLIES paguen per un servei turístic a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+
+    // MERCAT DE FACTORS (Famílies - Empreses: Treball, Terra, Capital)
+    { text: "En Toni comença a fer feina de cambrer en un hotel d'Alcúdia durant la temporada d'estiu.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES ofereixen el seu TREBALL a les EMPRESES. És el MERCAT DE FACTORS." },
+    { text: "Na Maria inverteix 5.000 € en fons d'inversió d'una gran empresa tecnològica.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES aporten CAPITAL a les EMPRESES per obtenir rendibilitat. MERCAT DE FACTORS." },
+    { text: "L'amo en Pep lloga un gran tros de terra a Sa Pobla a una empresa exportadora de patates.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES cedeixen el factor TERRA (recursos naturals) a les EMPRESES a canvi d'una renda. MERCAT DE FACTORS." },
+    { text: "Una empresa constructora de Palma ingressa el sou mensual al seu cap d'obra.", market: "factors", agents: ["empreses", "families"], explanation: "Les EMPRESES paguen per l'ús del TREBALL a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "Na Francisca rep els dividends de les accions que té comprades a un banc comercial.", market: "factors", agents: ["families", "empreses"], explanation: "Retribució al factor CAPITAL de les EMPRESES a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "En Sebastià firma un contracte com a desenvolupador de programari per a una empresa del Parc Bit.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES venen el seu TREBALL a les EMPRESES al MERCAT DE FACTORS." },
+    { text: "Una agència de viatges paga el lloguer de les seves oficines al propietari, en Joan.", market: "factors", agents: ["empreses", "families"], explanation: "Les EMPRESES paguen la renda de la TERRA (local) a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "Na Bàrbara rep el seu primer salari com a caixera en un gran supermercat d'Inca.", market: "factors", agents: ["empreses", "families"], explanation: "Pagament de salari pel factor TREBALL de les EMPRESES a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "En Lluís diposita els seus estalvis en un compte bancari a termini fix per rebre interessos.", market: "factors", agents: ["families", "empreses"], explanation: "Les FAMÍLIES ofereixen els seus doblers (CAPITAL) a les EMPRESES financeres. MERCAT DE FACTORS." },
+    { text: "Una vinya de Binissalem lloga la maquinària de collita a una família pagesa per fer la verema.", market: "factors", agents: ["empreses", "families"], explanation: "Ús de béns de CAPITAL cedits de les FAMÍLIES a les EMPRESES. MERCAT DE FACTORS." },
+    { text: "En Guillem comença de guia turístic autònom cobrant per rutes a una agència de creuers.", market: "factors", agents: ["families", "empreses"], explanation: "Prestació de serveis professionals (TREBALL) de FAMÍLIES a EMPRESES. MERCAT DE FACTORS." },
+    { text: "Una cadena hotelera paga una prima de productivitat als seus recepcionistes al final de la temporada.", market: "factors", agents: ["empreses", "families"], explanation: "Complement salarial pel TREBALL de les EMPRESES a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "Na Rosa cedeix els drets d'ús d'un pou d'aigua de la seva finca a una envasadora local.", market: "factors", agents: ["families", "empreses"], explanation: "Cessió del factor TERRA (recursos naturals) de FAMÍLIES a EMPRESES. MERCAT DE FACTORS." },
+    { text: "L'empresa de fusters de Sineu paga un interès molt alt a n'Andreu pel préstec privat que els va fer.", market: "factors", agents: ["empreses", "families"], explanation: "Pagament pel factor CAPITAL de les EMPRESES a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "Na Martina fa pràctiques remunerades com a dissenyadora gràfica en una empresa de publicitat.", market: "factors", agents: ["families", "empreses"], explanation: "Oferta de TREBALL, encara que sigui en pràctiques, de FAMÍLIES a EMPRESES. MERCAT DE FACTORS." },
+
+    // CAP MERCAT - IMPOSTOS (Famílies i Empreses cap a l'Estat)
+    { text: "L'Ajuntament d'Artà passa el rebut de l'Impost de Circulació a na Joana pel seu cotxe.", market: "cap", agents: ["families", "estat"], explanation: "Tribut sense contraprestació directa de les FAMÍLIES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "Una empresa de lloguer de cotxes de l'Aeroport paga l'Impost de Societats corresponent a l'any anterior.", market: "cap", agents: ["empreses", "estat"], explanation: "Pagament d'impostos de les EMPRESES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "En Tomeu, treballador per compte aliè, nota com li descompten l'IRPF de la nòmina.", market: "cap", agents: ["families", "estat"], explanation: "Tribut directe que les FAMÍLIES paguen al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "El restaurant de devora la mar a Pollença paga la taxa d'ocupació de la via pública per posar la terrassa.", market: "cap", agents: ["empreses", "estat"], explanation: "Tribut (taxa) de les EMPRESES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "Na Margalida paga l'impost de successions després d'heretar una casa a Capdepera.", market: "cap", agents: ["families", "estat"], explanation: "Impost pagat per les FAMÍLIES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "Una fàbrica de sabates paga l'Impost sobre Activitats Econòmiques (IAE) a l'Estat.", market: "cap", agents: ["empreses", "estat"], explanation: "Tribut empresarial cobrat pel SECTOR PÚBLIC a les EMPRESES. NO HI HA MERCAT." },
+    { text: "L'Ajuntament de Calvià recapta l'Impost de Béns Immobles (IBI) de tots els veïnats.", market: "cap", agents: ["estat", "families"], explanation: "Flux monetari obligatori de les FAMÍLIES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "Un jove autònom paga la seva quota mensual a la Seguretat Social.", market: "cap", agents: ["families", "estat"], explanation: "Cotització obligatòria de les FAMÍLIES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "La companyia elèctrica paga els impostos mediambientals per les emissions de la seva central.", market: "cap", agents: ["empreses", "estat"], explanation: "Pagament d'impostos de les EMPRESES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "En Pere ha de pagar una multa de trànsit de la Policia Local per aparcar damunt la vorera a Palma.", market: "cap", agents: ["families", "estat"], explanation: "Sanció pagada per les FAMÍLIES al SECTOR PÚBLIC. Com que no és un intercanvi, NO HI HA MERCAT." },
+    { text: "L'empresa de construcció paga les llicències d'obra a la Gerència d'Urbanisme.", market: "cap", agents: ["empreses", "estat"], explanation: "Pagament de taxes de les EMPRESES al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "Na Llucia compra una vivenda de segona mà a Felanitx i paga l'Impost de Transmissions Patrimonials.", market: "cap", agents: ["families", "estat"], explanation: "Tribut associat a una compra, cobrat pel SECTOR PÚBLIC a les FAMÍLIES. NO HI HA MERCAT." },
+    { text: "Una gelateria d'Alcúdia transfereix mensualment a Hisenda l'IVA que ha cobrat als seus clients.", market: "cap", agents: ["empreses", "estat"], explanation: "Les EMPRESES fan de recaptadores per enviar l'impost al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "L'Estat rep els ingressos dels impostos especials sobre el tabac d'un estanc.", market: "cap", agents: ["estat", "empreses"], explanation: "Tributs recaptats a través de les EMPRESES per al SECTOR PÚBLIC. NO HI HA MERCAT." },
+    { text: "En Biel paga la taxa de matriculació a la Universitat de les Illes Balears (UIB).", market: "cap", agents: ["families", "estat"], explanation: "Pagament d'una taxa pública de les FAMÍLIES al SECTOR PÚBLIC. Es considera fora de lliure mercat." },
+
+    // CAP MERCAT - TRANSFERÈNCIES I SUBVENCIONS (Estat cap a Famílies i Empreses)
+    { text: "L'IBSALUT aprova una subvenció per a una clínica privada que farà proves diagnòstiques de suport.", market: "cap", agents: ["estat", "empreses"], explanation: "Transferència del SECTOR PÚBLIC a les EMPRESES sense rebre el servei directament. NO HI HA MERCAT." },
+    { text: "En Miquel rep l'atur mensualment al seu compte corrent després d'haver estat acomiadat de la fàbrica.", market: "cap", agents: ["estat", "families"], explanation: "Transferència (subsidi) del SECTOR PÚBLIC a les FAMÍLIES. Com que no dona feina a canvi, NO HI HA MERCAT." },
+    { text: "El Govern central atorga una ajuda directa a les empreses de transport de mercaderies pel preu de la benzina.", market: "cap", agents: ["estat", "empreses"], explanation: "Subvenció del SECTOR PÚBLIC a les EMPRESES. És una ajuda a fons perdut, NO HI HA MERCAT." },
+    { text: "Na Cati, que té 75 anys, rep la seva pensió de viudetat de l'Estat.", market: "cap", agents: ["estat", "families"], explanation: "Prestació social del SECTOR PÚBLIC a les FAMÍLIES. NO HI HA MERCAT." },
+    { text: "L'Institut d'Innovació Empresarial dóna una ajuda econòmica a fons perdut per digitalitzar comerços locals.", market: "cap", agents: ["estat", "empreses"], explanation: "Ajuda pública del SECTOR PÚBLIC a les EMPRESES per potenciar-les. NO HI HA MERCAT." },
+    { text: "La família d'en Toni rep la deducció per família nombrosa a la declaració de la renda.", market: "cap", agents: ["estat", "families"], explanation: "Transferència o benefici fiscal del SECTOR PÚBLIC a les FAMÍLIES. NO HI HA MERCAT." },
+    { text: "El Consell Insular obre una línia d'ajudes per al sector primari afectat per la sequera.", market: "cap", agents: ["estat", "empreses"], explanation: "Ajudes d'emergència del SECTOR PÚBLIC a les EMPRESES (pagesos). NO HI HA MERCAT." },
+    { text: "L'Ajuntament de Lloseta dona un xec nadó de 300 euros als pares de la nova nounada, na Júlia.", market: "cap", agents: ["estat", "families"], explanation: "Transferència local del SECTOR PÚBLIC a les FAMÍLIES. NO HI HA MERCAT." },
+    { text: "La Unió Europea ingressa fons PAC (Política Agrària Comuna) a un productor d'oli d'oliva de Caimari.", market: "cap", agents: ["estat", "empreses"], explanation: "Subvenció del SECTOR PÚBLIC a les EMPRESES. Sense contraprestació, NO HI HA MERCAT." },
+    { text: "L'Estat ingressa la prestació de l'Ingrés Mínim Vital a una família de barri vulnerable.", market: "cap", agents: ["estat", "families"], explanation: "Mesura de protecció social del SECTOR PÚBLIC cap a les FAMÍLIES. NO HI HA MERCAT." },
+    { text: "L'Estat subvenciona la compra de cotxes elèctrics nous als concessionaris.", market: "cap", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC dona incentius a les EMPRESES per abaixar preus. NO HI HA MERCAT directe aquí." },
+    { text: "Na Marta, estudiant de cicles formatius, rep l'ingrés de la beca del Ministeri d'Educació.", market: "cap", agents: ["estat", "families"], explanation: "Ajuda per a estudis del SECTOR PÚBLIC a les FAMÍLIES. NO HI HA MERCAT." },
+    { text: "Una productora audiovisual rep fons de l'Institut d'Estudis Baleàrics per fer una pel·lícula en català.", market: "cap", agents: ["estat", "empreses"], explanation: "Subvenció cultural del SECTOR PÚBLIC a les EMPRESES. NO HI HA MERCAT." },
+    { text: "El Govern assumeix el cost dels abonaments de tren gratuïts per als residents a Mallorca.", market: "cap", agents: ["estat", "families"], explanation: "Subvenció en espècie del SECTOR PÚBLIC cap a les FAMÍLIES. NO HI HA MERCAT." },
+    { text: "Es dóna un subsidi extraordinari de desocupació per als fixos discontinus acabada la temporada alta.", market: "cap", agents: ["estat", "families"], explanation: "Protecció econòmica del SECTOR PÚBLIC a les FAMÍLIES. NO HI HA MERCAT." },
+
+    // MERCAT DE FACTORS (Estat - Famílies: Ocupació Pública)
+    { text: "L'Ajuntament de Santanyí contracta tres nous policies locals que han aprovat l'oposició.", market: "factors", agents: ["estat", "families"], explanation: "El SECTOR PÚBLIC contracta TREBALL de les FAMÍLIES al MERCAT DE FACTORS." },
+    { text: "En Jordi rep la nòmina com a metge especialista a l'hospital públic d'Inca.", market: "factors", agents: ["estat", "families"], explanation: "Pagament del salari del SECTOR PÚBLIC a les FAMÍLIES pel seu TREBALL al MERCAT DE FACTORS." },
+    { text: "La Conselleria d'Educació abona els triennis d'antiguitat a una mestra d'escola pública a Andratx.", market: "factors", agents: ["estat", "families"], explanation: "Remuneració al factor TREBALL des del SECTOR PÚBLIC a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "IBANAT contracta una brigada forestal per a la campanya de prevenció d'incendis a la Serra de Tramuntana.", market: "factors", agents: ["estat", "families"], explanation: "Contractació pública de TREBALL provinent de les FAMÍLIES al MERCAT DE FACTORS." },
+    { text: "Na Maria és seleccionada com a administrativa interina per al Consell de Mallorca.", market: "factors", agents: ["estat", "families"], explanation: "El SECTOR PÚBLIC requereix mà d'obra de les FAMÍLIES en el MERCAT DE FACTORS." },
+    { text: "L'Estat paga les guàrdies realitzades pels bombers durant el temporal a Mallorca.", market: "factors", agents: ["estat", "families"], explanation: "Retribució al TREBALL aportat per les FAMÍLIES al SECTOR PÚBLIC. MERCAT DE FACTORS." },
+    { text: "En Carles, professor associat de la UIB, cobra el seu sou mensual.", market: "factors", agents: ["estat", "families"], explanation: "Les FAMÍLIES venen serveis educatius (TREBALL) al SECTOR PÚBLIC al MERCAT DE FACTORS." },
+    { text: "El Govern contracta investigadors científics per a un centre d'estudis oceanogràfics a Palma.", market: "factors", agents: ["estat", "families"], explanation: "Demanda de TREBALL molt qualificat del SECTOR PÚBLIC a les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "Na Paula fa d'advocada pública prestant el servei del torn d'ofici pagat per Justícia.", market: "factors", agents: ["estat", "families"], explanation: "El SECTOR PÚBLIC paga per serveis professionals de les FAMÍLIES. MERCAT DE FACTORS." },
+    { text: "L'Ajuntament de Sineu lloga un magatzem propietat de n'Antoni per guardar les carrosses de Reis.", market: "factors", agents: ["estat", "families"], explanation: "El SECTOR PÚBLIC lloga el factor TERRA (local) a les FAMÍLIES al MERCAT DE FACTORS." },
+
+    // MERCAT DE BÉNS I SERVEIS (Estat - Empreses: Compres i Licitacions)
+    { text: "L'Estat encarrega la construcció de la nova estació de tren a l'empresa 'Ferrovial'.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra béns d'inversió/infraestructures a les EMPRESES al MERCAT DE BÉNS." },
+    { text: "L'IBSALUT compra 10.000 vacunes de la grip a una companyia farmacèutica.", market: "bens", agents: ["estat", "empreses"], explanation: "Adquisició de subministraments sanitaris pel SECTOR PÚBLIC a les EMPRESES. MERCAT DE BÉNS." },
+    { text: "Un col·legi públic de Llucmajor contracta l'excursió de final de curs a una empresa d'autocars privada.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra un servei de transport a les EMPRESES al MERCAT DE BÉNS." },
+    { text: "L'Ajuntament de Palma compra 5.000 papereres de fosa a un fabricant industrial.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra mobiliari urbà a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "La policia nacional duu els seus cotxes oficials a reparar a un taller homologat.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC contracta un servei de manteniment a les EMPRESES. MERCAT DE BÉNS." },
+    { text: "El Govern Balear contracta una agència de comunicació per dissenyar la campanya contra el foc.", market: "bens", agents: ["estat", "empreses"], explanation: "Adquisició de serveis publicitaris pel SECTOR PÚBLIC a EMPRESES privades. MERCAT DE BÉNS." },
+    { text: "L'administració de Justícia renova el contracte de subministrament de folis i tòner amb una papereria a l'engròs.", market: "bens", agents: ["estat", "empreses"], explanation: "Compra de material d'oficina (béns) del SECTOR PÚBLIC a les EMPRESES. MERCAT DE BÉNS." },
+    { text: "L'Ajuntament d'Artà lloga un camió grua a una empresa de construcció per posar els llums de Nadal.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC lloga serveis de maquinària a EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "L'IBANAT adquireix 3 drons d'última generació a una empresa tecnològica per vigilar els boscos.", market: "bens", agents: ["estat", "empreses"], explanation: "Compra de tecnologia del SECTOR PÚBLIC a les EMPRESES. MERCAT DE BÉNS." },
+    { text: "La direcció general d'Aigua encarrega les obres d'una nova dessaladora a un consorci d'enginyeria.", market: "bens", agents: ["estat", "empreses"], explanation: "Inversió en infraestructures comprada pel SECTOR PÚBLIC a EMPRESES. MERCAT DE BÉNS." },
+
+    // B2B: MERCAT DE BÉNS (Empreses - Empreses)
+    { text: "El supermercat local compra 500 caixes de tomàtiga de ramellet a una cooperativa agrícola de Muro.", market: "bens", agents: ["empreses"], explanation: "Transacció de béns intermedis/productes entre EMPRESES al MERCAT DE BÉNS I SERVEIS." },
+    { text: "Un hotel de Can Picafort contracta a una bugaderia industrial per rentar tota la roba de llit diàriament.", market: "bens", agents: ["empreses"], explanation: "Prestació d'un servei industrial entre EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "L'empresa de construcció 'Edificis S.A.' compra 10 tones de ciment a la cimentera de Lloseta.", market: "bens", agents: ["empreses"], explanation: "Compra de primeres matèries entre EMPRESES. Transacció al MERCAT DE BÉNS." },
+    { text: "Una perruqueria adquireix tots els seus xampús i tints a un distribuïdor de productes de bellesa professional.", market: "bens", agents: ["empreses"], explanation: "Adquisició de productes (B2B) exclusivament entre EMPRESES al MERCAT DE BÉNS." },
+    { text: "L'amo d'un restaurant contracta una empresa de neteja nocturna per desinfectar les cuines.", market: "bens", agents: ["empreses"], explanation: "Subcontractació de serveis de neteja entre EMPRESES al MERCAT DE BÉNS I SERVEIS." },
+    { text: "Una agència de màrqueting digital paga la factura del seu servidor web al proveïdor de núvol.", market: "bens", agents: ["empreses"], explanation: "Contractació de serveis digitals B2B entre EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "La fàbrica de mobles de Manacor adquireix planxes de fusta d'alzina a un proveïdor fuster a l'engròs.", market: "bens", agents: ["empreses"], explanation: "Les EMPRESES compren materials intermedis a altres EMPRESES al MERCAT DE BÉNS." },
+    { text: "Un despatx d'advocats contracta l'auditoria dels seus comptes anuals a una gestoria financera externa.", market: "bens", agents: ["empreses"], explanation: "Servei de consultoria prestat entre EMPRESES dins del MERCAT DE BÉNS." },
+    { text: "Una fleca mallorquina compra els forns industrials a una marca italiana d'equipament de cuina.", market: "bens", agents: ["empreses"], explanation: "Adquisició de béns d'inversió (béns d'equip) entre EMPRESES. MERCAT DE BÉNS." },
+    { text: "El celler de Binissalem contracta a una empresa gràfica perquè li imprimeixi milers d'etiquetes pel vi.", market: "bens", agents: ["empreses"], explanation: "Servei d'impressió comercial entre dues EMPRESES al MERCAT DE BÉNS I SERVEIS." }
+        
+    ];
+
+    const TOTAL_QUESTIONS = 30;
+    let playerName = "";
+    let score = 0;
+    let currentQuestionIndex = 0;
+    let gameQuestions = [];
+    
+    let currentScenario = {};
+    let selectedMarket = null;
+    let selectedAgents = [];
+
+    function startGame() {
+        if(audioCtx.state === 'suspended') audioCtx.resume(); 
+        bgMusic.play().catch(e => console.log("L'autoplay ha estat bloquejat: " + e));
+
+        const nameInput = document.getElementById('player-name').value.trim();
+        if (nameInput === "") {
+            showAlert("Ei! Has d'escriure el teu nom per poder començar la partida.");
+            return;
+        }
+        
+        playerName = nameInput;
+        document.getElementById('display-name').innerText = `Jugador: ${playerName}`;
+        gameQuestions = allScenarios.sort(() => 0.5 - Math.random()).slice(0, TOTAL_QUESTIONS);
+        
+        document.getElementById('screen-welcome').classList.remove('active');
+        document.getElementById('screen-game').classList.add('active');
+        
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+        selectedMarket = null;
+        selectedAgents = [];
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('check-btn').style.display = 'block';
+        document.getElementById('next-btn').style.display = 'none';
+
+        currentScenario = gameQuestions[currentQuestionIndex];
+        document.getElementById('scenario-text').innerText = currentScenario.text;
+        document.getElementById('display-progress').innerText = `Nivell: ${currentQuestionIndex + 1} / ${TOTAL_QUESTIONS}`;
+    }
+
+    document.querySelectorAll('.option-card[data-type="market"]').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.option-card[data-type="market"]').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedMarket = this.getAttribute('data-value');
+        });
+    });
+
+    document.querySelectorAll('.option-card[data-type="agent"]').forEach(card => {
+        card.addEventListener('click', function() {
+            const val = this.getAttribute('data-value');
+            if (this.classList.contains('selected')) {
+                this.classList.remove('selected');
+                selectedAgents = selectedAgents.filter(a => a !== val);
+            } else {
+                if (selectedAgents.length < 2) {
+                    this.classList.add('selected');
+                    selectedAgents.push(val);
+                }
+            }
+        });
+    });
+
+    function checkAnswer() {
+        if (!selectedMarket) {
+            showAlert("Uep! Has de seleccionar quin mercat hi intervé.");
+            return;
+        }
+        if (selectedAgents.length === 0) {
+            showAlert("Has de seleccionar com a mínim un agent econòmic.");
+            return;
+        }
+
+        const isMarketCorrect = selectedMarket === currentScenario.market;
+        const areAgentsCorrect = selectedAgents.sort().join() === currentScenario.agents.sort().join();
+        const feedback = document.getElementById('feedback');
+        const container = document.getElementById('game-container');
+
+        feedback.style.display = 'block';
+
+        if (isMarketCorrect && areAgentsCorrect) {
+            score++;
+            document.getElementById('display-score').innerText = `Punts: ${score}`;
+            feedback.className = 'feedback-success';
+            feedback.innerHTML = `<strong>CORRECTE!</strong><br>${currentScenario.explanation}`;
+            playSuccessSound();
+        } else {
+            feedback.className = 'feedback-error';
+            feedback.innerHTML = `<strong>ERROR!</strong><br>${currentScenario.explanation}`;
+            playErrorSound();
+            
+            container.classList.add('shake-effect');
+            setTimeout(() => {
+                container.classList.remove('shake-effect');
+            }, 400);
+        }
+
+        document.getElementById('check-btn').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < TOTAL_QUESTIONS) {
+            loadQuestion();
+        } else {
+            finishGame();
+        }
+    }
+
+    function finishGame() {
+        document.getElementById('screen-game').classList.remove('active');
+        document.getElementById('screen-result').classList.add('active');
+        
+        playGameOverSound();
+        
+        document.getElementById('final-message').innerText = `GAME OVER, ${playerName}!`;
+        document.getElementById('final-score').innerText = `${score} / ${TOTAL_QUESTIONS}`;
+        
+        const feedbackText = document.getElementById('final-feedback-text');
+        if (score === TOTAL_QUESTIONS) {
+            feedbackText.innerText = "Nivell TOP! Tens un domini absolut del flux circular de la renda.";
+        } else if (score >= TOTAL_QUESTIONS * 0.7) {
+            feedbackText.innerText = "Bona feina! Has entès molt bé els conceptes.";
+        } else if (score >= TOTAL_QUESTIONS * 0.5) {
+            feedbackText.innerText = "Has aprovat, però pots fer-ho molt millor.";
+        } else {
+            feedbackText.innerText = "Has de repassar. Torna a intentar-ho!";
+        }
+    }
+</script>
+
+</body>
+</html>
