@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --paper-bg: #f8f9fa;
+            --ink: #2b2d42;
+            --ink-light: #6c757d;
+            --primary: #4361ee;
+            --success: #2a9d8f;
+            --error: #e63946;
+            --warning: #f4a261;
+            --font-headline: 'Montserrat', sans-serif;
+            --font-body: 'Open Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            background-color: #edf2f4;
+            color: var(--ink);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background-color: var(--paper-bg);
+            max-width: 1000px;
+            width: 100%;
+            padding: 2.5rem;
+            box-sizing: border-box;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .hidden { display: none !important; }
+        .start-screen, .end-screen { text-align: center; padding: 1rem 0 2rem 0; }
+        
+        header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 3px solid var(--primary); position: relative; }
+        header h1 { font-family: var(--font-headline); font-size: 3.5rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
+        header .sub-header { font-size: 1.2rem; color: var(--ink-light); margin-top: 0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        .header-buttons { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; }
+        .btn-small { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px; font-family: var(--font-headline); font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; display: flex; align-items: center; justify-content: center; }
+        .btn-small:hover { background-color: var(--primary); color: white; }
+        .btn-small.danger { border-color: var(--ink-light); color: var(--ink-light); }
+        .btn-small.danger:hover { background-color: var(--ink-light); color: white; }
+
+        .modes-wrapper { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+
+        .mode-card {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 2rem;
+            flex: 1;
+            min-width: 280px;
+            max-width: 400px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .mode-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: var(--primary); }
+
+        .mode-card h2 { font-family: var(--font-headline); font-size: 1.8rem; margin-top: 0; color: var(--ink); margin-bottom: 1rem; }
+        .mode-card p { font-size: 1.1rem; color: var(--ink-light); margin-bottom: 2rem; line-height: 1.5; }
+
+        .name-input-group { margin-bottom: 1.5rem; text-align: left; }
+        .name-input-group label { font-family: var(--font-headline); font-weight: 600; display: block; margin-bottom: 0.5rem; font-size: 1rem; }
+        .name-input-group input { width: 100%; box-sizing: border-box; padding: 0.8rem; font-family: var(--font-body); font-size: 1.1rem; border: 2px solid #dee2e6; border-radius: 6px; }
+        .name-input-group input:focus { outline: none; border-color: var(--primary); }
+
+        .btn-action { background-color: var(--primary); color: white; border: none; padding: 1rem 1.5rem; border-radius: 6px; font-family: var(--font-headline); font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background 0.2s; width: 100%; }
+        .btn-action.inline { width: auto; }
+        .btn-action:hover { background-color: #3f37c9; }
+        .btn-next { background-color: var(--ink); display: none; }
+        .btn-next:hover { background-color: #000; }
+
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
+
+        .panel { background-color: white; border-radius: 8px; border: 1px solid #e9ecef; box-shadow: 0 4px 6px rgba(0,0,0,0.02); overflow: hidden; }
+        .panel-header { background-color: var(--primary); color: white; padding: 1rem; font-family: var(--font-headline); font-weight: 700; font-size: 1.2rem; text-align: center; }
+        .panel-header.expenses { background-color: var(--error); }
+        .panel-header.income { background-color: var(--success); }
+
+        .budget-list { list-style: none; padding: 0; margin: 0; }
+        .budget-list li { display: flex; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #f8f9fa; align-items: center; }
+        .budget-list li:last-child { border-bottom: none; }
+        .item-name { font-weight: 600; flex: 1; padding-right: 1rem; line-height: 1.3; }
+        .item-value { font-family: monospace; font-size: 1.25rem; font-weight: bold; white-space: nowrap; }
+        .income-val { color: var(--success); }
+        .expense-val { color: var(--error); }
+
+        .question-box { border: 2px solid var(--primary); border-radius: 8px; padding: 2rem; margin-bottom: 1.5rem; background-color: #f8f9ff; position: relative; }
+        
+        .section-label { display: flex; justify-content: space-between; font-family: var(--font-headline); font-weight: 700; text-transform: uppercase; font-size: 0.9rem; color: var(--primary); margin-bottom: 1rem; }
+        .question-text { font-family: var(--font-headline); font-size: 1.4rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.4; color: var(--ink); }
+
+        .input-group { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        input[type="text"] { padding: 0.8rem 1rem; font-family: var(--font-body); font-size: 1.2rem; border: 2px solid #ced4da; border-radius: 6px; width: 200px; flex: 1; min-width: 150px; }
+        input[type="text"]:focus { outline: none; border-color: var(--primary); }
+
+        #feedback { padding: 1.2rem; font-family: var(--font-body); font-size: 1.1rem; display: none; margin-top: 1.5rem; border-radius: 6px; border-left: 5px solid; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .feedback-success { border-color: var(--success) !important; }
+        .feedback-error { border-color: var(--error) !important; }
+        
+        @keyframes shake { 0% { transform: translateX(0); } 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-10px); } 80% { transform: translateX(10px); } 100% { transform: translateX(0); } }
+        .shake { animation: shake 0.4s; border-color: var(--error) !important; }
+
+        .score-board { font-family: var(--font-headline); font-size: 1.5rem; margin: 2rem 0; padding: 2rem; border-radius: 8px; background-color: #f8f9fa; border: 2px solid #dee2e6; }
+        .big-score { font-size: 4.5rem; font-weight: 800; color: var(--primary); margin: 1rem 0; line-height: 1; }
+        .stats-box { font-size: 1.1rem; color: var(--ink-light); margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+        .stats-box div { background: white; padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #ced4da; }
+
+        /* Modal Alerts */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: white; border-radius: 8px; padding: 2.5rem; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border-top: 6px solid var(--primary); }
+        .modal-content.error-modal { border-top-color: var(--error); }
+        .modal-content h3 { font-family: var(--font-headline); font-size: 1.8rem; margin-top: 0; color: var(--ink); margin-bottom: 1rem; }
+        .modal-buttons { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+<audio id="bg-music" loop><source src="pressupost.mp3" type="audio/mpeg"></audio>
+
+<div class="app-container">
+    <header>
+        <h1>Pressupost domèstic</h1>
+        <div class="sub-header">Economia i Emprenedoria (4t d'ESO)</div>
+        <div class="header-buttons">
+            <button id="btn-music" class="btn-small" onclick="toggleMusic()">🔈 Música</button>
+            <button id="btn-home-header" class="btn-small danger hidden" onclick="confirmResetToHome()">🏠 Tornar a l'Inici</button>
+        </div>
+    </header>
+
+    <div id="start-screen" class="start-screen">
+        <h2 style="font-family: var(--font-headline); font-size: 2rem; margin-bottom: 0.5rem;">Controla la teva economia domèstica</h2>
+        <p style="font-size: 1.2rem; color: var(--ink-light); margin-bottom: 1rem;">Aprèn a classificar despeses i a calcular un pressupost.</p>
+         
+        <div class="modes-wrapper">
+            <div class="mode-card">
+                <div>
+                    <h2>Pràctica Lliure</h2>
+                    <p>Resol infinits casos pràctics generats automàticament.</p>
+                </div>
+                <button class="btn-action" onclick="startMode('infinit')">Comença a practicar</button>
+            </div>
+
+            <div class="mode-card">
+                <div>
+                    <h2>Mode Avaluació</h2>
+                    <p>30 preguntes sobre pressupostos. Calcula imports i respon conceptes teòrics per obtenir la teva nota final.</p>
+                    <div class="name-input-group">
+                        <label for="student-name">Nom de l'alumne/a:</label>
+                        <input type="text" id="student-name" placeholder="Ex: Maria Garcia...">
+                    </div>
+                </div>
+                <button class="btn-action" onclick="startMode('prova')">Iniciar avaluació</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        
+        <div class="dashboard">
+            <div class="panel">
+                <div class="panel-header income">INGRESSOS DEL MES</div>
+                <ul class="budget-list" id="income-list">
+                    </ul>
+            </div>
+            <div class="panel">
+                <div class="panel-header expenses">DESPESES DEL MES</div>
+                <ul class="budget-list" id="expense-list">
+                    </ul>
+            </div>
+        </div>
+
+        <div class="question-box" id="main-question-box">
+            <div class="section-label">
+                <span>Anàlisi del pressupost:</span>
+                <span id="question-counter">Pregunta 1</span>
+            </div>
+            <div class="question-text" id="question-text">Generant anàlisi...</div>
+            
+            <div class="input-group">
+                <input type="text" id="user-answer" placeholder="Escriu la teva resposta..." autocomplete="off">
+                <button class="btn-action inline" id="check-btn" onclick="checkAnswer()">Comprovar</button>
+                <button class="btn-action inline btn-next" id="next-btn" onclick="generateAndLoadQuestion()">Següent ➔</button>
+            </div>
+            <div id="feedback"></div>
+        </div>
+    </div>
+
+    <div id="end-screen" class="end-screen hidden">
+        <h2 style="font-family: var(--font-headline); font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--primary);">Avaluació Finalitzada</h2>
+        <div class="score-board">
+            <div style="font-size: 1.2rem; color: var(--ink-light); text-transform: uppercase; font-weight: bold;">Alumne/a: <span id="final-name" style="color: var(--ink);"></span></div>
+            <div class="big-score" id="final-score">0 / 30</div>
+            <div id="final-message" style="font-weight: 600; font-size: 1.3rem; margin-bottom: 1.5rem;"></div>
+            
+            <div class="stats-box">
+                <div>⏱️ Temps: <strong id="final-time">00:00</strong></div>
+                <div>📅 Registrat: <strong id="final-date">DD/MM/YYYY hh:mm</strong></div>
+            </div>
+        </div>
+        <button class="btn-action inline" onclick="executeResetToHome()">Tornar a l'inici</button>
+    </div>
+</div>
+
+<div id="custom-alert" class="modal-overlay hidden">
+    <div class="modal-content error-modal">
+        <h3 style="color: var(--error);">Atenció</h3>
+        <p id="alert-message" style="font-size: 1.2rem;">La casella està buida!</p>
+        <div class="modal-buttons">
+            <button class="btn-action" onclick="closeAlert()">D'acord</button>
+        </div>
+    </div>
+</div>
+
+<div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3>Vols sortir?</h3>
+        <p style="font-size: 1.15rem; color: var(--ink-light);">Si tornes a l'inici, perdràs tot el progrés actual.</p>
+        <div class="modal-buttons">
+            <button class="btn-action inline" style="background-color: var(--ink-light);" onclick="cancelResetToHome()">Cancel·lar</button>
+            <button class="btn-action inline" style="background-color: var(--error);" onclick="executeResetToHome()">Sí, sortir ara</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sistema d'Àudio per defecte (Web Audio API)
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, vol, delay=0) {
+        if(!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + delay);
+        osc.stop(audioCtx.currentTime + delay + duration);
+    }
+
+    function playSfx(type) {
+        initAudio();
+        if (type === 'correct') {
+            playTone(440, 'sine', 0.1, 0.5);       // A4
+            playTone(659.25, 'sine', 0.2, 0.5, 0.1); // E5
+        } else if (type === 'error') {
+            playTone(300, 'sawtooth', 0.2, 0.3);
+            playTone(250, 'sawtooth', 0.3, 0.3, 0.15);
+        } else if (type === 'end') {
+            playTone(523.25, 'square', 0.2, 0.2);       // C5
+            playTone(659.25, 'square', 0.2, 0.2, 0.2);  // E5
+            playTone(783.99, 'square', 0.4, 0.2, 0.4);  // G5
+            playTone(1046.50, 'square', 0.6, 0.2, 0.6); // C6
+        }
+    }
+
+    // Música de fons MP3
+    let isMusicPlaying = false;
+    function toggleMusic() {
+        const music = document.getElementById('bg-music');
+        const btn = document.getElementById('btn-music');
+        if(isMusicPlaying) { 
+            music.pause(); 
+            btn.innerHTML = "🔈 Música Off"; 
+        } else { 
+            music.play().catch(e => console.log("L'usuari ha d'interactuar amb la pàgina primer.")); 
+            btn.innerHTML = "🔊 Música On"; 
+        }
+        isMusicPlaying = !isMusicPlaying;
+    }
+
+    // Funcions Auxiliars UI
+    function formatNumber(num) { return num.toFixed(2).replace('.', ','); }
+    
+    function showAlert(msg) { 
+        document.getElementById('alert-message').innerText = msg; 
+        document.getElementById('custom-alert').classList.remove('hidden'); 
+    }
+    function closeAlert() { document.getElementById('custom-alert').classList.add('hidden'); }
+    
+    function confirmResetToHome() { document.getElementById('confirm-modal').classList.remove('hidden'); }
+    function cancelResetToHome() { document.getElementById('confirm-modal').classList.add('hidden'); }
+    
+    function executeResetToHome() {
+        document.getElementById('confirm-modal').classList.add('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        document.getElementById('btn-home-header').classList.add('hidden');
+        document.getElementById('student-name').value = '';
+    }
+
+    // MEGA BASE DE DADES D'EXEMPLES
+    const categoriesIngressos = [
+        { nom: "Sou mensual", min: 1100, max: 2000 },
+        { nom: "Feina de cap de setmana", min: 200, max: 400 },
+        { nom: "Paga setmanal familiar", min: 40, max: 100 },
+        { nom: "Vendes a Wallapop (o similars)", min: 15, max: 80 },
+        { nom: "Classes de repàs", min: 60, max: 180 },
+        { nom: "Regal en efectiu d'un familiar", min: 50, max: 150 },
+        { nom: "Beca d'estudis", min: 100, max: 300 },
+        { nom: "Rendiments del compte d'estalvi", min: 5, max: 20 },
+        { nom: "Sorteig local", min: 20, max: 100 },
+        { nom: "Treballs puntuals de disseny web", min: 150, max: 350 },
+        { nom: "Passejar els cans dels veïns", min: 30, max: 90 },
+        { nom: "Venda de llibres i apunts antics", min: 10, max: 50 }
+    ];
+
+    const categoriesDespeses = [
+        // OBLIGATÒRIES
+        { nom: "Lloguer del pis / habitació", tipus: "obligatoria", min: 350, max: 800 },
+        { nom: "Quota mensual de la hipoteca", tipus: "obligatoria", min: 400, max: 900 },
+        { nom: "Factura de la llum", tipus: "obligatoria", min: 40, max: 110 },
+        { nom: "Factura de l'aigua", tipus: "obligatoria", min: 25, max: 60 },
+        { nom: "Factura del gas", tipus: "obligatoria", min: 30, max: 80 },
+        { nom: "Factura del telèfon mòbil", tipus: "obligatoria", min: 10, max: 40 },
+        { nom: "Factura d'Internet", tipus: "obligatoria", min: 30, max: 60 },
+        { nom: "Quota del préstec del cotxe", tipus: "obligatoria", min: 150, max: 300 },
+        { nom: "Retorn de préstec personal bancari", tipus: "obligatoria", min: 50, max: 150 },
+        { nom: "Assegurança de la llar", tipus: "obligatoria", min: 20, max: 45 },
+        { nom: "Assegurança del cotxe o moto", tipus: "obligatoria", min: 30, max: 80 },
+        { nom: "Factura de l'assegurança de salut privada", tipus: "obligatoria", min: 40, max: 90 },
+        { nom: "Impost Municipal (IBI)", tipus: "obligatoria", min: 30, max: 60 },
+        { nom: "Impost de circulació del vehicle", tipus: "obligatoria", min: 10, max: 25 },
+        { nom: "Quota de comunitat de veïns", tipus: "obligatoria", min: 40, max: 80 },
+        { nom: "Taxa municipal d'escombraries", tipus: "obligatoria", min: 10, max: 20 },
+
+        // NECESSÀRIES
+        { nom: "Compra al supermercat (alimentació)", tipus: "necessaria", min: 150, max: 350 },
+        { nom: "Compra a la carnisseria i fruiteria", tipus: "necessaria", min: 50, max: 120 },
+        { nom: "Abonament de transport públic", tipus: "necessaria", min: 20, max: 50 },
+        { nom: "Benzina per anar a treballar/estudiar", tipus: "necessaria", min: 40, max: 100 },
+        { nom: "Roba bàsica (abric, calçat d'ús diari)", tipus: "necessaria", min: 30, max: 90 },
+        { nom: "Farmàcia i medicaments essencials", tipus: "necessaria", min: 10, max: 40 },
+        { nom: "Material escolar o d'oficina", tipus: "necessaria", min: 10, max: 35 },
+        { nom: "Productes d'higiene personal", tipus: "necessaria", min: 15, max: 40 },
+        { nom: "Productes de neteja per a la llar", tipus: "necessaria", min: 15, max: 30 },
+        { nom: "Reparació d'una fuita d'aigua", tipus: "necessaria", min: 60, max: 150 },
+        { nom: "Visita mèdica o al dentista", tipus: "necessaria", min: 50, max: 80 },
+        { nom: "Canvi d'oli i revisió del cotxe", tipus: "necessaria", min: 80, max: 150 },
+        { nom: "Ulleres graduades noves", tipus: "necessaria", min: 90, max: 180 },
+
+        // DISCRECIONALS
+        { nom: "Sopar a un restaurant amb amics", tipus: "discrecional", min: 25, max: 80 },
+        { nom: "Entrades per al cinema i crispetes", tipus: "discrecional", min: 15, max: 30 },
+        { nom: "Videojoc nou", tipus: "discrecional", min: 50, max: 80 },
+        { nom: "Compra de 'Skins' per a videojocs", tipus: "discrecional", min: 10, max: 30 },
+        { nom: "Entrades per a un concert de música", tipus: "discrecional", min: 40, max: 120 },
+        { nom: "Sabatilles esportives de marca", tipus: "discrecional", min: 90, max: 160 },
+        { nom: "Hamburguesa a domicili (Glovo o similars)", tipus: "discrecional", min: 20, max: 50 },
+        { nom: "Escapada d'oci de cap de setmana", tipus: "discrecional", min: 100, max: 250 },
+        { nom: "Productes de maquillatge de disseny", tipus: "discrecional", min: 30, max: 80 },
+        { nom: "Caprici tecnològic", tipus: "discrecional", min: 50, max: 150 },
+        { nom: "Roba de festa", tipus: "discrecional", min: 40, max: 120 },
+        { nom: "Copes a una discoteca", tipus: "discrecional", min: 20, max: 60 },
+        { nom: "Lloguer d'una pista de pàdel", tipus: "discrecional", min: 10, max: 20 },
+        { nom: "Napolitanes de xocolata a la cafeteria", tipus: "discrecional", min: 30, max: 60 },
+        { nom: "Entrada per a un parc d'atraccions", tipus: "discrecional", min: 40, max: 60 },
+        { nom: "Decoració d'habitació", tipus: "discrecional", min: 20, max: 50 }
+    ];
+
+    let currentBudget = { ingressos: [], despeses: [] };
+    let totals = { ingressos: 0, despeses: 0, obligatories: 0, necessaries: 0, discrecionals: 0 };
+    let startTime = null;
+
+    function generateBudget() {
+        currentBudget.ingressos = [];
+        currentBudget.despeses = [];
+        totals = { ingressos: 0, despeses: 0, obligatories: 0, necessaries: 0, discrecionals: 0 };
+
+        let numIncomes = Math.random() > 0.4 ? 2 : 1;
+        let shuffledIncomes = [...categoriesIngressos].sort(() => 0.5 - Math.random());
+        for(let i=0; i<numIncomes; i++) {
+            let val = Math.floor(Math.random() * (shuffledIncomes[i].max - shuffledIncomes[i].min + 1)) + shuffledIncomes[i].min;
+            currentBudget.ingressos.push({ nom: shuffledIncomes[i].nom, valor: val });
+            totals.ingressos += val;
+        }
+
+        let numExpenses = Math.floor(Math.random() * 4) + 7; 
+        
+        let obl = categoriesDespeses.filter(d => d.tipus === 'obligatoria').sort(() => 0.5 - Math.random())[0];
+        let nec = categoriesDespeses.filter(d => d.tipus === 'necessaria').sort(() => 0.5 - Math.random())[0];
+        let dis = categoriesDespeses.filter(d => d.tipus === 'discrecional').sort(() => 0.5 - Math.random())[0];
+        
+        let initialExpenses = [obl, nec, dis];
+        let remainingExpensesPool = categoriesDespeses.filter(d => !initialExpenses.includes(d)).sort(() => 0.5 - Math.random());
+        let finalExpenses = [...initialExpenses, ...remainingExpensesPool.slice(0, numExpenses - 3)].sort(() => 0.5 - Math.random());
+        
+        finalExpenses.forEach(exp => {
+            let val = Math.floor(Math.random() * (exp.max - exp.min + 1)) + exp.min;
+            currentBudget.despeses.push({ nom: exp.nom, valor: val, tipus: exp.tipus });
+            totals.despeses += val;
+            if(exp.tipus === 'obligatoria') totals.obligatories += val;
+            if(exp.tipus === 'necessaria') totals.necessaries += val;
+            if(exp.tipus === 'discrecional') totals.discrecionals += val;
+        });
+
+        renderBudget();
+    }
+
+    function renderBudget() {
+        const incList = document.getElementById('income-list');
+        const expList = document.getElementById('expense-list');
+        incList.innerHTML = ''; expList.innerHTML = '';
+
+        currentBudget.ingressos.forEach(i => {
+            incList.innerHTML += `<li><span class="item-name">${i.nom}</span><span class="item-value income-val">+${formatNumber(i.valor)} €</span></li>`;
+        });
+        
+        currentBudget.despeses.forEach(d => {
+            expList.innerHTML += `<li><span class="item-name">${d.nom}</span><span class="item-value expense-val">-${formatNumber(d.valor)} €</span></li>`;
+        });
+    }
+
+    let currentMode = ''; let totalQuestionsLimit = Infinity; let questionCounter = 1; let score = 0; let studentNameStr = ''; let currentActiveQuestion = {};
+
+    function startMode(mode) {
+        initAudio(); // Inicialitzar el context d'àudio per evitar bloquejos del navegador
+        
+        if (mode === 'prova') {
+            const nameInput = document.getElementById('student-name').value.trim();
+            if (nameInput === '') { showAlert("Has d'escriure el teu nom per fer l'avaluació."); return; }
+            studentNameStr = nameInput; totalQuestionsLimit = 30; // Ara són 30 preguntes!
+        } else { totalQuestionsLimit = Infinity; }
+
+        startTime = new Date(); // Iniciem el cronòmetre
+        currentMode = mode; questionCounter = 1; score = 0;
+        
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        document.getElementById('btn-home-header').classList.remove('hidden');
+
+        generateAndLoadQuestion();
+    }
+
+    function buildQuestion() {
+        let type = Math.floor(Math.random() * 5); // 5 tipus de preguntes ara (estalvi/deute esborrat)
+        let text = "", correct = "", explanation = "", isTextResponse = false;
+
+        if (type === 0) {
+            text = `Calcula el saldo del pressupost (Ingressos totals - Despeses totals). Si gastam més del que ingressam, posa un signe menys (-) davant.`;
+            correct = (totals.ingressos - totals.despeses).toFixed(2);
+            isTextResponse = false;
+            explanation = `Fórmula: Ingressos (${formatNumber(totals.ingressos)}€) - Despeses (${formatNumber(totals.despeses)}€) = <strong>${formatNumber(totals.ingressos - totals.despeses)} €</strong>.`;
+        } else if (type === 1) {
+            text = `Llegeix bé les despeses i suma NOMÉS les <strong style="color:var(--error)">OBLIGATÒRIES</strong> (factures, contractes, impostos o deutes ineludibles).`;
+            correct = totals.obligatories.toFixed(2);
+            let items = currentBudget.despeses.filter(d => d.tipus === 'obligatoria').map(d => `${d.nom} (${d.valor}€)`).join("<br> + ");
+            isTextResponse = false;
+            explanation = `Les despeses obligatòries eren:<br> ${items}.<br><br>Sumen un total de <strong>${formatNumber(parseFloat(correct))} €</strong>.`;
+        } else if (type === 2) {
+            text = `Quants diners estem gastant en capricis o despeses <strong style="color:var(--warning)">DISCRECIONALS</strong> (pur oci, desitjos i luxes 100% prescindibles)?`;
+            correct = totals.discrecionals.toFixed(2);
+            let items = currentBudget.despeses.filter(d => d.tipus === 'discrecional').map(d => `${d.nom} (${d.valor}€)`).join("<br> + ");
+            isTextResponse = false;
+            explanation = `Les despeses discrecionals (prescindibles) eren:<br> ${items}.<br><br>Sumen un total de <strong>${formatNumber(parseFloat(correct))} €</strong>.`;
+        } else if (type === 3) {
+            let randomExpense = currentBudget.despeses[Math.floor(Math.random() * currentBudget.despeses.length)];
+            text = `Com classificaries aquesta despesa: "<strong style="color:var(--primary)">${randomExpense.nom}</strong>"?<br><span style="font-size:0.9rem;font-weight:normal;">(Escriu: Obligatòria, Necessària o Discrecional)</span>`;
+            correct = randomExpense.tipus;
+            isTextResponse = true;
+            let why = "";
+            if(correct === "obligatoria") why = "és un contracte, una factura fixa o un impost que et reclamaran si no ho pagues.";
+            if(correct === "necessaria") why = "és bàsica per al dia a dia però pots ajustar la despesa ja que no hi ha contracte.";
+            if(correct === "discrecional") why = "és purament un luxe o oci prescindible.";
+            explanation = `S'ha de classificar com a <strong>${correct.toUpperCase()}</strong> perquè ${why}`;
+        } else {
+             text = `Identifica i suma només les despeses <strong style="color:var(--primary)">NECESSÀRIES</strong> (Són coses vitals com menjar o transport no associades a una factura/contracte fix).`;
+            correct = totals.necessaries.toFixed(2);
+            let items = currentBudget.despeses.filter(d => d.tipus === 'necessaria').map(d => `${d.nom} (${d.valor}€)`).join("<br> + ");
+            isTextResponse = false;
+            explanation = `Les despeses necessàries (bàsiques de consum diari) eren:<br> ${items}.<br><br>Sumen un total de <strong>${formatNumber(parseFloat(correct))} €</strong>.`;
+        }
+
+        return { text, correct, explanation, isTextResponse };
+    }
+
+    function generateAndLoadQuestion() {
+        if (questionCounter > totalQuestionsLimit) { showEndScreen(); return; }
+        
+        generateBudget(); 
+        currentActiveQuestion = buildQuestion();
+        
+        document.getElementById('question-counter').innerText = currentMode === 'infinit' ? `Exercici ${questionCounter} / ∞` : `Pregunta ${questionCounter} / ${totalQuestionsLimit}`;
+        document.getElementById('question-text').innerHTML = currentActiveQuestion.text;
+        
+        let ui = document.getElementById('user-answer');
+        ui.value = '';
+        ui.setAttribute('inputmode', currentActiveQuestion.isTextResponse ? 'text' : 'decimal');
+        
+        const feedbackDiv = document.getElementById('feedback'); feedbackDiv.style.display = 'none'; feedbackDiv.className = ''; feedbackDiv.innerHTML = '';
+        document.getElementById('check-btn').style.display = 'inline-block'; document.getElementById('next-btn').style.display = 'none';
+        ui.focus();
+    }
+
+    function checkAnswer() {
+        const userInputRaw = document.getElementById('user-answer').value.trim();
+        if (userInputRaw === '') { showAlert("Escriu la teva resposta abans de comprovar."); return; }
+
+        let isCorrect = false;
+
+        if (currentActiveQuestion.isTextResponse) {
+            let cleanInput = userInputRaw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            let cleanCorrect = currentActiveQuestion.correct.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            isCorrect = (cleanInput === cleanCorrect);
+        } else {
+            const numAnswer = parseFloat(userInputRaw.replace(',', '.'));
+            if (isNaN(numAnswer)) { showAlert("Has d'introduir un número vàlid per aquest càlcul."); return; }
+            const correctNum = parseFloat(currentActiveQuestion.correct);
+            isCorrect = (Math.abs(numAnswer - correctNum) < 0.01);
+        }
+
+        const feedback = document.getElementById('feedback');
+        feedback.style.display = 'block';
+
+        if (isCorrect) {
+            playSfx('correct'); // Reproduir so d'encert
+            feedback.className = 'feedback-success';
+            feedback.innerHTML = `<strong>MOLT BÉ! ✔️</strong><br><br>${currentActiveQuestion.explanation}`;
+            score++;
+        } else {
+            playSfx('error'); // Reproduir so d'error
+            const qBox = document.getElementById('main-question-box');
+            qBox.classList.remove('shake'); void qBox.offsetWidth; qBox.classList.add('shake');
+            
+            feedback.className = 'feedback-error';
+            let formattedCorrect = currentActiveQuestion.isTextResponse ? currentActiveQuestion.correct.toUpperCase() : formatNumber(parseFloat(currentActiveQuestion.correct));
+            feedback.innerHTML = `<strong>ERROR ❌</strong><br>La resposta correcta era: <strong>${formattedCorrect}</strong>.<br><br><em>Comprovació:</em><br>${currentActiveQuestion.explanation}`;
+        }
+
+        document.getElementById('check-btn').style.display = 'none';
+        document.getElementById('next-btn').innerText = (currentMode === 'prova' && questionCounter === totalQuestionsLimit) ? "Veure Nota Final ➔" : "Següent Cas ➔";
+        document.getElementById('next-btn').style.display = 'inline-block';
+        questionCounter++;
+    }
+
+    function showEndScreen() {
+        let endTime = new Date();
+        let timeDiff = Math.floor((endTime - startTime) / 1000); // Segons totals
+        let minutes = Math.floor(timeDiff / 60);
+        let seconds = timeDiff % 60;
+        let formattedTime = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('btn-home-header').classList.add('hidden');
+        
+        playSfx('end'); // Reproduir so de final de partida
+
+        document.getElementById('final-name').innerText = studentNameStr;
+        document.getElementById('final-score').innerText = `${score} / ${totalQuestionsLimit}`;
+        document.getElementById('final-time').innerText = formattedTime;
+        document.getElementById('final-date').innerText = endTime.toLocaleString('ca-ES', { dateStyle: 'short', timeStyle: 'short' });
+        
+        let percentage = (score / totalQuestionsLimit) * 100;
+        let msg = document.getElementById('final-message');
+        
+        if(percentage >= 90) { msg.innerText = "Excel·lent! Domines els càlculs i saps perfectament com elaborar un pressupost."; msg.style.color = "var(--success)"; } 
+        else if(percentage >= 70) { msg.innerText = "Bastant bé. Segueix practicant per arribar al domini total."; msg.style.color = "var(--primary)"; } 
+        else if(percentage >= 50) { msg.innerText = "Has superat la prova, però alterta amb les errades conceptuals i de càlculs."; msg.style.color = "var(--warning)"; } 
+        else { msg.innerText = "Tens un forat a la butxaca! Has de repassar urgentment com elaborar i calcular un pressupost."; msg.style.color = "var(--error)"; }
+    }
+</script>
+</body>
+</html>
