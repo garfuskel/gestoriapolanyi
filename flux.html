@@ -402,7 +402,7 @@
     </div>
 </div>
 
-<audio id="bg-music" src="musica.mp3" loop></audio>
+<audio id="bg-music" src="flux.mp3" loop></audio>
 
 <div class="container" id="game-container">
     
@@ -662,7 +662,7 @@
     { text: "L'Estat encarrega la construcció de la nova estació de tren a l'empresa 'Ferrovial'.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra béns d'inversió/infraestructures a les EMPRESES al MERCAT DE BÉNS." },
     { text: "L'IBSALUT compra 10.000 vacunes de la grip a una companyia farmacèutica.", market: "bens", agents: ["estat", "empreses"], explanation: "Adquisició de subministraments sanitaris pel SECTOR PÚBLIC a les EMPRESES. MERCAT DE BÉNS." },
     { text: "Un col·legi públic de Llucmajor contracta l'excursió de final de curs a una empresa d'autocars privada.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra un servei de transport a les EMPRESES al MERCAT DE BÉNS." },
-    { text: "L'Ajuntament de Palma compra 5.000 papereres a un fabricant industrial.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra mobiliari urbà a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
+    { text: "L'Ajuntament de Palma compra 5.000 papereres de fosa a un fabricant industrial.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC compra mobiliari urbà a les EMPRESES. MERCAT DE BÉNS I SERVEIS." },
     { text: "La policia nacional duu els seus cotxes oficials a reparar a un taller homologat.", market: "bens", agents: ["estat", "empreses"], explanation: "El SECTOR PÚBLIC contracta un servei de manteniment a les EMPRESES. MERCAT DE BÉNS." },
     { text: "El Govern Balear contracta una agència de comunicació per dissenyar la campanya contra el foc.", market: "bens", agents: ["estat", "empreses"], explanation: "Adquisició de serveis publicitaris pel SECTOR PÚBLIC a EMPRESES privades. MERCAT DE BÉNS." },
     { text: "L'administració de Justícia renova el contracte de subministrament de folis i tòner amb una papereria a l'engròs.", market: "bens", agents: ["estat", "empreses"], explanation: "Compra de material d'oficina (béns) del SECTOR PÚBLIC a les EMPRESES. MERCAT DE BÉNS." },
@@ -679,7 +679,7 @@
     { text: "Una agència de màrqueting digital paga la factura del seu servidor web al proveïdor de núvol.", market: "bens", agents: ["empreses"], explanation: "Contractació de serveis digitals B2B entre EMPRESES. MERCAT DE BÉNS I SERVEIS." },
     { text: "La fàbrica de mobles de Manacor adquireix planxes de fusta d'alzina a un proveïdor fuster a l'engròs.", market: "bens", agents: ["empreses"], explanation: "Les EMPRESES compren materials intermedis a altres EMPRESES al MERCAT DE BÉNS." },
     { text: "Un despatx d'advocats contracta l'auditoria dels seus comptes anuals a una gestoria financera externa.", market: "bens", agents: ["empreses"], explanation: "Servei de consultoria prestat entre EMPRESES dins del MERCAT DE BÉNS." },
-    { text: "Una pizzeria de Puigpunyent compra vi a una empresa de Consell.", market: "bens", agents: ["empreses"], explanation: "Adquisició de béns d'inversió entre EMPRESES. MERCAT DE BÉNS." },
+    { text: "Una pizzeria de Puigpunyent compra vi a una empresa de Consell.", market: "bens", agents: ["empreses"], explanation: "Adquisició de béns entre EMPRESES. MERCAT DE BÉNS." },
     { text: "Un celler de Santa Maria contracta a una empresa gràfica perquè li imprimeixi milers d'etiquetes pel vi.", market: "bens", agents: ["empreses"], explanation: "Servei d'impressió comercial entre dues EMPRESES al MERCAT DE BÉNS I SERVEIS." }
         
     ];
@@ -819,5 +819,29 @@
     }
 </script>
 
+<style>
+    /* Forcem que la pàgina permeti posar coses una sota l'altra */
+    body {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    /* Marge per a la caixa principal perquè no toqui el text de sota */
+    .newspaper-container {
+        margin-bottom: 40px !important;
+    }
+</style>
+<div style="width: 100%; text-align: center; padding: 20px 0; margin-top: auto;">
+    <a href="https://pixabay.com/es/music/optimista-game-8-bit-399898/" target="_blank" style="color: white; font-family: sans-serif; font-size: 0.9rem; text-decoration: none; opacity: 0.7; cursor: pointer; display: block; margin-bottom: 8px;">
+        🎵 game 8 bit - inono777
+    </a>
+    <a href="index.html" target="_blank" style="color: white; font-family: sans-serif; font-size: 0.9rem; text-decoration: none; opacity: 0.7; cursor: pointer; display: block;">
+        Torna a l'inici de la Gestoria Polanyi
+    </a>
+</div>
+    
 </body>
 </html>
