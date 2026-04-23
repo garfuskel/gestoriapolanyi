@@ -670,5 +670,30 @@
         else { msg.innerText = "Tens un forat a la butxaca! Has de repassar urgentment com elaborar i calcular un pressupost."; msg.style.color = "var(--error)"; }
     }
 </script>
+
+<style>
+    /* Forcem que la pàgina permeti posar coses una sota l'altra */
+    body {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    /* Marge per a la caixa principal perquè no toqui el text de sota */
+    .newspaper-container {
+        margin-bottom: 40px !important;
+    }
+</style>
+<div style="width: 100%; text-align: center; padding: 20px 0; margin-top: auto;">
+    <a href="https://pixabay.com/es/users/magalystudio-47045903/" target="_blank" style="color: #4a4a4a; font-family: sans-serif; font-size: 0.9rem; text-decoration: none; opacity: 0.7; cursor: pointer; display: block; margin-bottom: 8px;">
+        🎵 Relaxing and coffee - MagalyStudio
+    </a>
+    <a href="index.html" target="_blank" style="color: #4a4a4a; font-family: sans-serif; font-size: 0.9rem; text-decoration: none; opacity: 0.7; cursor: pointer; display: block;">
+        Torna a l'inici de la Gestoria Polanyi
+    </a>
+</div>
+    
 </body>
 </html>
