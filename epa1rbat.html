@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --paper-bg: #f4ecd8;
+            --ink: #2b2b2b;
+            --ink-light: #4a4a4a;
+            --success: #2f855a;
+            --error: #c53030;
+            --font-headline: 'Playfair Display', serif;
+            --font-body: 'EB Garamond', serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            background-color: #e5dfcc;
+            color: var(--ink);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .newspaper-container {
+            background-color: var(--paper-bg);
+            max-width: 1100px;
+            width: 100%;
+            padding: 2rem 3rem;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid #d3c9b1;
+            position: relative;
+        }
+
+        .hidden { display: none !important; }
+
+        .start-screen, .end-screen { text-align: center; padding: 0.5rem 0 2rem 0; }
+
+        .editor-note {
+            max-width: 800px;
+            margin: 0 auto 2rem auto;
+            padding: 1.5rem 2rem;
+            background-color: rgba(255,255,255,0.4);
+            border-left: 5px solid var(--ink);
+            border-right: 1px solid #d3c9b1;
+            border-top: 1px solid #d3c9b1;
+            border-bottom: 1px solid #d3c9b1;
+            font-family: var(--font-headline);
+            font-size: 1.3rem;
+            font-style: italic;
+            color: var(--ink);
+            line-height: 1.5;
+            text-align: left;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .modes-wrapper { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; }
+
+        .mode-card {
+            border: 2px solid var(--ink);
+            padding: 2rem;
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            background-color: rgba(255,255,255,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .mode-card h2 { font-family: var(--font-headline); font-size: 2rem; margin-top: 0; border-bottom: 1px solid var(--ink); padding-bottom: 1rem; }
+        .mode-card p { font-size: 1.3rem; color: var(--ink-light); margin-bottom: 2rem; }
+
+        .name-input-group { margin-bottom: 1.5rem; text-align: left; }
+        .name-input-group label { font-family: var(--font-headline); font-weight: bold; display: block; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .name-input-group input { width: 100%; box-sizing: border-box; padding: 0.8rem; font-family: var(--font-body); font-size: 1.2rem; border: 1px solid var(--ink); background-color: #fffbfa; }
+
+        .score-board { font-family: var(--font-headline); font-size: 1.5rem; margin: 2rem 0; padding: 2rem; border: 4px double var(--ink); background-color: rgba(255,255,255,0.5); }
+        .score-board .big-score { font-size: 4rem; font-weight: 900; color: var(--ink); margin: 1rem 0; }
+
+        header { text-align: center; border-bottom: 4px double var(--ink); margin-bottom: 1.5rem; padding-bottom: 1rem; }
+        header h1 { font-family: var(--font-headline); font-size: 4rem; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 2px; color: var(--ink); }
+        header .sub-header { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-headline); font-style: italic; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 0.5rem 0; margin-top: 1rem; font-size: 1.2rem; flex-wrap: wrap; gap: 1rem; }
+
+        .header-buttons { display: flex; gap: 0.5rem; }
+        .btn-small { background-color: transparent; border: 1px solid var(--ink); padding: 0.3rem 0.8rem; font-family: var(--font-headline); font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
+        .btn-small:hover { background-color: var(--ink); color: var(--paper-bg); }
+
+        .controls { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .var-btn { background-color: transparent; color: var(--ink); border: 1px solid var(--ink); padding: 0.5rem 1.5rem; font-family: var(--font-headline); font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; text-transform: uppercase; flex: 1; min-width: 180px; }
+        .var-btn.active { background-color: var(--ink); color: var(--paper-bg); cursor: default; }
+
+        .table-wrapper { width: 100%; overflow-x: auto; margin-bottom: 2rem; background-color: #fffbfa; border: 1px solid #d3c9b1; padding: 1rem; box-sizing: border-box; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
+        .epa-table { width: 100%; border-collapse: collapse; font-family: var(--font-body); font-size: 1.25rem; color: var(--ink); }
+        .epa-table caption { font-family: var(--font-headline); font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 1px; color: var(--ink); }
+        .epa-table th, .epa-table td { padding: 0.8rem 1rem; text-align: right; border-bottom: 1px solid #e5dfcc; }
+        .epa-table th { border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); font-family: var(--font-headline); font-size: 1.2rem; text-align: center; }
+        .epa-table td:first-child { text-align: left; font-weight: bold; }
+
+        .question-box { border: 2px solid var(--ink); padding: 1.5rem; margin-bottom: 1.5rem; background-color: rgba(255,255,255,0.3); position: relative; transition: box-shadow 0.3s; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; border-color: var(--error) !important; box-shadow: 0 0 15px rgba(197, 48, 48, 0.4); background-color: rgba(197, 48, 48, 0.05); }
+
+        .section-label { display: flex; justify-content: space-between; font-family: var(--font-headline); font-weight: bold; text-transform: uppercase; font-size: 1rem; color: var(--ink-light); margin-bottom: 0.5rem; }
+        .question-text { font-family: var(--font-headline); font-size: 1.6rem; font-weight: bold; margin-bottom: 1.5rem; line-height: 1.4; }
+
+        .input-group { display: flex; gap: 1rem; align-items: center; }
+        input[type="text"][inputmode="decimal"] { padding: 0.8rem; font-family: var(--font-body); font-size: 1.3rem; border: 1px solid var(--ink); background-color: #fffbfa; width: 150px; }
+
+        .btn-action { background-color: var(--ink); color: var(--paper-bg); border: none; padding: 0.8rem 1.5rem; font-family: var(--font-headline); font-size: 1.1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: background 0.2s; width: 100%; letter-spacing: 1px; }
+        .btn-action.inline { width: auto; }
+        .btn-action:hover { background-color: #000; }
+        .btn-next { background-color: var(--ink-light); display: none; }
+        .btn-next:hover { background-color: #333; }
+
+        #feedback { padding: 1.2rem; font-family: var(--font-body); font-size: 1.3rem; display: none; margin-top: 1.5rem; border-left: 4px solid; line-height: 1.5; background-color: rgba(255,255,255,0.6); }
+        .feedback-success { border-color: var(--success) !important; color: #1a4d33; }
+        .feedback-error { border-color: var(--error) !important; color: #741b1b; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: var(--paper-bg); border: 4px double var(--ink); padding: 2.5rem; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-content h3 { font-family: var(--font-headline); font-size: 2.2rem; margin-top: 0; color: var(--error); text-transform: uppercase; }
+        .modal-content p { font-size: 1.3rem; margin-bottom: 2rem; color: var(--ink); }
+        .modal-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+        @media (max-width: 850px) {
+            body { padding: 1rem; }
+            .newspaper-container { padding: 1.5rem 1rem; }
+            header h1 { font-size: 2.5rem; }
+            .sub-header { flex-direction: column; text-align: center; gap: 0.8rem; }
+            .input-group { flex-direction: column; align-items: stretch; }
+            .btn-action.inline { width: 100%; }
+            input[type="text"][inputmode="decimal"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<audio id="bg-music" loop><source src="epa1rbat.mp3" type="audio/mpeg"></audio>
+
+<div class="newspaper-container">
+    <header>
+        <h1>LA BORSA O LA VIDA</h1>
+        <div class="sub-header">
+            <span>Secció: Macroeconomia</span>
+            <div class="header-buttons">
+                <button id="btn-music" class="btn-small" onclick="toggleMusic()">🔈 Música</button>
+                <button id="btn-home-header" class="btn-small hidden" onclick="confirmResetToHome()">🏠 Inici</button>
+            </div>
+            <span id="current-date">Preu: 1,67 euros</span>
+        </div>
+    </header>
+
+    <div id="start-screen" class="start-screen">
+        <h2 style="font-family: var(--font-headline); font-size: 2.5rem; margin-top: 0; margin-bottom: 0.5rem;">Estadístiques del mercat de treball</h2>
+        <p style="font-size: 1.25rem; color: var(--ink-light); margin-bottom: 1rem;">Selecciona la modalitat de pràctica</p>
+         
+        <div class="modes-wrapper">
+            <div class="mode-card">
+                <div>
+                    <h2>Mode Infinit</h2>
+                    <p>Navega per una taula de dades generada exclusivament per a tu. Les preguntes surten de manera contínua sense pressió.</p>
+                </div>
+                <button class="btn-action" onclick="startMode('infinit')">Iniciar Pràctica</button>
+            </div>
+
+            <div class="mode-card">
+                <div>
+                    <h2>Mode Examen</h2>
+                    <p>30 preguntes on hauràs de demostrar domini absolut de les estdístiques del mercat de treball. Deixa el teu nom per l'informe d'avaluació.</p>
+                    <div class="name-input-group">
+                        <label for="student-name">Nom de l'economista:</label>
+                        <input type="text" id="student-name" placeholder="Escriu el teu nom...">
+                    </div>
+                </div>
+                <button class="btn-action" onclick="startMode('prova')">Començar Examen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div class="controls"><button class="var-btn active">Estadístiques del mercat de treball</button></div>
+
+        <div id="wrapper-t7" class="table-wrapper">
+            <table class="epa-table">
+                <caption>Ocupats, Aturats i Taxes per CCAA (Milers / %)<span style="color:var(--error);font-size:1rem;"></span></caption>
+                <thead>
+                    <tr><th>Comunitat Autònoma</th><th>Ocupats</th><th>Aturats</th><th>Taxa d'Activitat</th><th>Taxa d'Atur</th></tr>
+                </thead>
+                <tbody id="t7-body"></tbody>
+            </table>
+        </div>
+
+        <div class="question-box" id="main-question-box">
+            <div class="section-label">
+                <span>Es demana:</span>
+                <span id="question-counter">Pregunta 1</span>
+            </div>
+            <div class="question-text" id="question-text">Generant anàlisi...</div>
+            
+            <div class="input-group">
+                <input type="text" inputmode="decimal" id="user-answer" placeholder="Ex: 15,4">
+                <button class="btn-action inline" id="check-btn" onclick="checkAnswer()">Validar i Publicar</button>
+                <button class="btn-action inline btn-next" id="next-btn" onclick="generateAndLoadQuestion()">Següent Pregunta ➔</button>
+            </div>
+            <div id="feedback"></div>
+        </div>
+    </div>
+
+    <div id="end-screen" class="end-screen hidden">
+        <h2 style="font-family: var(--font-headline); font-size: 2.8rem; margin-bottom: 0.5rem;">Informe d'avaluació macroeconòmica (EPA)</h2>
+        <div class="score-board">
+            <div style="font-size: 1.5rem; color: var(--ink-light);">Nom de l'economista: <span id="final-name" style="color: var(--ink); font-weight: bold;"></span></div>
+            <div class="big-score" id="final-score">0 / 25</div>
+            <div id="final-percentage" style="font-weight: bold; font-size: 2rem; margin-bottom: 1rem;"></div>
+            <div id="final-message" style="font-style: italic; font-size: 1.3rem;"></div>
+        </div>
+        <button class="btn-action inline" onclick="executeResetToHome()">Sortir i Tornar a l'Inici</button>
+    </div>
+</div>
+
+<div id="custom-alert" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3>Atenció</h3>
+        <p id="alert-message">La casella està buida!</p>
+        <button class="btn-action" onclick="closeAlert()">Entesos</button>
+    </div>
+</div>
+
+<div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3>Atenció</h3>
+        <p>Segur que vols abandonar la prova? Es perdrà tot el teu progrés.</p>
+        <div class="modal-buttons">
+            <button class="btn-action inline" style="background-color: var(--ink-light);" onclick="cancelResetToHome()">Cancel·lar</button>
+            <button class="btn-action inline" style="background-color: var(--error);" onclick="executeResetToHome()">Sí, sortir</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+    function playSuccessSound() {
+        if (!AudioContext) return;
+        const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gainNode = ctx.createGain();
+        osc.connect(gainNode); gainNode.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, ctx.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.1); 
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+    }
+
+    function playErrorSound() {
+        if (!AudioContext) return;
+        const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gainNode = ctx.createGain();
+        osc.connect(gainNode); gainNode.connect(ctx.destination);
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, ctx.currentTime); 
+        osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.3); 
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+    }
+
+    function playFanfareSound() {
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const notes = [{ f: 523.25, d: 0.15 }, { f: 659.25, d: 0.15 }, { f: 783.99, d: 0.15 }, { f: 1046.50, d: 0.4 }];
+        let startTime = ctx.currentTime;
+        notes.forEach(note => {
+            const osc = ctx.createOscillator(); const gainNode = ctx.createGain();
+            osc.connect(gainNode); gainNode.connect(ctx.destination);
+            osc.type = 'square'; osc.frequency.value = note.f;
+            gainNode.gain.setValueAtTime(0.15, startTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + note.d);
+            osc.start(startTime); osc.stop(startTime + note.d);
+            startTime += note.d + 0.05; 
+        });
+    }
+
+    let isMusicPlaying = false;
+    function toggleMusic() {
+        const music = document.getElementById('bg-music');
+        const btn = document.getElementById('btn-music');
+        if(isMusicPlaying) { music.pause(); btn.innerText = "🔈 Música"; } 
+        else { music.play().catch(e => console.log("Interacció necessària")); btn.innerText = "🔊 Música"; }
+        isMusicPlaying = !isMusicPlaying;
+    }
+
+    function formatNumber(num) { return num.toString().replace('.', ','); }
+    function showAlert(msg) { document.getElementById('alert-message').innerText = msg; document.getElementById('custom-alert').classList.remove('hidden'); }
+    function closeAlert() { document.getElementById('custom-alert').classList.add('hidden'); }
+    function confirmResetToHome() { document.getElementById('confirm-modal').classList.remove('hidden'); }
+    function cancelResetToHome() { document.getElementById('confirm-modal').classList.add('hidden'); }
+    function executeResetToHome() {
+        document.getElementById('confirm-modal').classList.add('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        document.getElementById('btn-home-header').classList.add('hidden');
+        document.getElementById('student-name').value = '';
+    }
+
+    let db = {};
+
+    function generateEPAData() {
+        const ccaa_bases = [
+            { nom: "Andalusia", o: 3626.8, p: 622.8, pob: 7394.6 }, { nom: "Aragó", o: 629.3, p: 52.5, pob: 1176.0 },
+            { nom: "Astúries", o: 436.2, p: 40.1, pob: 907.8 }, { nom: "Illes Balears", o: 614.6, p: 52.0, pob: 1069.5 },
+            { nom: "Canàries", o: 1043.6, p: 150.9, pob: 1980.6 }, { nom: "Cantàbria", o: 266.0, p: 19.3, pob: 518.9 },
+            { nom: "Castella i Lleó", o: 1052.7, p: 96.1, pob: 2110.5 }, { nom: "Castella-La Manxa", o: 950.1, p: 130.2, pob: 1820.2 },
+            { nom: "Catalunya", o: 3913.2, p: 351.2, pob: 6950.1 }, { nom: "C. Valenciana", o: 2470.5, p: 286.5, pob: 4425.2 },
+            { nom: "Extremadura", o: 426.1, p: 68.6, pob: 912.4 }, { nom: "Galícia", o: 1134.1, p: 103.6, pob: 2391.0 },
+            { nom: "Madrid", o: 3384.5, p: 306.9, pob: 6117.7 }, { nom: "Múrcia", o: 711.5, p: 87.7, pob: 1327.2 },
+            { nom: "Navarra", o: 319.3, p: 26.6, pob: 582.5 }, { nom: "País Basc", o: 1009.5, p: 79.5, pob: 1939.1 },
+            { nom: "La Rioja", o: 155.1, p: 12.3, pob: 281.6 }, { nom: "Ceuta", o: 33.7, p: 10.1, pob: 67.2 },
+            { nom: "Melilla", o: 28.0, p: 7.4, pob: 68.7 }
+        ];
+        
+        let t7_data = ccaa_bases.map(c => {
+            let v_o = 0.7 + Math.random() * 0.6;
+            let v_p = 0.7 + Math.random() * 0.6;
+            let v_pob = 0.7 + Math.random() * 0.6;
+
+            let o_var = parseFloat((c.o * v_o).toFixed(1));
+            let p_var = parseFloat((c.p * v_p).toFixed(1));
+            let a_var = parseFloat((o_var + p_var).toFixed(1));
+
+            let pob_var = parseFloat((c.pob * v_pob).toFixed(1));
+            if (pob_var <= a_var) pob_var = parseFloat((a_var * 1.5).toFixed(1));
+
+            let t_act = parseFloat(((a_var / pob_var) * 100).toFixed(2));
+            let t_atur = parseFloat(((p_var / a_var) * 100).toFixed(2));
+
+            return { nom: c.nom, ocupats: o_var, aturats: p_var, t_act: t_act, t_atur: t_atur };
+        });
+
+        db = { t7: t7_data };
+        renderTables();
+    }
+
+    function renderTables() {
+        const tbox = document.getElementById('t7-body');
+        tbox.innerHTML = '';
+        db.t7.forEach(c => {
+            tbox.innerHTML += `<tr><td>${c.nom}</td><td>${formatNumber(c.ocupats)}</td><td>${formatNumber(c.aturats)}</td><td>${formatNumber(c.t_act)}</td><td>${formatNumber(c.t_atur)}</td></tr>`;
+        });
+    }
+
+    let currentMode = ''; let totalQuestionsLimit = Infinity; let questionCounter = 1; let score = 0; let studentNameStr = ''; let currentActiveQuestion = {};
+
+    function startMode(mode) {
+        if (mode === 'prova') {
+            const nameInput = document.getElementById('student-name').value.trim();
+            if (nameInput === '') { showAlert("Camp obligatori: Identifica't abans de fer l'examen."); return; }
+            studentNameStr = nameInput; totalQuestionsLimit = 30;
+        } else { totalQuestionsLimit = Infinity; }
+
+        currentMode = mode; questionCounter = 1; score = 0;
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        document.getElementById('btn-home-header').classList.remove('hidden');
+
+        generateEPAData(); 
+        generateAndLoadQuestion();
+    }
+
+    function buildRandomQuestion() {
+        const type = Math.floor(Math.random() * 12); 
+        let text = "", correct = 0, explanation = "";
+
+        let idx1 = Math.floor(Math.random() * db.t7.length);
+        let reg1 = db.t7[idx1];
+
+        // Valors directes visibles a la taula
+        let o_vis = reg1.ocupats;
+        let p_vis = reg1.aturats;
+        let tact_vis = reg1.t_act;
+        let tatur_vis = reg1.t_atur;
+        
+        // Valors derivats (exactes respecte als visibles per evitar desquadraments)
+        let a_vis = parseFloat((o_vis + p_vis).toFixed(1)); 
+        let pob_derivat = parseFloat((a_vis / (tact_vis / 100)).toFixed(1));
+        let inactius_derivat = parseFloat((pob_derivat - a_vis).toFixed(1));
+        let tocup_derivat = parseFloat(((o_vis / pob_derivat) * 100).toFixed(2));
+
+        // Tots els indicadors disponibles per a les preguntes de variació (T9 i T10)
+        let indicators = [
+            { name: "el nombre d'ocupats (en milers)", val: o_vis, isRate: false, needsCalc: false },
+            { name: "el nombre d'aturats (en milers)", val: p_vis, isRate: false, needsCalc: false },
+            { name: "el nombre d'inactius (en milers)", val: inactius_derivat, isRate: false, needsCalc: true },
+            { name: "la població en edat de treballar (en milers)", val: pob_derivat, isRate: false, needsCalc: true },
+            { name: "la taxa d'activitat (%)", val: tact_vis, isRate: true, needsCalc: false },
+            { name: "la taxa d'atur (%)", val: tatur_vis, isRate: true, needsCalc: false },
+            { name: "la taxa d'ocupació (%)", val: tocup_derivat, isRate: true, needsCalc: true }
+        ];
+
+        let randInd = indicators[Math.floor(Math.random() * indicators.length)];
+        let r = parseFloat((Math.random() * 10 - 5).toFixed(2)); // Taxa entre -5.00% i 5.00%
+        if (r === 0) r = 1.25; 
+        
+        let dec = randInd.isRate ? 2 : 1;
+        let unit = randInd.isRate ? "%" : "";
+
+        if (type === 0) {
+            text = `Quina és la taxa d'atur a ${reg1.nom}? (%)`; correct = reg1.t_atur;
+            explanation = `Columna 'Taxa d'Atur' per a ${reg1.nom}: ${formatNumber(correct)}%.`;
+        } else if (type === 1) {
+            text = `Quina és la taxa d'activitat a ${reg1.nom}? (%)`; correct = reg1.t_act;
+            explanation = `Columna 'Taxa d'Activitat' per a ${reg1.nom}: ${formatNumber(correct)}%.`;
+        } else if (type === 2) {
+            text = `Quants milers de persones ocupades hi ha a ${reg1.nom}?`; correct = reg1.ocupats;
+            explanation = `Columna 'Ocupats' per a ${reg1.nom}: ${formatNumber(correct)}.`;
+        } else if (type === 3) {
+            text = `Quants milers de persones aturades hi ha a ${reg1.nom}?`; correct = reg1.aturats;
+            explanation = `Columna 'Aturats' per a ${reg1.nom}: ${formatNumber(correct)}.`;
+        } else if (type === 4) {
+            let idx2 = (idx1 + 1 + Math.floor(Math.random() * (db.t7.length - 1))) % db.t7.length; let reg2 = db.t7[idx2];
+            text = `Calcula la diferència de milers d'ocupats entre ${reg1.nom} i ${reg2.nom}. (Fes: ${reg1.nom} - ${reg2.nom}).`;
+            correct = parseFloat((reg1.ocupats - reg2.ocupats).toFixed(1));
+            explanation = `${formatNumber(reg1.ocupats)} - ${formatNumber(reg2.ocupats)} = ${formatNumber(correct)}.`;
+        } else if (type === 5) {
+            let idx2 = (idx1 + 1 + Math.floor(Math.random() * (db.t7.length - 1))) % db.t7.length; let reg2 = db.t7[idx2];
+            text = `Calcula la diferència de milers d'aturats entre ${reg1.nom} i ${reg2.nom}. (Fes: ${reg1.nom} - ${reg2.nom}).`;
+            correct = parseFloat((reg1.aturats - reg2.aturats).toFixed(1));
+            explanation = `${formatNumber(reg1.aturats)} - ${formatNumber(reg2.aturats)} = ${formatNumber(correct)}.`;
+        } else if (type === 6) {
+            text = `A partir de la taula, calcula la població en edat de treballar (en milers) a ${reg1.nom}.`;
+            correct = pob_derivat;
+            explanation = `1. Actius = Ocupats + Aturats = ${formatNumber(o_vis)} + ${formatNumber(p_vis)} = ${formatNumber(a_vis)}.<br>2. Població = Actius / (Taxa d'Activitat / 100) = ${formatNumber(a_vis)} / ${formatNumber(tact_vis / 100)} = ${formatNumber(correct)}.`;
+        } else if (type === 7) {
+            text = `Calcula el nombre de persones inactives (en milers) a ${reg1.nom}.`;
+            correct = inactius_derivat;
+            explanation = `1. Actius = ${formatNumber(a_vis)}.<br>2. Població = ${formatNumber(a_vis)} / ${formatNumber(tact_vis / 100)} = ${formatNumber(pob_derivat)}.<br>3. Inactius = Població - Actius = ${formatNumber(pob_derivat)} - ${formatNumber(a_vis)} = ${formatNumber(correct)}.`;
+        } else if (type === 8) {
+            text = `Calcula la taxa d'ocupació (%) a ${reg1.nom}.`;
+            correct = tocup_derivat;
+            explanation = `1. Població = ${formatNumber(pob_derivat)}.<br>2. Taxa d'Ocupació = (Ocupats / Població) * 100 = (${formatNumber(o_vis)} / ${formatNumber(pob_derivat)}) * 100 = ${formatNumber(correct)}%.`;
+        } else if (type === 9) {
+            // Trimestre Anterior
+            let r_formula = r / 100;
+            let divisor = 1 + r_formula;
+            text = `Sabent que ${randInd.name} a ${reg1.nom} ha experimentat una taxa de variació intertrimestral del ${formatNumber(r)}%, calcula quin era el valor EXACTE el trimestre ANTERIOR.`;
+            correct = parseFloat((randInd.val / divisor).toFixed(dec));
+            
+            let step1 = "";
+            if(randInd.needsCalc) step1 = `1. Primer cal deduir el valor actual: ${formatNumber(randInd.val)}${unit}.<br>`;
+            
+            explanation = `${step1}Recorda: per trobar el valor passat, s'ha d'aïllar el valor inicial de la fórmula de variació (no restar el %).<br>Valor Anterior = Valor Actual / (1 + r).<br>Valor Anterior = ${formatNumber(randInd.val)} / (1 + ${formatNumber(r_formula)}) = ${formatNumber(correct)}${unit}.`;
+            
+        } else if (type === 10) {
+            // Trimestre Següent
+            let r_formula = r / 100;
+            let multiplicador = 1 + r_formula;
+            text = `Els analistes preveuen que el proper trimestre ${randInd.name} a ${reg1.nom} tendrà una taxa de variació del ${formatNumber(r)}%. Calcula quin serà el valor EXACTE el trimestre SEGÜENT.`;
+            correct = parseFloat((randInd.val * multiplicador).toFixed(dec));
+            
+            let step1 = "";
+            if(randInd.needsCalc) step1 = `1. Primer cal deduir el valor actual: ${formatNumber(randInd.val)}${unit}.<br>`;
+            
+            explanation = `${step1}Fórmula directa: Valor Nou = Valor Actual * (1 + r).<br>Valor Nou = ${formatNumber(randInd.val)} * (1 + ${formatNumber(r_formula)}) = ${formatNumber(correct)}${unit}.`;
+            
+        } else {
+            text = `Quants milers de persones desocupades hi ha a ${reg1.nom}?`;
+            correct = reg1.aturats;
+            explanation = `"Desocupats" i "aturats" són el mateix. Segons la columna d'aturats: ${formatNumber(correct)}.`;
+        }
+
+        return { text, correct, explanation };
+    }
+
+    function generateAndLoadQuestion() {
+        if (questionCounter > totalQuestionsLimit) { showEndScreen(); return; }
+        currentActiveQuestion = buildRandomQuestion();
+        document.getElementById('question-counter').innerText = currentMode === 'infinit' ? `Pregunta ${questionCounter} / ∞` : `Pregunta ${questionCounter} / ${totalQuestionsLimit}`;
+        document.getElementById('question-text').innerText = currentActiveQuestion.text;
+        document.getElementById('user-answer').value = '';
+        const feedbackDiv = document.getElementById('feedback'); feedbackDiv.style.display = 'none'; feedbackDiv.className = ''; feedbackDiv.innerHTML = '';
+        document.getElementById('check-btn').style.display = 'inline-block'; document.getElementById('next-btn').style.display = 'none';
+    }
+
+    function triggerShockEffect() {
+        const qBox = document.getElementById('main-question-box');
+        qBox.classList.remove('shake'); void qBox.offsetWidth; qBox.classList.add('shake');
+        setTimeout(() => { qBox.classList.remove('shake'); }, 500);
+    }
+
+    function checkAnswer() {
+        const userInputRaw = document.getElementById('user-answer').value;
+        const answer = parseFloat(userInputRaw.replace(',', '.'));
+        
+        if (userInputRaw === '') { showAlert("Casella buida. Calcula i respon!"); return; }
+        if (isNaN(answer)) { showAlert("Introdueix un número vàlid."); return; }
+
+        const correct = currentActiveQuestion.correct;
+        const feedback = document.getElementById('feedback');
+        feedback.style.display = 'block';
+
+        if (Math.abs(answer - correct) <= 0.15) {
+            playSuccessSound();
+            feedback.className = 'feedback-success';
+            feedback.innerHTML = `<strong>VALIDAT. CÀLCUL EXACTE.</strong><br>${currentActiveQuestion.explanation}`;
+            score++;
+        } else {
+            playErrorSound(); triggerShockEffect();
+            feedback.className = 'feedback-error';
+            feedback.innerHTML = `<strong>DADA ERRÒNIA!</strong><br>S'esperava exactament: <strong>${formatNumber(correct)}</strong>.<br><br><em>Comprovació numèrica:</em><br>${currentActiveQuestion.explanation}`;
+        }
+
+        document.getElementById('check-btn').style.display = 'none';
+        document.getElementById('next-btn').innerText = (currentMode === 'prova' && questionCounter === totalQuestionsLimit) ? "Tancar Examen ➔" : "Següent Pregunta ➔";
+        document.getElementById('next-btn').style.display = 'inline-block';
+        questionCounter++;
+    }
+
+    function showEndScreen() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('btn-home-header').classList.add('hidden');
+        
+        playFanfareSound();
+
+        document.getElementById('final-name').innerText = studentNameStr;
+        document.getElementById('final-score').innerText = `${score} / ${totalQuestionsLimit}`;
+        
+        let percentage = (score / totalQuestionsLimit) * 100;
+        document.getElementById('final-percentage').innerText = `${formatNumber(percentage.toFixed(1))}% de precisió`;
+
+        let msg = document.getElementById('final-message');
+        if(percentage >= 90) { msg.innerText = "Excel·lent. Domines completament les estadístiques del mercat de treball."; msg.style.color = "var(--success)"; } 
+        else if(percentage >= 70) { msg.innerText = "Bona feina. Cal vigilar els arrodoniments o algun concepte."; msg.style.color = "#2b6cb0"; } 
+        else if(percentage >= 50) { msg.innerText = "Aprovat. Pots fer-ho millor."; msg.style.color = "#d69e2e"; } 
+        else { msg.innerText = "Molt fluix. Segueix repassant i practicant."; msg.style.color = "var(--error)"; }
+    }
+</script>
+
+<style>
+    /* Forcem que la pàgina permeti posar coses una sota l'altra */
+    body {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    /* Marge per a la caixa principal perquè no toqui el text de sota */
+    .newspaper-container {
+        margin-bottom: 40px !important;
+    }
+</style>
+<div style="width: 100%; text-align: center; padding: 20px 0; margin-top: auto;">
+    <a href="https://pixabay.com/es/music/late-lo-fi-357425/" target="_blank" style="color: #4a4a4a; font-family: sans-serif; font-size: 0.9rem; text-decoration: none; opacity: 0.7; cursor: pointer; display: block; margin-bottom: 8px;">
+        🎵 lo-fi - u_tybkgo50jo
+    </a>
+    <a href="index.html" target="_blank" style="color: #4a4a4a; font-family: sans-serif; font-size: 0.9rem; text-decoration: none; opacity: 0.7; cursor: pointer; display: block;">
+        Torna al menú de la Gestoria Polanyi
+    </a>
+</div>    
+    
+</body>
+</html>
