@@ -739,48 +739,6 @@ const PRODUCTES = [
         };
     }
 
-    function generarModel14() {
-        const emp = randChoice(NOMS_EMPRESES);
-        const prod = randChoice(PRODUCTES);
-
-        const preu = (Math.floor(Math.random() * 5) + 5) * 10;
-        const cvu = preu * 0.5;
-        const mcu = preu - cvu;
-
-        const qVendes = (Math.floor(Math.random() * 6) + 4) * 1000;
-        const mcTotal = qVendes * mcu;
-        const bReal = mcTotal * 0.4;
-        const cfCalculat = mcTotal - bReal;
-
-        const qExact = cfCalculat / mcu;
-        const qStar = Math.ceil(qExact);
-
-        let explArrodoniment = qExact !== qStar 
-            ? ` = ${formatNum(qExact)} → <strong>${formatNum(qStar)} unitats</strong> (s'arrodoneix cap amunt al següent número sencer)`
-            : ` = <strong>${formatNum(qStar)} unitats</strong>`;
-
-        return {
-            enunciat: `L'empresa ${emp} ven ${prod} a un preu de ${formatNum(preu)} €/unitat amb un cost variable unitari de ${formatNum(cvu)} €. En el darrer exercici, el seu marge de contribució total (Diferència entre Ingressos Totals i Costs Variables Totals) va ser de ${formatNum(mcTotal)} €, aconseguint un benefici final de ${formatNum(bReal)} €.<br><br><span class="question-box">Calcula el punt mort o llindar de rendibilitat en unitats físiques.</span>`,
-            resposta: qStar,
-            unitat: "unitats",
-            resolucio: `
-                <div class="res-section">
-                    <strong>1. Càlcul dels Costs Fixos (CF):</strong><br>
-                    Sabem que Benefici = Marge de Contribució Total - Costs Fixos<br>
-                    CF = Marge de Contribució Total - Benefici<br>
-                    CF = ${formatNum(mcTotal)} € - ${formatNum(bReal)} € = <strong>${formatNum(cfCalculat)} €</strong>
-                </div>
-                <div class="res-section">
-                    <strong>2. Càlcul del Marge de Contribució Unitari (MCU):</strong><br>
-                    MCU = P - CVu = ${formatNum(preu)} - ${formatNum(cvu)} = <strong>${formatNum(mcu)} €/unitat</strong>
-                </div>
-                <div>
-                    <strong>3. Càlcul del Punt Mort (Q*):</strong><br>
-                    Q* = CF / MCU = ${formatNum(cfCalculat)} / ${formatNum(mcu)}${explArrodoniment}.
-                </div>`
-        };
-    }
-
     function generar() {
         document.getElementById('feedback').innerText = '';
         const resEl = document.getElementById('resolution');
@@ -791,7 +749,7 @@ const PRODUCTES = [
         const models = [
             generarModel1, generarModel2, generarModel3, generarModel4, generarModel5,
             generarModel6, generarModel7, generarModel8, generarModel9, generarModel10,
-            generarModel11, generarModel12, generarModel13, generarModel14
+            generarModel11, generarModel12, generarModel13
         ];
         
         const triat = randChoice(models);
