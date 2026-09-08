@@ -222,12 +222,15 @@
             
             text += `L'explotació del negoci durant els 2 anys de durada presenta aquestes dades: el preu de venda és de ${preu} euros, el cost variable unitari és de ${cvu} euros. `;
             
-            let cf1 = 3000;
+            let cf1 = (Math.floor(Math.random() * 4) + 4) * 500;
             if(Math.random() < 0.15) cf1 = (unitats * (preu - cvu)) + 500;
             q1 = (unitats * (preu - cvu)) - cf1;
 
-            let cf2 = 3000;
+            let cf2 = (Math.floor(Math.random() * 4) + 4) * 500;
             if(Math.random() < 0.15) cf2 = (unitats * (preu - cvu)) + 500;
+            while (cf2 === cf1) {
+                cf2 = (Math.floor(Math.random() * 5) + 3) * 500;
+            }
             q2 = (unitats * (preu - cvu)) - cf2;
             
             text += `Les unitats venudes són constants (${unitats} u.) però els costos fixos varien: any 1 (CF: ${cf1}€) i any 2 (CF: ${cf2}€). `;
