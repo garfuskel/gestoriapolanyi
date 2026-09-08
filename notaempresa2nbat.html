@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de la nota d'empresa (2n de batxillerat)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 580px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 12px;
+        }
+
+        .avaluacio-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+
+        .avaluacio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.05rem;
+        }
+
+        .weight-tag {
+            font-size: 0.8rem;
+            background-color: #e2e8f0;
+            color: #475569;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: normal;
+        }
+
+        .exam-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .exam-label {
+            font-size: 0.9rem;
+            color: #495057;
+            flex-grow: 1;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 7px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #004085;
+        }
+
+        .btn-add {
+            background-color: #e9ecef;
+            color: #2c3e50;
+            border: 1px solid #ced4da;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover {
+            background-color: #dee2e6;
+        }
+
+        .btn-remove {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .btn-remove:hover {
+            background-color: #bd2130;
+        }
+
+        .btn-calc {
+            width: 100%;
+            padding: 12px;
+            background-color: #004085;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-calc:hover {
+            background-color: #002752;
+        }
+
+        .resultat-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .resultat-sub {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: normal;
+            margin-top: 4px;
+        }
+
+        .aprovat {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .suspes {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Calculadora de la nota d'Empresa i disseny de models de negoci</h2>
+    
+    <form id="grade-form">
+        <div id="avaluacions-container"></div>
+        <button type="button" class="btn-calc" onclick="calcularNota()">Calcular Nota</button>
+    </form>
+
+    <div id="resultat" class="resultat-box"></div>
+</div>
+
+<script>
+    const AVALUACIONS = [
+        { id: 1, nom: "1a Avaluació", pes: 25 },
+        { id: 2, nom: "2a Avaluació", pes: 35 },
+        { id: 3, nom: "3a Avaluació", pes: 40 }
+    ];
+
+    function renderitzarAvaluacions() {
+        const container = document.getElementById('avaluacions-container');
+        container.innerHTML = '';
+
+        AVALUACIONS.forEach(aval => {
+            const block = document.createElement('div');
+            block.className = 'avaluacio-block';
+            block.innerHTML = `
+                <div class="avaluacio-header">
+                    <span>${aval.nom}</span>
+                    <span class="weight-tag">Pes sobre la nota global: ${aval.pes}%</span>
+                </div>
+                <div id="exams-container-${aval.id}"></div>
+                <button type="button" class="btn-add" onclick="afegirExamen(${aval.id})">+ Afegir examen</button>
+            `;
+            container.appendChild(block);
+
+            // Crea un primer examen per defecte a cada avaluació
+            crearFilaExamen(aval.id);
+        });
+
+        recalcularNomsExamens();
+    }
+
+    function crearFilaExamen(avalId) {
+        const container = document.getElementById(`exams-container-${avalId}`);
+        const row = document.createElement('div');
+        row.className = 'exam-row';
+        row.innerHTML = `
+            <span class="exam-label">Examen</span>
+            <input type="number" class="input-nota-${avalId}" min="0" max="10" step="0.01" placeholder="0-10">
+        `;
+        container.appendChild(row);
+    }
+
+    function afegirExamen(avalId) {
+        crearFilaExamen(avalId);
+        recalcularNomsExamens();
+    }
+
+    function eliminarExamen(btn, avalId) {
+        btn.parentElement.remove();
+        recalcularNomsExamens();
+    }
+
+    function recalcularNomsExamens() {
+        let comptadorGlobal = 1;
+
+        AVALUACIONS.forEach(aval => {
+            const container = document.getElementById(`exams-container-${aval.id}`);
+            if (!container) return;
+
+            const files = Array.from(container.children);
+
+            files.forEach(row => {
+                const label = row.querySelector('.exam-label');
+                if (label) {
+                    label.textContent = `Examen ${comptadorGlobal}`;
+                    comptadorGlobal++;
+                }
+
+                // Controla la visibilitat del botó d'eliminar per a aquesta avaluació
+                let btnRemove = row.querySelector('.btn-remove');
+                if (files.length > 1) {
+                    if (!btnRemove) {
+                        btnRemove = document.createElement('button');
+                        btnRemove.type = 'button';
+                        btnRemove.className = 'btn-remove';
+                        btnRemove.innerHTML = '&times;';
+                        btnRemove.onclick = function() { eliminarExamen(this, aval.id); };
+                        row.appendChild(btnRemove);
+                    }
+                } else if (btnRemove) {
+                    btnRemove.remove();
+                }
+            });
+        });
+    }
+
+    function calcularNota() {
+        let sumaPonderadaGlobal = 0;
+        let pesTotalCompletat = 0;
+        let esValid = true;
+        let hiHaValors = false;
+
+        AVALUACIONS.forEach(aval => {
+            const inputs = document.querySelectorAll(`.input-nota-${aval.id}`);
+            let sumaAvaluacio = 0;
+            let comptadorNotes = 0;
+
+            inputs.forEach(input => {
+                const valStr = input.value.trim();
+
+                if (valStr !== '') {
+                    const val = parseFloat(valStr);
+
+                    if (isNaN(val) || val < 0 || val > 10) {
+                        esValid = false;
+                        input.style.borderColor = '#dc3545';
+                    } else {
+                        input.style.borderColor = '#ccc';
+                        sumaAvaluacio += val;
+                        comptadorNotes++;
+                        hiHaValors = true;
+                    }
+                } else {
+                    input.style.borderColor = '#ccc';
+                }
+            });
+
+            if (comptadorNotes > 0) {
+                const mitjanaAvaluacio = sumaAvaluacio / comptadorNotes;
+                sumaPonderadaGlobal += mitjanaAvaluacio * (aval.pes / 100);
+                pesTotalCompletat += aval.pes;
+            }
+        });
+
+        const resBox = document.getElementById('resultat');
+
+        if (!esValid) {
+            resBox.className = 'resultat-box suspes';
+            resBox.innerHTML = 'Per favor, introdueix notes vàlides (entre 0 i 10)';
+            resBox.style.display = 'block';
+            return;
+        }
+
+        if (!hiHaValors) {
+            resBox.className = 'resultat-box suspes';
+            resBox.innerHTML = 'Introdueix com a mínim una nota per poder calcular la mitjana';
+            resBox.style.display = 'block';
+            return;
+        }
+
+        const notaFinal = (sumaPonderadaGlobal / pesTotalCompletat) * 100;
+
+        let notaFormatada;
+        if (Number(notaFinal.toFixed(2)) === 10) {
+            notaFormatada = "10";
+        } else {
+            notaFormatada = notaFinal.toFixed(2).replace('.', ',');
+        }
+
+        resBox.style.display = 'block';
+        const infoPes = `<span class="resultat-sub">Calculada sobre un ${pesTotalCompletat}% del total del curs</span>`;
+
+        if (notaFinal >= 5) {
+            resBox.className = 'resultat-box aprovat';
+            resBox.innerHTML = `Nota mitjana: ${notaFormatada} ${infoPes}`;
+        } else {
+            resBox.className = 'resultat-box suspes';
+            resBox.innerHTML = `Nota mitjana: ${notaFormatada} ${infoPes}`;
+        }
+    }
+
+    window.onload = renderitzarAvaluacions;
+</script>
+
+</body>
+</html>
