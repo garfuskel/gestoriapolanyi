@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de la nota d'economia (1r de batxillerat)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 550px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 12px;
+        }
+
+        .tema-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 10px;
+        }
+
+        .tema-label {
+            font-weight: 600;
+            color: #34495e;
+            flex-grow: 1;
+        }
+
+        .weight-tag {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 0.8rem;
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: normal;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #004085;
+        }
+
+        .btn-calc {
+            width: 100%;
+            padding: 12px;
+            background-color: #004085;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-calc:hover {
+            background-color: #002752;
+        }
+
+        .resultat-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .resultat-sub {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: normal;
+            margin-top: 4px;
+        }
+
+        .aprovat {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .suspes {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Calculadora de la nota d'economia</h2>
+    
+    <form id="grade-form">
+        <div id="temes-container"></div>
+        <button type="button" class="btn-calc" onclick="calcularNota()">Calcular Nota</button>
+    </form>
+
+    <div id="resultat" class="resultat-box"></div>
+</div>
+
+<script>
+    // Configura aquí els noms dels temes i els seus percentatges
+    const CONFIG_TEMES = [
+        { nom: "1. Com sobreviure en un món de recursos finits?", pes: 10 },
+        { nom: "2. Reparar la màquina o canviar de sistema?", pes: 8 },
+        { nom: "3. Per què pugen i baixen els preus?", pes: 8 },
+        { nom: "4. Lluitaries contra la desigualtat?", pes: 10 },
+        { nom: "5. Tens per viure o vius per tenir?", pes: 16 },
+        { nom: "6. Què faries amb 1.000 milions d’euros?", pes: 16 },
+        { nom: "7. Sembrar el present o hipotecar el futur?", pes: 16 },
+        { nom: "8. Ens enganen els economistes?", pes: 16 }
+    ];
+
+    function renderitzarFormulari() {
+        const container = document.getElementById('temes-container');
+        container.innerHTML = '';
+
+        CONFIG_TEMES.forEach((item, index) => {
+            const row = document.createElement('div');
+            row.className = 'tema-row';
+            row.innerHTML = `
+                <label class="tema-label" for="nota-${index}">
+                    <div>${item.nom}</div>
+                    <span class="weight-tag">Pes sobre la nota global: ${item.pes}%</span>
+                </label>
+                <input type="number" id="nota-${index}" min="0" max="10" step="0.01" placeholder="0-10">
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function calcularNota() {
+        let sumaPonderada = 0;
+        let pesTotalCompletat = 0;
+        let esValid = true;
+        let hiHaValors = false;
+
+        CONFIG_TEMES.forEach((item, index) => {
+            const input = document.getElementById(`nota-${index}`);
+            const valStr = input.value.trim();
+
+            if (valStr !== '') {
+                let val = parseFloat(valStr);
+
+                if (isNaN(val) || val < 0 || val > 10) {
+                    esValid = false;
+                    input.style.borderColor = '#dc3545';
+                } else {
+                    input.style.borderColor = '#ccc';
+                    
+                    // S'arrodoneix la nota al nombre sencer més proper abans de ponderar
+                    const notaSencera = Math.round(val);
+                    
+                    sumaPonderada += notaSencera * (item.pes / 100);
+                    pesTotalCompletat += item.pes;
+                    hiHaValors = true;
+                }
+            } else {
+                input.style.borderColor = '#ccc';
+            }
+        });
+
+        const resBox = document.getElementById('resultat');
+
+        if (!esValid) {
+            resBox.className = 'resultat-box suspes';
+            resBox.innerHTML = 'Per favor, introdueix notes vàlides (entre 0 i 10)';
+            resBox.style.display = 'block';
+            return;
+        }
+
+        if (!hiHaValors) {
+            resBox.className = 'resultat-box suspes';
+            resBox.innerHTML = 'Introdueix com a mínim una nota per poder calcular la mitjana';
+            resBox.style.display = 'block';
+            return;
+        }
+
+        // Calcula la nota proporcional sobre els temes introduïts
+        const notaFinal = (sumaPonderada / pesTotalCompletat) * 100;
+        
+        // Formata la nota amb coma decimal i cas especial per al 10
+        let notaFormatada;
+        if (Number(notaFinal.toFixed(2)) === 10) {
+            notaFormatada = "10";
+        } else {
+            notaFormatada = notaFinal.toFixed(2).replace('.', ',');
+        }
+        
+        resBox.style.display = 'block';
+
+        const infoPes = `<span class="resultat-sub">Calculada sobre un ${pesTotalCompletat}% del total</span>`;
+
+        if (notaFinal >= 5) {
+            resBox.className = 'resultat-box aprovat';
+            resBox.innerHTML = `Nota mitjana: ${notaFormatada} ${infoPes}`;
+        } else {
+            resBox.className = 'resultat-box suspes';
+            resBox.innerHTML = `Nota mitjana: ${notaFormatada} ${infoPes}`;
+        }
+    }
+
+    window.onload = renderitzarFormulari;
+</script>
+
+</body>
+</html>
