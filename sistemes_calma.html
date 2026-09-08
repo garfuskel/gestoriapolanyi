@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestoria Polanyi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #fcfcfc;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .card {
+            background: white;
+            padding: 40px;
+            width: 100%;
+            max-width: 850px;
+            min-height: 530px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; 
+            box-sizing: border-box;
+        }
+
+        .enunciat-container {
+            flex-grow: 1;
+            overflow-y: auto; 
+            padding-right: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .enunciat {
+            font-size: 1.35rem;
+            line-height: 1.8;
+            color: #333;
+            text-align: justify;
+            width: 100%;
+        }
+
+        .controls {
+            flex-shrink: 0;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        input {
+            padding: 10px;
+            width: 220px;
+            text-align: center;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            outline: none;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 25px;
+            cursor: pointer;
+            background: #333;
+            color: white;
+            border: none;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .btn-new {
+            background: none;
+            color: #888;
+            text-decoration: underline;
+            font-size: 0.8rem;
+            margin-top: 0;
+        }
+
+        /* Àrea de missatges */
+        .message-area {
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+        }
+
+        #feedback {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        #conclusion {
+            font-size: 0.95rem;
+            color: #333;
+            text-align: left;
+            line-height: 1.7;
+            margin-top: 15px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #333;
+            display: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        /* --- ADAPTACIÓ PER A MÒBILS --- */
+        @media (max-width: 600px) {
+            .card {
+                padding: 25px 20px;
+                min-height: auto;
+            }
+            .enunciat {
+                font-size: 1.15rem;
+            }
+            .controls {
+                align-items: stretch;
+            }
+            input {
+                width: auto;
+            }
+            button {
+                width: 100%;
+                font-size: 1rem;
+                padding: 12px 20px;
+            }
+            #conclusion {
+                font-size: 0.85rem;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="enunciat-container">
+        <div id="enunciat" class="enunciat"></div>
+    </div>
+    
+    <div class="controls">
+        <input type="text" id="user-input" placeholder="Punt mort (ex: 8000)">
+        <button onclick="comprovar()">Verificar</button>
+        <button class="btn-new" onclick="generar()">Generar un altre exercici</button>
+        
+        <div class="message-area">
+            <div id="feedback"></div>
+            <div id="conclusion"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let respostaCorrecta = 0; 
+    let dades = {};           
+
+    // Formatat en català limitant estrictament a 2 decimals
+    function formatNum(num) {
+        if (isNaN(num)) return "0";
+        return Number(num.toFixed(2)).toLocaleString('ca-ES', { maximumFractionDigits: 2 });
+    }
+
+    function generar() {
+        // Neteja interfície
+        document.getElementById('feedback').innerText = '';
+        const conclusionEl = document.getElementById('conclusion');
+        conclusionEl.innerText = '';
+        conclusionEl.style.display = 'none';
+        document.getElementById('user-input').value = '';
+
+        // 1. DIVERSIFICACIÓ D'ESCALES D'EMPRESA (Petita, Mitjana, Gran, Molt Gran)
+        const escala = Math.floor(Math.random() * 4); 
+        let preu, qStarStep, minQstar, maxQstar;
+
+        if (escala === 0) { // Escala Petita (Q* de 300 a 2.000 u.)
+            preu = Math.floor(Math.random() * 20) + 10; // Preu: 10 a 30 u.m.
+            minQstar = 300;
+            maxQstar = 2000;
+            qStarStep = 100;
+        } else if (escala === 1) { // Escala Mitjana (Q* de 2.500 a 12.000 u.)
+            preu = (Math.floor(Math.random() * 15) + 4) * 5; // Preu: 20 a 90 u.m.
+            minQstar = 2500;
+            maxQstar = 12000;
+            qStarStep = 100;
+        } else if (escala === 2) { // Escala Gran (Q* de 15.000 a 60.000 u.)
+            preu = Math.floor(Math.random() * 40) + 30; // Preu: 30 a 70 u.m.
+            minQstar = 15000;
+            maxQstar = 60000;
+            qStarStep = 500;
+        } else { // Escala Molt Gran (Q* de 70.000 a 250.000 u.)
+            preu = Math.floor(Math.random() * 80) + 50; // Preu: 50 a 130 u.m.
+            minQstar = 70000;
+            maxQstar = 250000;
+            qStarStep = 1000;
+        }
+
+        // 2. Cost Variable Unitari (CVU): Màxim 2 decimals nets
+        const opcionsPas = [0.10, 0.20, 0.25, 0.50, 0.75, 1.00, 2.00, 5.00];
+        const pasCVU = opcionsPas[Math.floor(Math.random() * opcionsPas.length)];
+        
+        const minCVU = Math.max(1, Math.round(preu * 0.20));
+        const maxCVU = Math.round(preu * 0.80);
+        
+        let cvu = Math.round((minCVU + Math.random() * (maxCVU - minCVU)) / pasCVU) * pasCVU;
+        cvu = Math.round(cvu * 100) / 100;
+        
+        if (cvu >= preu) cvu = preu - 1;
+
+        // 3. Marge de Cobertura Unitari (mcu = P - CVU)
+        let mcu = Math.round((preu - cvu) * 100) / 100;
+
+        // 4. Punt Mort (Q*): Generat segons l'escala seleccionada
+        let qStar = Math.round((minQstar + Math.random() * (maxQstar - minQstar)) / qStarStep) * qStarStep;
+
+        // 5. Costos Fixos (CF = Q* * mcu)
+        let cf = Math.round(qStar * mcu);
+
+        // 6. Generar Q1 i Q2 escalats proporcionalment
+        let q1 = 0;
+        const inclouPerdua = Math.random() < 0.7; // 70% inclou pèrdues inicials
+
+        if (inclouPerdua) {
+            let factorQ1 = (Math.floor(Math.random() * 6) + 2) / 10; // 0.2 a 0.7 de Q*
+            q1 = Math.round((qStar * factorQ1) / qStarStep) * qStarStep;
+            if (q1 <= 0) q1 = qStarStep;
+        } else {
+            let factorQ1 = (Math.floor(Math.random() * 3) + 11) / 10; // 1.1 a 1.3 de Q*
+            q1 = Math.round((qStar * factorQ1) / qStarStep) * qStarStep;
+        }
+
+        // Q2 > Q1 i Q2 > Q*
+        let minQ2 = Math.max(qStar, q1);
+        let factorQ2 = (Math.floor(Math.random() * 6) + 13) / 10; // 1.3 a 1.8 de minQ2
+        let q2 = Math.round((minQ2 * factorQ2) / qStarStep) * qStarStep;
+        if (q2 <= q1) q2 = q1 + (qStarStep * 2);
+
+        // 7. Beneficis B1 i B2
+        let b1 = Math.round(mcu * q1 - cf);
+        let b2 = Math.round(mcu * q2 - cf);
+
+        // Seguretat de restriccions econòmiques
+        if (cf <= 0 || cvu <= 0 || preu <= cvu || qStar <= 0 || b1 === b2) {
+            generar();
+            return;
+        }
+
+        // Desa de dades
+        respostaCorrecta = qStar;
+        dades = {
+            preu: preu,
+            cvu: cvu,
+            cf: cf,
+            mcu: mcu,
+            q1: q1,
+            b1: b1,
+            q2: q2,
+            b2: b2,
+            qStar: qStar
+        };
+
+        // Redacció de l'enunciat
+        let textB1 = b1 < 0 
+            ? `unes pèrdues de ${formatNum(Math.abs(b1))} unitats monetàries` 
+            : `un benefici de ${formatNum(b1)} unitats monetàries`;
+
+        let textB2 = b2 < 0 
+            ? `unes pèrdues de ${formatNum(Math.abs(b2))} unitats monetàries` 
+            : `un benefici de ${formatNum(b2)} unitats monetàries`;
+
+        let enunciatText = `Quan una empresa produeix (i ven) ${formatNum(q1)} unitats d’un producte obté ${textB1}. ` +
+            `Ara bé, quan aquesta empresa produeix (i ven) ${formatNum(q2)} unitats del mateix producte, obté ${textB2}. ` +
+            `Si se sap que el preu de venda unitari és de ${formatNum(preu)} unitats monetàries, calcula el punt mort d’aquesta empresa.`;
+
+        document.getElementById('enunciat').innerText = enunciatText;
+    }
+
+    function comprovar() {
+        let valInput = document.getElementById('user-input').value.trim();
+        const feedback = document.getElementById('feedback');
+        const conclusionEl = document.getElementById('conclusion');
+
+        if (valInput === "") {
+            feedback.style.color = "#e67e22"; 
+            feedback.innerText = "Introdueix una resposta";
+            conclusionEl.style.display = "none";
+            return;
+        }
+
+        // Normalització de punts de milers i comes decimals
+        let rawInput = valInput.replace(/\s/g, '');
+        if (rawInput.includes(',') && rawInput.includes('.')) {
+            rawInput = rawInput.replace(/\./g, '').replace(',', '.');
+        } else if (rawInput.includes(',')) {
+            rawInput = rawInput.replace(',', '.');
+        } else if (/^\d{1,3}\.\d{3}$/.test(rawInput)) {
+            rawInput = rawInput.replace('.', '');
+        }
+
+        const userVal = parseFloat(rawInput);
+        
+        if (isNaN(userVal)) {
+            feedback.style.color = "#e67e22";
+            feedback.innerText = "El format no és vàlid";
+            conclusionEl.style.display = "none";
+            return;
+        }
+
+        // Verificació d'exactitud
+        const esCorrecte = Math.abs(userVal - respostaCorrecta) < 0.01;
+
+        if (esCorrecte) {
+            feedback.style.color = "#27ae60"; 
+            feedback.innerText = "Correcte! El punt mort és de " + formatNum(respostaCorrecta) + " unitats.";
+        } else {
+            feedback.style.color = "#e74c3c"; 
+            feedback.innerText = "Incorrecte. El resultat era de " + formatNum(respostaCorrecta) + " unitats.";
+        }
+
+        // Resolució pas a pas
+        const d = dades;
+        const pq1 = d.preu * d.q1;
+        const pq2 = d.preu * d.q2;
+        const negB2 = -d.b2;
+        const negPQ2 = -pq2;
+        const sumL = d.b1 + negB2;
+        const sumC = pq1 + negPQ2;
+        const coeffCVu = d.q2 - d.q1;
+        const leftMoved = sumL - sumC;
+
+        conclusionEl.innerHTML = `
+            <strong>Com es resol?</strong><br>
+            Primer s’ordenen els elements necessaris per construir el sistema d’equacions:<br>
+            B1 &nbsp;= ${formatNum(d.b1)}<br>
+            Q1 &nbsp;= ${formatNum(d.q1)}<br>
+            B2 &nbsp;= ${formatNum(d.b2)}<br>
+            Q2 &nbsp;= ${formatNum(d.q2)}<br>
+            P &nbsp;&nbsp;= ${formatNum(d.preu)}<br><br>
+
+            <strong>Fórmula necessària:</strong><br>
+            B = P·Q - CF - CVu·Q<br><br>
+
+            <strong>Sistema d’equacions:</strong><br>
+            B1 = P·Q1 - CF - CVu·Q1<br>
+            B2 = P·Q2 - CF - CVu·Q2<br><br>
+
+            Tot seguit es mostren les passes per resoldre el sistema d’equacions emprant el mètode de reducció. D’aquesta manera, obtindrem les dues incògnites: CF i CVu. En tenir-les, es pot emprar la fórmula del punt mort i calcular el llindar de rendibilitat de l’empresa:<br><br>
+
+            ${formatNum(d.b1)} = ${formatNum(d.preu)}·${formatNum(d.q1)} - CF - CVu·${formatNum(d.q1)}<br>
+            ${formatNum(d.b2)} = ${formatNum(d.preu)}·${formatNum(d.q2)} - CF - CVu·${formatNum(d.q2)}<br><br>
+
+            ${formatNum(d.b1)} = ${formatNum(pq1)} - CF - CVu·${formatNum(d.q1)}<br>
+            ${formatNum(d.b2)} = ${formatNum(pq2)} - CF - CVu·${formatNum(d.q2)}<br><br>
+
+            ${formatNum(d.b1)} = ${formatNum(pq1)} - CF - CVu·${formatNum(d.q1)}<br>
+            ${formatNum(negB2)} = ${formatNum(negPQ2)} + CF + CVu·${formatNum(d.q2)} &nbsp;&nbsp;&nbsp;&nbsp; <i>Canvi de signe en la segona equació</i><br><br>
+
+            ${formatNum(sumL)} = ${formatNum(sumC)} + CVu·${formatNum(coeffCVu)} &nbsp;&nbsp;&nbsp;&nbsp; <i>Reducció a una sola equació (desapareix CF)</i><br><br>
+
+            ${formatNum(leftMoved)} = CVu·${formatNum(coeffCVu)}<br><br>
+
+            ${formatNum(leftMoved)} / ${formatNum(coeffCVu)} = CVu<br><br>
+
+            CVu = ${formatNum(d.cvu)} um &nbsp;&nbsp;&nbsp;&nbsp; <i>S’introdueix CVu a una equació per trobar CF</i><br>
+            CF = ${formatNum(d.cf)} um<br>
+            Q* = ${formatNum(d.cf)} / (${formatNum(d.preu)} - ${formatNum(d.cvu)}) = ${formatNum(d.qStar)} unitats<br><br>
+
+            Quan l’empresa produeix (i ven) ${formatNum(d.qStar)} unitats no té pèrdues, però tampoc guanys.
+        `;
+        conclusionEl.style.display = "block";
+    }
+
+    window.onload = generar;
+</script>
+</body>
+</html>
