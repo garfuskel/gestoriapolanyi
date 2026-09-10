@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repàs de Matemàtiques - 2n Batxillerat</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 650px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 12px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .checklist-group {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .exercise-box {
+            background-color: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .exercise-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .inputs-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        input[type="number"] {
+            width: 110px;
+            padding: 8px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #004085;
+        }
+
+        input[type="number"]:disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-color: #ced4da;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-generate {
+            background-color: #004085;
+            color: white;
+        }
+
+        .btn-generate:hover {
+            background-color: #002752;
+        }
+
+        .btn-check {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-check:hover {
+            background-color: #1e7e34;
+        }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            display: none;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .solution-text {
+            margin-top: 8px;
+            font-size: 0.92rem;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Repàs de Matemàtiques Bàsiques</h2>
+
+    <span class="section-title">Selecciona els tipus d'exercici:</span>
+    <div class="checklist-group">
+        <label class="checkbox-item">
+            <input type="checkbox" value="percentatges" checked> Percentatges
+        </label>
+        <label class="checkbox-item">
+            <input type="checkbox" value="regla3" checked> Regles de 3
+        </label>
+        <label class="checkbox-item">
+            <input type="checkbox" value="eq1" checked> Equacions de 1r grau
+        </label>
+        <label class="checkbox-item">
+            <input type="checkbox" value="eq2" checked> Equacions de 2n grau
+        </label>
+        <label class="checkbox-item">
+            <input type="checkbox" value="sistemes" checked> Sistemes d'equacions
+        </label>
+    </div>
+
+    <div class="exercise-box" id="exercise-box">
+        <div class="exercise-text" id="exercise-text">Prem "Generar exercici" per començar.</div>
+        <div class="inputs-container" id="inputs-container"></div>
+        
+        <div class="btn-group">
+            <button class="btn btn-generate" onclick="generarExercici()">Generar Exercici</button>
+            <button class="btn btn-check" id="btn-check" onclick="comprovarResposta()" style="display: none;">Comprovar</button>
+        </div>
+    </div>
+
+    <div id="feedback" class="feedback-box"></div>
+</div>
+
+<script>
+    let exerciciActual = null;
+
+    function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randNonZero(min, max) {
+        let v = 0;
+        while (v === 0) v = randInt(min, max);
+        return v;
+    }
+
+    function round2(val) {
+        return Math.round((val + Number.EPSILON) * 100) / 100;
+    }
+
+    function getRandomItem(arr) {
+        return arr[randInt(0, arr.length - 1)];
+    }
+
+    function formatTerm(coeff, variable = '', isFirst = false) {
+        if (coeff === 0) return '';
+
+        let sign = isFirst ? (coeff < 0 ? '-' : '') : (coeff < 0 ? '- ' : '+ ');
+        const absVal = Math.abs(coeff);
+        let numStr = absVal.toString();
+
+        if (variable !== '' && absVal === 1) {
+            numStr = '';
+        }
+
+        return `${sign}${numStr}${variable}`;
+    }
+
+    function generarExerciciPercentatges() {
+        const subTipus = randInt(1, 6);
+        let enunciat = "", res = 0, explicacio = "", sufis = "€";
+
+        const techItems = ["un ordinador portàtil", "una tauleta digital", "un telèfon intel·ligent", "un televisor 4K", "un patinet elèctric", "uns auriculars sense fil"];
+        const robaItems = ["unes sabates d'esport", "una jaqueta d'abric", "una motxilla de muntanya", "uns pantalons de marca", "un abric d'hivern"];
+        const serveisItems = ["un abonament de gimnàs", "un curs de programació en línia", "un bitllet d'avió", "una subscripció anual", "un lloguer de vacances"];
+        const llarItems = ["un elèctrodomèstic", "un instrument musical", "un sofà", "un joc de mobles de jardí"];
+
+        if (subTipus === 1) {
+            const item = getRandomItem([...techItems, ...llarItems]);
+            const base = randInt(2, 25) * 10;
+            const perc = [5, 10, 12, 15, 21, 25][randInt(0, 5)];
+            res = round2(base * (1 + perc / 100));
+            const taxaNom = perc === 21 ? "un IVA" : "un recàrrec de gestió";
+            enunciat = `El preu de ${item} és de ${base} € sense impostos ni taxes. Si se li aplica ${taxaNom} del ${perc}%, quin és el preu final?`;
+            explicacio = `Preu final = ${base} × (1 + ${perc}/100) = ${base} × ${(1 + perc/100).toFixed(2)} = ${res} €.`;
+        } 
+        else if (subTipus === 2) {
+            const item = getRandomItem([...robaItems, ...techItems]);
+            const base = randInt(3, 30) * 10;
+            const perc = [10, 15, 20, 25, 30, 40, 50][randInt(0, 6)];
+            res = round2(base * (1 - perc / 100));
+            enunciat = `Durant les rebaixes, ${item} costa originalment ${base} €. Si té un descompte aplicat del ${perc}%, quin és el preu final rebaixat?`;
+            explicacio = `Preu rebaixat = ${base} × (1 - ${perc}/100) = ${base} × ${(1 - perc/100).toFixed(2)} = ${res} €.`;
+        } 
+        else if (subTipus === 3) {
+            const item = getRandomItem([...serveisItems, ...llarItems]);
+            const base = randInt(4, 25) * 10;
+            const perc = [10, 20, 21, 25, 50][randInt(0, 4)];
+            const final = round2(base * (1 + perc / 100));
+            res = base;
+            enunciat = `Després d'aplicar un augment tarifari del ${perc}%, ${item} ha passat a costar ${final} €. Quin era el seu preu original abans de la pujada?`;
+            explicacio = `Preu inicial = ${final} / (1 + ${perc}/100) = ${final} / ${(1 + perc/100).toFixed(2)} = ${res} €.`;
+        } 
+        else if (subTipus === 4) {
+            const item = getRandomItem([...techItems, ...robaItems]);
+            const base = randInt(4, 25) * 10;
+            const perc = [10, 15, 20, 25, 30, 50][randInt(0, 5)];
+            const final = round2(base * (1 - perc / 100));
+            res = base;
+            enunciat = `Amb un descompte especial de la setmana del ${perc}%, ${item} es ven actualment per ${final} €. Quin era el preu sense la promocció?`;
+            explicacio = `Preu inicial = ${final} / (1 - ${perc}/100) = ${final} / ${(1 - perc/100).toFixed(2)} = ${res} €.`;
+        } 
+        else if (subTipus === 5) {
+            const item = getRandomItem([...serveisItems, ...robaItems]);
+            const base = randInt(5, 20) * 10;
+            const perc = [10, 15, 20, 25, 30, 40][randInt(0, 5)];
+            const esAugment = Math.random() > 0.5;
+            const final = esAugment ? round2(base * (1 + perc / 100)) : round2(base * (1 - perc / 100));
+            res = perc;
+            sufis = "%";
+
+            if (esAugment) {
+                enunciat = `La quota de ${item} valia ${base} € i ha passat a costar ${final} €. Quin percentatge d'increment s'hi ha aplicat?`;
+                explicacio = `Increment = ${final} - ${base} = ${round2(final - base)} €. Percentatge = (${round2(final - base)} / ${base}) × 100 = ${res}%.`;
+            } else {
+                enunciat = `El preu de ${item} era de ${base} € i actualment s'ofereix per ${final} €. Quin percentatge de descompte s'ha efectuat?`;
+                explicacio = `Descompte = ${base} - ${final} = ${round2(base - final)} €. Percentatge = (${round2(base - final)} / ${base}) × 100 = ${res}%.`;
+            }
+        } 
+        else {
+            const item = getRandomItem([...techItems, ...serveisItems]);
+            const base = randInt(2, 10) * 100;
+            const p1 = [10, 20, 25][randInt(0, 2)];
+            const p2 = [10, 20, 25][randInt(0, 2)];
+            const esPujadaDescompte = Math.random() > 0.5;
+
+            if (esPujadaDescompte) {
+                res = round2(base * (1 + p1 / 100) * (1 - p2 / 100));
+                enunciat = `La reserva de ${item} valia ${base} €. Primer va experimentar un increment del ${p1}% per temporada alta i posteriorment se li va aplicar un descompte del ${p2}% per ser soci. Quin és el preu final?`;
+                explicacio = `Preu final = ${base} × (1 + ${p1}/100) × (1 - ${p2}/100) = ${base} × ${(1 + p1/100).toFixed(2)} × ${(1 - p2/100).toFixed(2)} = ${res} €.`;
+            } else {
+                res = round2(base * (1 - p1 / 100) * (1 - p2 / 100));
+                enunciat = `En comprar ${item} de ${base} €, se li aplica una promocció del ${p1}% i posteriorment un descompte addicional del ${p2}% per pagament immediat. Quin és el preu final?`;
+                explicacio = `Preu final = ${base} × (1 - ${p1}/100) × (1 - ${p2}/100) = ${base} × ${(1 - p1/100).toFixed(2)} × ${(1 - p2/100).toFixed(2)} = ${res} €.`;
+            }
+        }
+
+        return { enunciat, respostaCorrecta: [res], explicacio, sufix: sufis };
+    }
+
+    function generarExerciciRegla3() {
+        const subTipus = randInt(1, 3);
+        let enunciat = "", res = 0, explicacio = "", sufis = "";
+
+        if (subTipus === 1) { // Proporcionalitat Directa
+            const schema = randInt(1, 5);
+
+            if (schema === 1) {
+                const l1 = randInt(4, 9);
+                const km1 = 100;
+                const km2 = randInt(3, 12) * 50;
+                res = round2((l1 * km2) / km1);
+                sufis = "litres";
+                enunciat = `Un vehicle gasta ${l1} litres de combustible per recórrer ${km1} km. Quants litres de combustible necessitarà per fer un trajecte de ${km2} km?`;
+                explicacio = `Proporcionalitat directa (a més distància, més combustible):<br>x = (${l1} × ${km2}) / ${km1} = ${res} litres.`;
+            } else if (schema === 2) {
+                const g1 = randInt(2, 5) * 100;
+                const r1 = randInt(2, 4);
+                const r2 = randInt(5, 10);
+                res = round2((g1 * r2) / r1);
+                sufis = "grams";
+                enunciat = `Per preparar una recepta de cuina per a ${r1} persones es necessiten ${g1} grams de farina. Quants grams es necessitaran si es vol adaptar la recepta per a ${r2} persones?`;
+                explicacio = `Proporcionalitat directa (a més racions, més ingredients):<br>x = (${g1} × ${r2}) / ${r1} = ${res} grams.`;
+            } else if (schema === 3) {
+                const pag = randInt(15, 40);
+                const t1 = randInt(2, 5);
+                const t2 = randInt(8, 20);
+                res = round2((pag * t2) / t1);
+                sufis = "pàgines";
+                enunciat = `Una impressora digital d'alta velocitat imprimeix ${pag} pàgines en ${t1} minuts. Quantes pàgines serà capaç d'imprimir en ${t2} minuts a aquest mateix ritme?`;
+                explicacio = `Proporcionalitat directa (a més temps, més pàgines imprimides):<br>x = (${pag} × ${t2}) / ${t1} = ${res} pàgines.`;
+            } else if (schema === 4) {
+                const h1 = randInt(4, 8);
+                const eur = h1 * randInt(12, 22);
+                const h2 = randInt(10, 25);
+                res = round2((eur * h2) / h1);
+                sufis = "€";
+                enunciat = `Un monitor de lleure cobra ${eur} € per treballar ${h1} hores en un casal d'estiu. Quant cobrarà si realitza una jornada de ${h2} hores?`;
+                explicacio = `Proporcionalitat directa (a més hores treballades, més sou):<br>x = (${eur} × ${h2}) / ${h1} = ${res} €.`;
+            } else {
+                const panells1 = randInt(4, 8);
+                const kwh = panells1 * randInt(3, 6);
+                const panells2 = randInt(9, 18);
+                res = round2((kwh * panells2) / panells1);
+                sufis = "kWh";
+                enunciat = `Una instal·lació solar de ${panells1} panells produeix un mitjà de ${kwh} kWh d'energia al dia. Quanta energia diària generaria una instal·lació ampliada a ${panells2} panells iguals?`;
+                explicacio = `Proporcionalitat directa (a més panells, més energia generada):<br>x = (${kwh} × ${panells2}) / ${panells1} = ${res} kWh.`;
+            }
+        } 
+        else if (subTipus === 2) { // Proporcionalitat Inversa
+            const schema = randInt(1, 4);
+
+            if (schema === 1) {
+                const equips = [
+                    { nom: "programadors", tasca: "desenvolupar una aplicació web" },
+                    { nom: "pintors", tasca: "pintar la façana d'un edifici" },
+                    { nom: "jardiners", tasca: "condicionar els jardins d'un paratge natural" },
+                    { nom: "arqueòlegs", tasca: "excavar una parcel·la d'un jaciment" },
+                    { nom: "operaris", tasca: "muntar l'escenari d'un festival" }
+                ];
+                const eq = getRandomItem(equips);
+                const o1 = randInt(2, 6);
+                const d1 = randInt(4, 10);
+                const k = o1 * d1; 
+                const divisors = [];
+                for (let i = 2; i <= 20; i++) {
+                    if (k % i === 0 && i !== o1) divisors.push(i);
+                }
+                const o2 = divisors.length > 0 ? divisors[randInt(0, divisors.length - 1)] : o1 + 2;
+                res = round2(k / o2);
+                sufis = "dies";
+                enunciat = `Un equip de ${o1} ${eq.nom} triga ${d1} dies a ${eq.tasca}. Quants dies trigarien ${o2} ${eq.nom} a fer la mateixa feina working al mateix ritme?`;
+                explicacio = `Proporcionalitat inversa (a més treballadors, menys temps necessari):<br>x = (${o1} × ${d1}) / ${o2} = ${res} dies.`;
+            } else if (schema === 2) {
+                const v1 = [60, 80, 90, 100, 120][randInt(0, 4)];
+                const t1 = randInt(2, 6);
+                const v2 = [50, 70, 80, 110, 130][randInt(0, 4)];
+                res = round2((v1 * t1) / v2);
+                sufis = "hores";
+                enunciat = `Un tren d'alta velocitat circula a ${v1} km/h i triga ${t1} hores a completar el seu trajecte. quantes hores trigaria a recórrer la mateixa distància si circulés a ${v2} km/h?`;
+                explicacio = `Proporcionalitat inversa (a més velocitat, menys temps de trajecte):<br>x = (${v1} × ${t1}) / ${v2} = ${res} hores.`;
+            } else if (schema === 3) {
+                const aix1 = randInt(2, 5);
+                const h1 = randInt(3, 8);
+                const k = aix1 * h1;
+                const divisors = [];
+                for (let i = 2; i <= 15; i++) {
+                    if (k % i === 0 && i !== aix1) divisors.push(i);
+                }
+                const aix2 = divisors.length > 0 ? divisors[randInt(0, divisors.length - 1)] : aix1 + 2;
+                res = round2(k / aix2);
+                sufis = "hores";
+                enunciat = `Per omplir un dipòsit d'aigua municipal s'utilitzen ${aix1} aixetes d'alt cabal durant ${h1} hores. Quantes hores es trigaria a omplir el mateix dipòsit si s'utilitzessin ${aix2} aixetes?`;
+                explicacio = `Proporcionalitat inversa (a més aixetes, menys temps per omplir):<br>x = (${aix1} × ${h1}) / ${aix2} = ${res} hores.`;
+            } else {
+                const ex1 = randInt(4, 10);
+                const d1 = randInt(6, 15);
+                const k = ex1 * d1;
+                const divisors = [];
+                for (let i = 2; i <= 20; i++) {
+                    if (k % i === 0 && i !== ex1) divisors.push(i);
+                }
+                const ex2 = divisors.length > 0 ? divisors[randInt(0, divisors.length - 1)] : ex1 + 3;
+                res = round2(k / ex2);
+                sufis = "dies";
+                enunciat = `Un grup de ${ex1} excursionistes en una expedició disposa de racions de menjar suficients per a ${d1} dies. Si el grup augmenta a ${ex2} persones, per a quants dies tindran racions?`;
+                explicacio = `Proporcionalitat inversa (a més persones, menys dies duraran les racions):<br>x = (${ex1} × ${d1}) / ${ex2} = ${res} dies.`;
+            }
+        } 
+        else { // Regla de 3 Composta
+            const schema = randInt(1, 4);
+
+            if (schema === 1) {
+                const m1 = randInt(2, 6);
+                const h1 = randInt(4, 8);
+                const p1 = m1 * h1 * randInt(10, 20);
+
+                const m2 = randInt(2, 8);
+                const h2 = randInt(3, 8);
+                const p2 = m2 * h2 * (p1 / (m1 * h1));
+
+                res = h2;
+                sufis = "hores";
+                enunciat = `Per fabricar ${p1} peces, ${m1} màquines d'una fàbrica han de funcionar durant ${h1} hores. Quantes hores hauran de funcionar ${m2} màquines per fabricar ${p2} peces?`;
+                explicacio = `Regla de 3 composta:<br>` +
+                             `• Màquines vs Hores ➔ Inversa (${m2}/${m1})<br>` +
+                             `• Peces vs Hores ➔ Directa (${p1}/${p2})<br>` +
+                             `Plantejament: ${h1} / x = (${m2} / ${m1}) × (${p1} / ${p2})<br>` +
+                             `x = (${h1} × ${m1} × ${p2}) / (${m2} × ${p1}) = ${res} hores.`;
+            } else if (schema === 2) {
+                const p1 = randInt(3, 6);
+                const d1 = randInt(4, 8);
+                const m1 = p1 * d1 * randInt(15, 25);
+
+                const p2 = randInt(2, 8);
+                const d2 = randInt(3, 10);
+                const m2 = p2 * d2 * (m1 / (p1 * d1));
+
+                res = round2(d2);
+                sufis = "dies";
+                enunciat = `Per pintar ${m1} m² de superfície, un equip de ${p1} pintors necessita ${d1} dies de feina. Quants dies trigaran ${p2} pintors a pintar ${m2} m² de parets?`;
+                explicacio = `Regla de 3 composta:<br>` +
+                             `• Pintors vs Dies ➔ Inversa (${p2}/${p1})<br>` +
+                             `• Metres² vs Dies ➔ Directa (${m1}/${m2})<br>` +
+                             `Plantejament: ${d1} / x = (${p2} / ${p1}) × (${m1} / ${m2})<br>` +
+                             `x = (${d1} × ${p1} × ${m2}) / (${p2} × ${m1}) = ${res} dies.`;
+            } else if (schema === 3) {
+                const h1 = randInt(20, 50);
+                const d1 = randInt(5, 10);
+                const l1 = h1 * d1 * randInt(10, 20);
+
+                const h2 = randInt(30, 80);
+                const d2 = randInt(4, 12);
+                const l2 = h2 * d2 * (l1 / (h1 * d1));
+
+                res = round2(d2);
+                sufis = "dies";
+                enunciat = `En un hotel amb ${h1} hostes allotjats, es consumeixen ${l1} litres d'aigua potable durant ${d1} dies. Quants dies duraran ${l2} litres d'aigua si l'hotel passa a tenir ${h2} hostes?`;
+                explicacio = `Regla de 3 composta:<br>` +
+                             `• Hostes vs Dies ➔ Inversa (${h2}/${h1})<br>` +
+                             `• Litres vs Dies ➔ Directa (${l1}/${l2})<br>` +
+                             `Plantejament: ${d1} / x = (${h2} / ${h1}) × (${l1} / ${l2})<br>` +
+                             `x = (${d1} × ${h1} × ${l2}) / (${h2} × ${l1}) = ${res} dies.`;
+            } else {
+                const f1 = randInt(2, 5);
+                const h1 = randInt(4, 8);
+                const k1 = f1 * h1 * randInt(30, 50);
+
+                const f2 = randInt(3, 7);
+                const h2 = randInt(3, 8);
+                const k2 = f2 * h2 * (k1 / (f1 * h1));
+
+                res = round2(h2);
+                sufis = "hores";
+                enunciat = `En un obrador artesà, ${f1} flequers triguen ${h1} hores a elaborar ${k1} kg de pa. Quantes hores trigaran ${f2} flequers a elaborar ${k2} kg de pa?`;
+                explicacio = `Regla de 3 composta:<br>` +
+                             `• Flequers vs Hores ➔ Inversa (${f2}/${f1})<br>` +
+                             `• Kg de pa vs Hores ➔ Directa (${k1}/${k2})<br>` +
+                             `Plantejament: ${h1} / x = (${f2} / ${f1}) × (${k1} / ${k2})<br>` +
+                             `x = (${h1} × ${f1} × ${k2}) / (${f2} × ${k1}) = ${res} hores.`;
+            }
+        }
+
+        return { enunciat, respostaCorrecta: [res], explicacio, sufix: sufis };
+    }
+
+    function generarExerciciEq1() {
+        const subTipus = randInt(1, 3);
+        let enunciat = "", res = 0, explicacio = "";
+        const permetDecimals = Math.random() < 0.6;
+
+        if (subTipus === 1) {
+            const a = randInt(2, 7);
+            const b = randInt(-15, 15);
+            let c;
+
+            if (!permetDecimals) {
+                const xExact = randInt(-10, 10);
+                c = a * xExact + b;
+                res = xExact;
+            } else {
+                c = randInt(-25, 25);
+                res = round2((c - b) / a);
+            }
+
+            enunciat = `Resol l'equació: ${formatTerm(a, 'x', true)} ${formatTerm(b)} = ${c}`;
+            explicacio = `${formatTerm(a, 'x', true)} = ${c} ${formatTerm(-b)} ➔ ${formatTerm(a, 'x', true)} = ${c - b} ➔ x = ${res}.`;
+        } 
+        else if (subTipus === 2) {
+            const esResta = Math.random() > 0.5;
+            const a = randInt(2, 8);
+            const b = randInt(1, 15);
+            let k;
+
+            if (!permetDecimals) {
+                let xExact = randInt(-10, 10);
+                if (xExact === b) xExact = b - 1;
+                const denom = esResta ? (b - xExact) : (xExact + b);
+                k = a * denom;
+                res = xExact;
+            } else {
+                k = randInt(10, 50);
+                res = esResta ? round2(b - (k / a)) : round2((k / a) - b);
+            }
+
+            if (esResta) {
+                enunciat = `Resol l'equació: ${a} = ${k} / (${b} - x)`;
+                explicacio = `Multipliquem pel denominador: ${a} · (${b} - x) = ${k}<br>` +
+                             `${a * b} - ${a}x = ${k} ➔ -${a}x = ${k - a * b} ➔ x = ${res}.`;
+            } else {
+                enunciat = `Resol l'equació: ${a} = ${k} / (x ${formatTerm(b)})`;
+                explicacio = `Multipliquem pel denominador: ${a} · (x ${formatTerm(b)}) = ${k}<br>` +
+                             `${formatTerm(a, 'x', true)} ${formatTerm(a * b)} = ${k} ➔ ${formatTerm(a, 'x', true)} = ${k - a * b} ➔ x = ${res}.`;
+            }
+        } 
+        else {
+            const a = randInt(-10, 10);
+            let diff = randInt(2, 8) * (Math.random() > 0.5 ? 1 : -1);
+            const b = a + diff;
+            let k;
+
+            if (!permetDecimals) {
+                let xExact = randInt(-10, 10);
+                while (xExact === 0) xExact = randInt(-10, 10);
+                k = diff * xExact;
+                res = xExact;
+            } else {
+                k = randInt(5, 35) * (Math.random() > 0.5 ? 1 : -1);
+                res = round2(k / diff);
+            }
+
+            enunciat = `Resol l'equació: ${k} / x ${formatTerm(a)} = ${b}`;
+            explicacio = `Aïllem la fracció: ${k} / x = ${b} ${formatTerm(-a)} ➔ ${k} / x = ${diff}<br>` +
+                         `Multipliquem per x: ${k} = ${formatTerm(diff, 'x', true)} ➔ x = ${k} / ${diff} = ${res}.`;
+        }
+
+        enunciat += `<br><small style="font-weight: normal; color: #64748b;">(Si el resultat no és enter, arrodoneix a 2 decimals)</small>`;
+
+        return { enunciat, respostaCorrecta: [res], explicacio };
+    }
+
+    function generarExerciciEq2() {
+        const subTipus = randInt(1, 3);
+        let enunciat = "", explicacio = "";
+        let x1, x2;
+
+        if (subTipus === 1) {
+            let a, b, k, delta;
+            do {
+                a = randInt(1, 3);
+                b = randInt(-9, 9);
+                k = randInt(-15, 15);
+                if (b === 0) b = 5;
+                if (k === 0) k = -4;
+                delta = b * b - 4 * a * k;
+            } while (delta <= 0);
+
+            const Aq = a, Bq = -b, Cq = k;
+            const r1 = (-Bq - Math.sqrt(delta)) / (2 * Aq);
+            const r2 = (-Bq + Math.sqrt(delta)) / (2 * Aq);
+
+            x1 = round2(Math.min(r1, r2));
+            x2 = round2(Math.max(r1, r2));
+
+            enunciat = `Resol l'equació: ${k} / x ${formatTerm(a, 'x')} = ${b}`;
+            explicacio = `1) Multipliquem per x: ${k} ${formatTerm(a, 'x²')} = ${formatTerm(b, 'x', true)}<br>` +
+                         `2) Reordenem: ${formatTerm(Aq, 'x²', true)} ${formatTerm(Bq, 'x')} ${formatTerm(Cq)} = 0<br>` +
+                         `3) Apliquem la fórmula (a=${Aq}, b=${Bq}, c=${Cq}):<br>` +
+                         `x = [${-Bq} ± √(${Bq}² - 4·${Aq}·(${Cq}))] / (2·${Aq}) = [${-Bq} ± √${delta}] / ${2*Aq}<br>` +
+                         `Solucions: x₁ = ${x1}, x₂ = ${x2}.`;
+        } 
+        else if (subTipus === 2) {
+            let A, B, C, delta;
+            do {
+                A = randInt(-12, 12);
+                if (A === 0) A = 8;
+                B = randInt(-6, 6);
+                C = randInt(-6, 6);
+                if (B === 0) B = 3;
+
+                const Bq = B + C;
+                const Cq = B * C - A;
+                delta = Bq * Bq - 4 * 1 * Cq;
+            } while (delta <= 0);
+
+            const Bq = B + C;
+            const Cq = B * C - A;
+
+            const r1 = (-Bq - Math.sqrt(delta)) / 2;
+            const r2 = (-Bq + Math.sqrt(delta)) / 2;
+
+            x1 = round2(Math.min(r1, r2));
+            x2 = round2(Math.max(r1, r2));
+
+            enunciat = `Resol l'equació: ${A} / (x ${formatTerm(B)}) = x ${formatTerm(C)}`;
+            explicacio = `1) Multipliquem pel denominador (x ${formatTerm(B)}): ${A} = (x ${formatTerm(B)})(x ${formatTerm(C)})<br>` +
+                         `2) Desenvolupem el producte: ${A} = x² ${formatTerm(Bq, 'x')} ${formatTerm(B*C)}<br>` +
+                         `3) Reordenem: x² ${formatTerm(Bq, 'x')} ${formatTerm(Cq)} = 0<br>` +
+                         `4) Apliquem la fórmula (a=1, b=${Bq}, c=${Cq}):<br>` +
+                         `x = [${-Bq} ± √(${Bq}² - 4·1·(${Cq}))] / 2 = [${-Bq} ± √${delta}] / 2<br>` +
+                         `Solucions: x₁ = ${x1}, x₂ = ${x2}.`;
+        } 
+        else {
+            let A, B, C, D, delta;
+            do {
+                C = randInt(1, 3);
+                A = randInt(-5, 5);
+                D = randInt(-5, 5);
+                B = randInt(-12, 12);
+                if (B === 0) B = 6;
+
+                const Bq = D - A;
+                const Cq = -B;
+                delta = Bq * Bq - 4 * C * Cq;
+            } while (delta <= 0);
+
+            const Aq = C;
+            const Bq = D - A;
+            const Cq = -B;
+
+            const r1 = (-Bq - Math.sqrt(delta)) / (2 * Aq);
+            const r2 = (-Bq + Math.sqrt(delta)) / (2 * Aq);
+
+            x1 = round2(Math.min(r1, r2));
+            x2 = round2(Math.max(r1, r2));
+
+            const numText = A === 0 ? `${B}` : `${formatTerm(A, 'x', true)} ${formatTerm(B)}`;
+
+            enunciat = `Resol l'equació: (${numText}) / x = ${formatTerm(C, 'x', true)} ${formatTerm(D)}`;
+            explicacio = `1) Multipliquem per x: ${numText} = ${formatTerm(C, 'x²', true)} ${formatTerm(D, 'x')}<br>` +
+                         `2) Reordenem a un costat: ${formatTerm(Aq, 'x²', true)} ${formatTerm(Bq, 'x')} ${formatTerm(Cq)} = 0<br>` +
+                         `3) Apliquem la fórmula (a=${Aq}, b=${Bq}, c=${Cq}):<br>` +
+                         `x = [${-Bq} ± √(${Bq}² - 4·${Aq}·(${Cq}))] / ${2*Aq} = [${-Bq} ± √${delta}] / ${2*Aq}<br>` +
+                         `Solucions: x₁ = ${x1}, x₂ = ${x2}.`;
+        }
+
+        enunciat += `<br><small style="font-weight: normal; color: #64748b;">(Si els resultats no són enters, arrodoneix a 2 decimals)</small>`;
+
+        return { enunciat, respostaCorrecta: [x1, x2], explicacio };
+    }
+
+    function generarExerciciSistemes() {
+        const subTipus = randInt(1, 3);
+        let enunciat = "", explicacio = "";
+
+        if (subTipus === 1) {
+            const x = randInt(-16, 16) * 0.25;
+            const y = randInt(-16, 16) * 0.25;
+
+            const a1 = randInt(2, 5), b1 = randInt(2, 5);
+            const a2 = randInt(2, 5), b2 = randInt(2, 5);
+            const k1 = randNonZero(-4, 4), m1 = randNonZero(-4, 4);
+            const k2 = randNonZero(-4, 4), m2 = randNonZero(-4, 4);
+
+            const C1 = round2(a1 * (x + k1) + b1 * (y + m1));
+            const C2 = round2(a2 * (x + k2) - b2 * (y + m2));
+
+            const ind1 = round2(C1 - a1 * k1 - b1 * m1);
+            const ind2 = round2(C2 - a2 * k2 + b2 * m2);
+
+            enunciat = `Resol el sistema:<br>` +
+                       `${a1}(x ${formatTerm(k1)}) ${formatTerm(b1)}(y ${formatTerm(m1)}) = ${C1}<br>` +
+                       `${a2}(x ${formatTerm(k2)}) - ${b2}(y ${formatTerm(m2)}) = ${C2}`;
+
+            explicacio = `1) Traiem parèntesis i agrupem termes:<br>` +
+                         `• Eq 1: ${formatTerm(a1, 'x', true)} ${formatTerm(a1*k1)} ${formatTerm(b1, 'y')} ${formatTerm(b1*m1)} = ${C1} ➔ ${formatTerm(a1, 'x', true)} ${formatTerm(b1, 'y')} = ${ind1}<br>` +
+                         `• Eq 2: ${formatTerm(a2, 'x', true)} ${formatTerm(a2*k2)} ${formatTerm(-b2, 'y')} ${formatTerm(-b2*m2)} = ${C2} ➔ ${formatTerm(a2, 'x', true)} ${formatTerm(-b2, 'y')} = ${ind2}<br>` +
+                         `2) Resolent el sistema simplificat s'obté exactament:<br>` +
+                         `<strong>x = ${x}</strong>, <strong>y = ${y}</strong>.`;
+
+            return { enunciat, respostaCorrecta: [x, y], explicacio };
+        } 
+        else if (subTipus === 2) {
+            const x = randInt(-16, 16) * 0.25;
+            const y = randInt(-16, 16) * 0.25;
+
+            const a1 = randInt(3, 6), b1 = randNonZero(-4, 4);
+            const c1 = randInt(1, 2), d1 = randNonZero(-3, 3);
+            const a2 = randInt(2, 4), b2 = randNonZero(-4, 4);
+            const k1 = randNonZero(-5, 5);
+
+            const A1 = a1 - c1;
+            const B1 = b1 - d1 !== 0 ? b1 - d1 : 1;
+            const C1 = round2(A1 * x + B1 * y + k1);
+            const C2 = round2(a2 * (x - y) + b2 * x);
+
+            enunciat = `Resol el sistema:<br>` +
+                       `${formatTerm(a1, 'x', true)} ${formatTerm(b1, 'y')} ${formatTerm(k1)} = ${formatTerm(c1, 'x', true)} ${formatTerm(d1, 'y')} ${formatTerm(C1)}<br>` +
+                       `${a2}(x - y) ${formatTerm(b2, 'x')} = ${C2}`;
+
+            const ind1 = round2(C1 - k1);
+            const A2 = a2 + b2;
+
+            explicacio = `1) Agrupem la x i la y a l'esquerra i els nombres a la dreta:<br>` +
+                         `• Eq 1: (${a1} - ${c1})x + (${b1} - ${d1})y = ${C1} - (${k1}) ➔ ${formatTerm(A1, 'x', true)} ${formatTerm(B1, 'y')} = ${ind1}<br>` +
+                         `• Eq 2: ${formatTerm(a2, 'x', true)} ${formatTerm(-a2, 'y')} ${formatTerm(b2, 'x')} = ${C2} ➔ ${formatTerm(A2, 'x', true)} ${formatTerm(-a2, 'y')} = ${C2}<br>` +
+                         `2) Resolent el sistema s'obté exactament:<br>` +
+                         `<strong>x = ${x}</strong>, <strong>y = ${y}</strong>.`;
+
+            return { enunciat, respostaCorrecta: [x, y], explicacio };
+        } 
+        else {
+            const x = randInt(-10, 10) * 0.5;
+            const y = randInt(-10, 10) * 0.5;
+
+            const d1 = 2, e1 = 2;
+            const d2 = 2;
+            const k1 = randNonZero(-3, 3);
+            const k2 = randNonZero(-4, 4);
+
+            const C1 = round2((x + k1) / d1 + y / e1);
+            const C2 = round2((2 * x - y) / d2 + k2);
+
+            enunciat = `Resol el sistema:<br>` +
+                       `(x ${formatTerm(k1)}) / ${d1} + y / ${e1} = ${C1}<br>` +
+                       `(2x - y) / ${d2} ${formatTerm(k2)} = ${C2}`;
+
+            const ind1 = round2(C1 * 2 - k1);
+            const ind2 = round2((C2 - k2) * 2);
+
+            explicacio = `1) Eliminem denominadors multiplicant per 2:<br>` +
+                         `• Eq 1 (×2): (x ${formatTerm(k1)}) + y = ${round2(C1*2)} ➔ x + y = ${ind1}<br>` +
+                         `• Eq 2 (×2): (2x - y) ${formatTerm(2*k2)} = ${round2(C2*2)} ➔ 2x - y = ${ind2}<br>` +
+                         `2) Solució exacta del sistema:<br>` +
+                         `<strong>x = ${x}</strong>, <strong>y = ${y}</strong>.`;
+
+            enunciat += `<br><small style="font-weight: normal; color: #64748b;">(Les solucions de x i y són exactes amb un màxim de 2 decimals)</small>`;
+
+            return { enunciat, respostaCorrecta: [x, y], explicacio };
+        }
+    }
+
+    function generarExercici() {
+        const opcions = Array.from(document.querySelectorAll('.checklist-group input:checked')).map(cb => cb.value);
+        const feedback = document.getElementById('feedback');
+        feedback.style.display = 'none';
+
+        if (opcions.length === 0) {
+            document.getElementById('exercise-text').textContent = "Si us plau, selecciona com a mínim un tipus d'exercici.";
+            document.getElementById('inputs-container').innerHTML = '';
+            document.getElementById('btn-check').style.display = 'none';
+            return;
+        }
+
+        const tipus = opcions[Math.floor(Math.random() * opcions.length)];
+        const container = document.getElementById('inputs-container');
+        container.innerHTML = '';
+        document.getElementById('btn-check').style.display = 'inline-block';
+
+        if (tipus === 'percentatges') {
+            const dada = generarExerciciPercentatges();
+            exerciciActual = { tipus: 'percentatges', respostaCorrecta: dada.respostaCorrecta, explicacio: dada.explicacio };
+            document.getElementById('exercise-text').innerHTML = dada.enunciat;
+            container.innerHTML = `<div class="input-group"><input type="number" id="ans1" step="any" placeholder="Resposta"> <span>${dada.sufix}</span></div>`;
+        } 
+        else if (tipus === 'regla3') {
+            const dada = generarExerciciRegla3();
+            exerciciActual = { tipus: 'regla3', respostaCorrecta: dada.respostaCorrecta, explicacio: dada.explicacio };
+            document.getElementById('exercise-text').innerHTML = dada.enunciat;
+            container.innerHTML = `<div class="input-group"><input type="number" id="ans1" step="any" placeholder="Resposta"> <span>${dada.sufix}</span></div>`;
+        } 
+        else if (tipus === 'eq1') {
+            const dada = generarExerciciEq1();
+            exerciciActual = { tipus: 'eq1', respostaCorrecta: dada.respostaCorrecta, explicacio: dada.explicacio };
+            document.getElementById('exercise-text').innerHTML = dada.enunciat;
+            container.innerHTML = `<div class="input-group">x = <input type="number" id="ans1" step="any" placeholder="ex: 2.33"></div>`;
+        } 
+        else if (tipus === 'eq2') {
+            const dada = generarExerciciEq2();
+            exerciciActual = { tipus: 'eq2', respostaCorrecta: dada.respostaCorrecta, explicacio: dada.explicacio };
+            document.getElementById('exercise-text').innerHTML = dada.enunciat;
+            container.innerHTML = `
+                <div class="input-group">x₁ = <input type="number" id="ans1" step="any" placeholder="ex: -1.25"></div>
+                <div class="input-group">x₂ = <input type="number" id="ans2" step="any" placeholder="ex: 3.41"></div>
+            `;
+        } 
+        else if (tipus === 'sistemes') {
+            const dada = generarExerciciSistemes();
+            exerciciActual = { tipus: 'sistemes', respostaCorrecta: dada.respostaCorrecta, explicacio: dada.explicacio };
+            document.getElementById('exercise-text').innerHTML = dada.enunciat;
+            container.innerHTML = `
+                <div class="input-group">x = <input type="number" id="ans1" step="any" placeholder="ex: 1.25"></div>
+                <div class="input-group">y = <input type="number" id="ans2" step="any" placeholder="ex: -2.5"></div>
+            `;
+        }
+    }
+
+    function comprovarResposta() {
+        if (!exerciciActual) return;
+
+        const inputs = Array.from(document.querySelectorAll('#inputs-container input'));
+        const feedback = document.getElementById('feedback');
+
+        const hiHaCampsBuits = inputs.some(input => input.value.trim() === '');
+        if (hiHaCampsBuits) {
+            feedback.style.display = 'block';
+            feedback.className = 'feedback-box warning';
+            feedback.innerHTML = `<strong>Atenció:</strong> Has d'introduir una resposta a totes les caselles abans de comprovar.`;
+            return;
+        }
+
+        inputs.forEach(input => input.disabled = true);
+        document.getElementById('btn-check').style.display = 'none';
+
+        let esCorrecte = false;
+
+        if (exerciciActual.tipus === 'eq2') {
+            const u1 = parseFloat(document.getElementById('ans1').value);
+            const u2 = parseFloat(document.getElementById('ans2').value);
+            const usuaris = [u1, u2].sort((a, b) => a - b);
+            
+            esCorrecte = !isNaN(u1) && !isNaN(u2) && 
+                         Math.abs(usuaris[0] - exerciciActual.respostaCorrecta[0]) < 0.011 &&
+                         Math.abs(usuaris[1] - exerciciActual.respostaCorrecta[1]) < 0.011;
+        } 
+        else if (exerciciActual.tipus === 'sistemes') {
+            const ux = parseFloat(document.getElementById('ans1').value);
+            const uy = parseFloat(document.getElementById('ans2').value);
+
+            esCorrecte = !isNaN(ux) && !isNaN(uy) &&
+                         Math.abs(ux - exerciciActual.respostaCorrecta[0]) < 0.011 &&
+                         Math.abs(uy - exerciciActual.respostaCorrecta[1]) < 0.011;
+        } 
+        else {
+            const u1 = parseFloat(document.getElementById('ans1').value);
+            esCorrecte = !isNaN(u1) && Math.abs(u1 - exerciciActual.respostaCorrecta[0]) < 0.011;
+        }
+
+        feedback.style.display = 'block';
+        if (esCorrecte) {
+            feedback.className = 'feedback-box correct';
+            feedback.innerHTML = `<strong>Correcte!</strong> Excel·lent feina.<div class="solution-text">${exerciciActual.explicacio}</div>`;
+        } else {
+            feedback.className = 'feedback-box incorrect';
+            feedback.innerHTML = `<strong>Incorrecte.</strong> Torna-ho a intentar en el pròxim exercici.<div class="solution-text"><strong>Solució:</strong> ${exerciciActual.explicacio}</div>`;
+        }
+    }
+</script>
+
+</body>
+</html>
